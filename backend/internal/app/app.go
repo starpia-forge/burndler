@@ -1,23 +1,13 @@
 package app
 
 import (
-	"context"
 	"fmt"
-	"log"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/burndler/burndler/internal/config"
-	"github.com/burndler/burndler/internal/handlers"
-	"github.com/burndler/burndler/internal/middleware"
 	"github.com/burndler/burndler/internal/models"
+	"github.com/burndler/burndler/internal/server"
 	"github.com/burndler/burndler/internal/services"
 	"github.com/burndler/burndler/internal/storage"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -117,90 +107,9 @@ func (a *App) Close() error {
 
 // Run starts the application and handles graceful shutdown
 func (a *App) Run() error {
-	// Setup router
-	router := a.setupRouter()
-
-	// Create HTTP server
-	httpServer := &http.Server{
-		Addr:         fmt.Sprintf(":%s", a.Config.ServerPort),
-		Handler:      router,
-		ReadTimeout:  a.Config.ServerReadTimeout,
-		WriteTimeout: a.Config.ServerWriteTimeout,
-	}
-
-	// Start server asynchronously
-	errChan := make(chan error, 1)
-	go func() {
-		log.Printf("Server starting on port %s", a.Config.ServerPort)
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			errChan <- err
-		}
-		close(errChan)
-	}()
-
-	// Wait for interrupt signal or server error
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-
-	select {
-	case err := <-errChan:
-		if err != nil {
-			return fmt.Errorf("server error: %w", err)
-		}
-	case <-quit:
-		log.Println("Shutting down server...")
-	}
-
-	// Graceful shutdown
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := httpServer.Shutdown(ctx); err != nil {
-		return fmt.Errorf("server forced to shutdown: %w", err)
-	}
-
-	log.Println("Server exited")
-	return nil
-}
-
-// setupRouter configures all routes and middleware
-func (a *App) setupRouter() *gin.Engine {
-	router := gin.Default()
-
-	// CORS middleware
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     a.Config.CORSAllowedOrigins,
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
-
-	// Initialize handlers
-	healthHandler := handlers.NewHealthHandler()
-	composeHandler := handlers.NewComposeHandler(a.Merger, a.Linter)
-	packageHandler := handlers.NewPackageHandler(a.Packager, a.DB)
-
-	// API v1 routes
-	v1 := router.Group("/api/v1")
-
-	// Public routes
-	v1.GET("/health", healthHandler.Health)
-
-	// Protected routes
-	protected := v1.Group("/")
-	protected.Use(middleware.JWTAuth(a.Config))
-
-	// Compose operations
-	protected.POST("/compose/merge", composeHandler.Merge)
-	protected.POST("/compose/lint", composeHandler.Lint)
-
-	// Package operations (Developer role only)
-	protected.POST("/build/package", middleware.RequireRole("Developer"), packageHandler.Create)
-	protected.GET("/build/status/:id", packageHandler.Status)
-
-	return router
+	// Create and run server
+	srv := server.New(a.Config, a.DB, a.Merger, a.Linter, a.Packager)
+	return srv.Run()
 }
 
 func initDB(cfg *config.Config) (*gorm.DB, error) {

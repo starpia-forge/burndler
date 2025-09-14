@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/burndler/burndler/internal/config"
+	"github.com/burndler/burndler/internal/services"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -95,8 +96,8 @@ func TestInitStorage_UnknownMode(t *testing.T) {
 }
 
 func TestApp_Run(t *testing.T) {
-	// Test that Run method handles server lifecycle correctly
-	// This is a simple test since we can't easily test the full signal handling
+	// Test that Run method delegates to server correctly
+	// This is a simple test since the actual server logic is tested in server_test.go
 
 	testApp := &App{
 		Config: &config.Config{
@@ -106,6 +107,9 @@ func TestApp_Run(t *testing.T) {
 			ServerWriteTimeout: 30 * time.Second,
 			CORSAllowedOrigins: []string{"http://localhost:3000"},
 		},
+		Merger:   &services.Merger{},
+		Linter:   &services.Linter{},
+		Packager: &services.Packager{},
 	}
 
 	// Start the app in a goroutine
