@@ -1,0 +1,11 @@
+# Guardrails — TL;DR
+- Backend: Go 1.22 + Gin; GORM + PostgreSQL only.
+- Frontend: React + Tailwind (TS).
+- Storage: S3-compatible by default, and Local FS mode for dev/offline; both implement the same interface and are env-switchable.
+- RBAC: Roles = Developer(RW), Engineer(R). Enforce at route level.
+- Compose/Packaging: Prebuilt images only; build: is forbidden. Prefer image@sha256.
+- Artifacts: Reproducible offline installer (tar.gz) with merged compose, images/*.tar, resources, .env.example, install.sh, verify.sh, manifest.json.
+- Secrets: Never commit secrets; use env/files/ Docker secrets.
+- Lint (must fail): unresolved env vars, host port collisions, any build:, invalid references.
+- Testing priority: compose merge / lint / packaging (unit + E2E).
+- If a request conflicts with these rules: warn → propose compliant alternative → abort non-compliant change. See ADR-001 (Merge), ADR-002 (Lint), ADR-003 (Packaging) for details.
