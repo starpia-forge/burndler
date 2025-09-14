@@ -1,7 +1,10 @@
 package app
 
 import (
+	"os"
+	"syscall"
 	"testing"
+	"time"
 
 	"github.com/burndler/burndler/internal/config"
 	"github.com/stretchr/testify/assert"
@@ -89,4 +92,39 @@ func TestInitStorage_UnknownMode(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, storage)
 	assert.Contains(t, err.Error(), "unknown storage mode")
+}
+
+func TestApp_Run(t *testing.T) {
+	// Test that Run method handles server lifecycle correctly
+	// This is a simple test since we can't easily test the full signal handling
+
+	testApp := &App{
+		Config: &config.Config{
+			ServerHost:         "localhost",
+			ServerPort:         "0", // Use port 0 to let OS assign available port
+			ServerReadTimeout:  30 * time.Second,
+			ServerWriteTimeout: 30 * time.Second,
+			CORSAllowedOrigins: []string{"http://localhost:3000"},
+		},
+	}
+
+	// Start the app in a goroutine
+	go func() {
+		// We expect this to block until interrupted
+		err := testApp.Run()
+		// Should exit cleanly when interrupted
+		assert.NoError(t, err)
+	}()
+
+	// Give the server time to start
+	time.Sleep(100 * time.Millisecond)
+
+	// Send interrupt signal to trigger shutdown
+	process, err := os.FindProcess(os.Getpid())
+	require.NoError(t, err)
+	err = process.Signal(syscall.SIGINT)
+	require.NoError(t, err)
+
+	// Give time for graceful shutdown
+	time.Sleep(200 * time.Millisecond)
 }
