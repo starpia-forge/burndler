@@ -57,7 +57,7 @@ export default function ComposeMerger() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-2xl font-bold text-gray-900">Compose Merger</h2>
         <p className="mt-1 text-sm text-gray-600">
           Merge multiple Docker Compose files with namespace prefixing and variable substitution
@@ -70,7 +70,7 @@ export default function ComposeMerger() {
           <h3 className="text-lg font-medium text-gray-900">Modules</h3>
           <button
             onClick={addModule}
-            className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all shadow-sm"
           >
             Add Module
           </button>
@@ -136,7 +136,7 @@ export default function ComposeMerger() {
         <button
           onClick={handleMerge}
           disabled={isLoading || modules.every((m) => !m.compose)}
-          className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md font-medium"
         >
           {isLoading ? 'Merging...' : 'Merge & Lint'}
         </button>

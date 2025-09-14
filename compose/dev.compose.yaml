@@ -33,7 +33,7 @@ services:
     container_name: burndler_backend
     working_dir: /app
     volumes:
-      - ./backend:/app
+      - ../backend:/app
       - go_modules:/go/pkg/mod
     command: |
       sh -c "
@@ -42,7 +42,7 @@ services:
         go install github.com/cosmtrek/air@latest &&
         air -c .air.toml || go run cmd/api/main.go
       "
-    env_file: .env
+    env_file: ../.env
     environment:
       - CGO_ENABLED=0
       - DB_HOST=postgres
@@ -61,18 +61,12 @@ services:
     container_name: burndler_frontend
     working_dir: /app
     volumes:
-      - ./frontend:/app
-      - node_modules:/app/node_modules
+      - ../frontend:/app
+      - /app/node_modules
     command: |
       sh -c "
-        if [ ! -f package.json ]; then
-          echo 'Initializing frontend...' &&
-          npm init -y &&
-          npm install vite @vitejs/plugin-react react react-dom &&
-          npm install -D typescript @types/react @types/react-dom tailwindcss postcss autoprefixer
-        fi &&
         npm install &&
-        npm run dev || npx vite
+        npm run dev
       "
     environment:
       - NODE_ENV=development
@@ -86,8 +80,6 @@ volumes:
   postgres_data:
     driver: local
   go_modules:
-    driver: local
-  node_modules:
     driver: local
 
 networks:
