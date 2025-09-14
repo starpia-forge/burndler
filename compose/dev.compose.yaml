@@ -1,0 +1,96 @@
+version: '3.9'
+
+# Development Compose File
+# STRICT RULES:
+# 1. NO build: directives - prebuilt images only
+# 2. Use image@sha256 for reproducibility
+# 3. Mount source code as volumes for hot reload
+# 4. Expose all ports for debugging
+# 5. Use .env for configuration
+
+services:
+  postgres:
+    # PostgreSQL 15 with pinned SHA256 for reproducibility
+    image: postgres:15@sha256:8e97b8526ed19304b144f7478bc9201646acf3d4fa44bddac203568a59b73e40
+    container_name: burndler_postgres
+    environment:
+      POSTGRES_DB: burndler_dev
+      POSTGRES_USER: ${DB_USER:-burndler}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-burndler}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    # Go 1.22 with pinned SHA256
+    image: golang:1.22-alpine@sha256:fc5e5848529786cf1136563452b33d713d5c60b2c787f6b2a077fa6eeefd9114
+    container_name: burndler_backend
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - go_modules:/go/pkg/mod
+    command: |
+      sh -c "
+        apk add --no-cache git &&
+        go mod download &&
+        go install github.com/cosmtrek/air@latest &&
+        air -c .air.toml || go run cmd/api/main.go
+      "
+    env_file: .env
+    environment:
+      - CGO_ENABLED=0
+      - DB_HOST=postgres
+      - STORAGE_MODE=${STORAGE_MODE:-local}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+      - "2345:2345"  # Delve debugger port
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    # Node 20 LTS with pinned SHA256
+    image: node:20-alpine@sha256:2d07db07a2df6830718ae2a47db6fedce6745f5bcd174c398f2adbda90f0dfb5
+    container_name: burndler_frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - node_modules:/app/node_modules
+    command: |
+      sh -c "
+        if [ ! -f package.json ]; then
+          echo 'Initializing frontend...' &&
+          npm init -y &&
+          npm install vite @vitejs/plugin-react react react-dom &&
+          npm install -D typescript @types/react @types/react-dom tailwindcss postcss autoprefixer
+        fi &&
+        npm install &&
+        npm run dev || npx vite
+      "
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:${SERVER_PORT:-8080}/api/v1
+    ports:
+      - "3000:3000"
+      - "5173:5173"  # Vite default port
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  go_modules:
+    driver: local
+  node_modules:
+    driver: local
+
+networks:
+  default:
+    name: burndler_network
+    driver: bridge
