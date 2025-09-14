@@ -1,0 +1,94 @@
+# Dependencies
+node_modules/
+/go/pkg/mod/
+vendor/
+
+# Build outputs
+dist/
+*.exe
+*.dll
+*.so
+*.dylib
+burndler-api
+burndler-merge
+burndler-lint
+burndler-package
+
+# Test coverage
+*.test
+*.out
+coverage.html
+coverage/
+.nyc_output/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+/temp/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Python (for any scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+env/
+
+# Go
+*.test
+*.prof
+go.work
+
+# Frontend
+/frontend/dist/
+/frontend/.vite/
+
+# Backend binaries
+/backend/burndler-api
+/backend/cmd/api/api
+
+# Tools binaries
+/tools/merge/burndler-merge
+/tools/lint/burndler-lint
+/tools/package/burndler-package
+
+# Test artifacts
+/test/**/*.tar.gz
+/test/**/*.tar
+
+# Build artifacts
+/dist/images/*.tar
+/dist/installers/*.tar.gz
+
+# Local storage (development)
+/storage/
+/var/
