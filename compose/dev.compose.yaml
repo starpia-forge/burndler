@@ -57,7 +57,7 @@ services:
 
   frontend:
     # Node 20 LTS with pinned SHA256
-    image: node:20-alpine@sha256:2d07db07a2df6830718ae2a47db6fedce6745f5bcd174c398f2adbda90f0dfb5
+    image: node:20-alpine
     container_name: burndler_frontend
     working_dir: /app
     volumes:
