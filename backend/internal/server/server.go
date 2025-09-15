@@ -21,22 +21,25 @@ import (
 
 // Server represents the HTTP server
 type Server struct {
-	config   *config.Config
-	db       *gorm.DB
-	merger   *services.Merger
-	linter   *services.Linter
-	packager *services.Packager
-	router   *gin.Engine
+	config      *config.Config
+	db          *gorm.DB
+	merger      *services.Merger
+	linter      *services.Linter
+	packager    *services.Packager
+	authService *services.AuthService
+	router      *gin.Engine
 }
 
 // New creates a new server instance
 func New(cfg *config.Config, db *gorm.DB, merger *services.Merger, linter *services.Linter, packager *services.Packager) *Server {
+	authService := services.NewAuthService(cfg, db)
 	s := &Server{
-		config:   cfg,
-		db:       db,
-		merger:   merger,
-		linter:   linter,
-		packager: packager,
+		config:      cfg,
+		db:          db,
+		merger:      merger,
+		linter:      linter,
+		packager:    packager,
+		authService: authService,
 	}
 	s.setupRouter()
 	return s
@@ -58,6 +61,7 @@ func (s *Server) setupRouter() {
 
 	// Initialize handlers
 	healthHandler := handlers.NewHealthHandler()
+	authHandler := handlers.NewAuthHandler(s.authService, s.db)
 	composeHandler := handlers.NewComposeHandler(s.merger, s.linter)
 	packageHandler := handlers.NewPackageHandler(s.packager, s.db)
 
@@ -66,6 +70,11 @@ func (s *Server) setupRouter() {
 
 	// Public routes
 	v1.GET("/health", healthHandler.Health)
+
+	// Authentication routes (public)
+	auth := v1.Group("/auth")
+	auth.POST("/login", authHandler.Login)
+	auth.POST("/refresh", authHandler.RefreshToken)
 
 	// Protected routes
 	protected := v1.Group("/")
