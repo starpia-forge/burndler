@@ -3,26 +3,137 @@ import DashboardLayout from './components/DashboardLayout'
 import Dashboard from './pages/Dashboard'
 import ComposeMerger from './components/ComposeMerger'
 import PackageBuilder from './components/PackageBuilder'
+import LoginPage from './components/LoginPage'
+import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider } from './hooks/useAuth'
+import { ThemeProvider } from './hooks/useTheme'
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <DashboardLayout>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/merge" element={<ComposeMerger />} />
-            <Route path="/package" element={<PackageBuilder />} />
-            <Route path="/lint" element={<div className="p-6 bg-white rounded-lg shadow"><h2 className="text-2xl font-bold mb-4">Lint Reports</h2><p className="text-gray-600">Lint reports feature coming soon...</p></div>} />
-            <Route path="/history" element={<div className="p-6 bg-white rounded-lg shadow"><h2 className="text-2xl font-bold mb-4">Build History</h2><p className="text-gray-600">Build history feature coming soon...</p></div>} />
-            <Route path="/cli" element={<div className="p-6 bg-white rounded-lg shadow"><h2 className="text-2xl font-bold mb-4">CLI Tools</h2><p className="text-gray-600">CLI tools documentation coming soon...</p></div>} />
-            <Route path="/rbac" element={<div className="p-6 bg-white rounded-lg shadow"><h2 className="text-2xl font-bold mb-4">RBAC Manager</h2><p className="text-gray-600">Role-based access control management coming soon...</p></div>} />
-            <Route path="/settings" element={<div className="p-6 bg-white rounded-lg shadow"><h2 className="text-2xl font-bold mb-4">Settings</h2><p className="text-gray-600">Settings page coming soon...</p></div>} />
+            {/* Public routes */}
+            <Route
+              path="/login"
+              element={
+                <ProtectedRoute requireAuth={false}>
+                  <LoginPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected routes */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Dashboard />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Dashboard />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/merge"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <ComposeMerger />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/package"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <PackageBuilder />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/lint"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <div className="p-6 bg-card rounded-lg shadow border border-border">
+                      <h2 className="text-2xl font-bold mb-4 text-foreground">Lint Reports</h2>
+                      <p className="text-muted-foreground">Lint reports feature coming soon...</p>
+                    </div>
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/history"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <div className="p-6 bg-card rounded-lg shadow border border-border">
+                      <h2 className="text-2xl font-bold mb-4 text-foreground">Build History</h2>
+                      <p className="text-muted-foreground">Build history feature coming soon...</p>
+                    </div>
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cli"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <div className="p-6 bg-card rounded-lg shadow border border-border">
+                      <h2 className="text-2xl font-bold mb-4 text-foreground">CLI Tools</h2>
+                      <p className="text-muted-foreground">CLI tools documentation coming soon...</p>
+                    </div>
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/rbac"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <div className="p-6 bg-card rounded-lg shadow border border-border">
+                      <h2 className="text-2xl font-bold mb-4 text-foreground">RBAC Manager</h2>
+                      <p className="text-muted-foreground">Role-based access control management coming soon...</p>
+                    </div>
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <div className="p-6 bg-card rounded-lg shadow border border-border">
+                      <h2 className="text-2xl font-bold mb-4 text-foreground">Settings</h2>
+                      <p className="text-muted-foreground">Settings page coming soon...</p>
+                    </div>
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
           </Routes>
-        </DashboardLayout>
-      </Router>
-    </AuthProvider>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 

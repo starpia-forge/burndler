@@ -2,7 +2,6 @@ import {
   CubeIcon,
   DocumentDuplicateIcon,
   DocumentCheckIcon,
-  ClockIcon,
   ChartBarIcon,
   ServerIcon,
   CheckCircleIcon,

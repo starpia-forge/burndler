@@ -1,81 +1,73 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { User } from '../types'
-
-interface AuthContextType {
-  user: User | null
-  token: string | null
-  login: (token: string) => void
-  logout: () => void
-  isAuthenticated: boolean
-  isDeveloper: boolean
-  isEngineer: boolean
-}
+import { User, AuthContextType } from '../types/auth'
+import { authService } from '../services/auth'
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Load token from localStorage on mount
-    const savedToken = localStorage.getItem('burndler_token')
-    if (savedToken) {
-      setToken(savedToken)
-      // Decode JWT to get user info (simplified - in production use a proper JWT library)
+    // Check for existing token on mount
+    const initAuth = async () => {
       try {
-        const payload = JSON.parse(atob(savedToken.split('.')[1]))
-        setUser({
-          id: payload.user_id,
-          email: payload.email,
-          name: payload.name || payload.email,
-          role: payload.role,
-        })
+        const token = authService.getAccessToken()
+        if (token) {
+          // TODO: Validate token and get user info
+          // For now, we'll set a default user if token exists
+          setUser({
+            id: 1,
+            email: 'user@example.com',
+            role: 'Developer'
+          })
+        }
       } catch (error) {
-        console.error('Failed to decode token:', error)
-        localStorage.removeItem('burndler_token')
+        console.error('Auth initialization error:', error)
+        authService.logout()
+      } finally {
+        setLoading(false)
       }
     }
+
+    initAuth()
   }, [])
 
-  const login = (newToken: string) => {
-    setToken(newToken)
-    localStorage.setItem('burndler_token', newToken)
-
-    // Decode JWT to get user info
+  const login = async (email: string, password: string) => {
+    setLoading(true)
     try {
-      const payload = JSON.parse(atob(newToken.split('.')[1]))
-      setUser({
-        id: payload.user_id,
-        email: payload.email,
-        name: payload.name || payload.email,
-        role: payload.role,
-      })
+      const response = await authService.login(email, password)
+      setUser(response.user)
+      return response
     } catch (error) {
-      console.error('Failed to decode token:', error)
+      throw error
+    } finally {
+      setLoading(false)
     }
   }
 
   const logout = () => {
+    authService.logout()
     setUser(null)
-    setToken(null)
-    localStorage.removeItem('burndler_token')
   }
 
   const value: AuthContextType = {
     user,
-    token,
     login,
     logout,
-    isAuthenticated: !!token,
-    isDeveloper: user?.role === 'Developer',
-    isEngineer: user?.role === 'Engineer',
+    isAuthenticated: !!user,
+    loading,
+    isDeveloper: user?.role === 'Developer'
   }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext)
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider')

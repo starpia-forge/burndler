@@ -8,12 +8,13 @@ import {
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { useAuth } from '../hooks/useAuth'
+import ThemeToggle from './ThemeToggle'
 
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth()
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-background border-b border-border shadow-sm">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Project Name */}
@@ -22,24 +23,25 @@ export default function Header() {
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-lg">B</span>
               </div>
-              <h1 className="ml-3 text-xl font-semibold text-gray-900">Burndler</h1>
+              <h1 className="ml-3 text-xl font-semibold text-foreground">Burndler</h1>
             </div>
           </div>
 
           {/* User Menu */}
-          <div className="flex items-center">
+          <div className="flex items-center space-x-4">
+            <ThemeToggle />
             {isAuthenticated ? (
               <Menu as="div" className="relative">
-                <Menu.Button className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                  <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                <Menu.Button className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                  <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent transition-colors">
                     <div className="text-right hidden sm:block">
-                      <p className="text-sm font-medium text-gray-900">{user?.name || user?.email}</p>
-                      <p className="text-xs text-gray-500">{user?.role}</p>
+                      <p className="text-sm font-medium text-foreground">{user?.name || user?.email}</p>
+                      <p className="text-xs text-muted-foreground">{user?.role}</p>
                     </div>
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
                       <UserIcon className="w-6 h-6 text-white" />
                     </div>
-                    <ChevronDownIcon className="w-5 h-5 text-gray-400" />
+                    <ChevronDownIcon className="w-5 h-5 text-muted-foreground" />
                   </div>
                 </Menu.Button>
 
@@ -52,11 +54,11 @@ export default function Header() {
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
                 >
-                  <Menu.Items className="absolute right-0 mt-2 w-56 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  <Menu.Items className="absolute right-0 mt-2 w-56 rounded-lg bg-popover border border-border shadow-lg focus:outline-none">
                     <div className="p-1">
-                      <div className="px-3 py-2 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900">{user?.email}</p>
-                        <p className="text-xs text-gray-500 mt-1">
+                      <div className="px-3 py-2 border-b border-border">
+                        <p className="text-sm font-medium text-foreground">{user?.email}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                             user?.role === 'Developer'
                               ? 'bg-green-100 text-green-800'
@@ -71,10 +73,10 @@ export default function Header() {
                         {({ active }) => (
                           <button
                             className={`${
-                              active ? 'bg-gray-50' : ''
-                            } group flex w-full items-center rounded-md px-3 py-2 text-sm text-gray-700`}
+                              active ? 'bg-accent' : ''
+                            } group flex w-full items-center rounded-md px-3 py-2 text-sm text-foreground`}
                           >
-                            <UserCircleIcon className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+                            <UserCircleIcon className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-foreground" />
                             Profile
                           </button>
                         )}
@@ -84,25 +86,25 @@ export default function Header() {
                         {({ active }) => (
                           <button
                             className={`${
-                              active ? 'bg-gray-50' : ''
-                            } group flex w-full items-center rounded-md px-3 py-2 text-sm text-gray-700`}
+                              active ? 'bg-accent' : ''
+                            } group flex w-full items-center rounded-md px-3 py-2 text-sm text-foreground`}
                           >
-                            <Cog6ToothIcon className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+                            <Cog6ToothIcon className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-foreground" />
                             Settings
                           </button>
                         )}
                       </Menu.Item>
 
-                      <div className="border-t border-gray-100 mt-1 pt-1">
+                      <div className="border-t border-border mt-1 pt-1">
                         <Menu.Item>
                           {({ active }) => (
                             <button
                               onClick={logout}
                               className={`${
-                                active ? 'bg-gray-50' : ''
-                              } group flex w-full items-center rounded-md px-3 py-2 text-sm text-gray-700`}
+                                active ? 'bg-accent' : ''
+                              } group flex w-full items-center rounded-md px-3 py-2 text-sm text-foreground`}
                             >
-                              <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+                              <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-foreground" />
                               Sign out
                             </button>
                           )}
@@ -113,7 +115,7 @@ export default function Header() {
                 </Transition>
               </Menu>
             ) : (
-              <button className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all">
+              <button className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-primary-500 text-primary-foreground font-medium hover:bg-primary-600 transition-all">
                 <ArrowRightOnRectangleIcon className="w-5 h-5" />
                 <span>Sign In</span>
               </button>
