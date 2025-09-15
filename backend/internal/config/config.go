@@ -20,29 +20,29 @@ type Config struct {
 	DBConnectionLifetime time.Duration
 
 	// Storage
-	StorageMode        string
-	S3Endpoint         string
-	S3Region           string
-	S3Bucket           string
-	S3AccessKeyID      string
-	S3SecretAccessKey  string
-	S3UseSSL           bool
-	S3PathPrefix       string
-	LocalStoragePath   string
+	StorageMode         string
+	S3Endpoint          string
+	S3Region            string
+	S3Bucket            string
+	S3AccessKeyID       string
+	S3SecretAccessKey   string
+	S3UseSSL            bool
+	S3PathPrefix        string
+	LocalStoragePath    string
 	LocalStorageMaxSize string
 
 	// JWT
 	JWTSecret            string
-	JWTIssuer           string
-	JWTAudience         string
-	JWTExpiration       time.Duration
+	JWTIssuer            string
+	JWTAudience          string
+	JWTExpiration        time.Duration
 	JWTRefreshExpiration time.Duration
 
 	// Server
-	ServerPort          string
-	ServerHost          string
-	ServerReadTimeout   time.Duration
-	ServerWriteTimeout  time.Duration
+	ServerPort           string
+	ServerHost           string
+	ServerReadTimeout    time.Duration
+	ServerWriteTimeout   time.Duration
 	ServerMaxRequestSize int64
 
 	// CORS
@@ -86,16 +86,16 @@ func Load() *Config {
 
 		// JWT
 		JWTSecret:            getEnv("JWT_SECRET", "changeme-generate-secure-secret"),
-		JWTIssuer:           getEnv("JWT_ISSUER", "burndler"),
-		JWTAudience:         getEnv("JWT_AUDIENCE", "burndler-api"),
-		JWTExpiration:       getEnvAsDuration("JWT_EXPIRATION", "24h"),
+		JWTIssuer:            getEnv("JWT_ISSUER", "burndler"),
+		JWTAudience:          getEnv("JWT_AUDIENCE", "burndler-api"),
+		JWTExpiration:        getEnvAsDuration("JWT_EXPIRATION", "24h"),
 		JWTRefreshExpiration: getEnvAsDuration("JWT_REFRESH_EXPIRATION", "168h"),
 
 		// Server
-		ServerPort:          getEnv("SERVER_PORT", "8080"),
-		ServerHost:          getEnv("SERVER_HOST", "0.0.0.0"),
-		ServerReadTimeout:   getEnvAsDuration("SERVER_READ_TIMEOUT", "30s"),
-		ServerWriteTimeout:  getEnvAsDuration("SERVER_WRITE_TIMEOUT", "30s"),
+		ServerPort:           getEnv("SERVER_PORT", "8080"),
+		ServerHost:           getEnv("SERVER_HOST", "0.0.0.0"),
+		ServerReadTimeout:    getEnvAsDuration("SERVER_READ_TIMEOUT", "30s"),
+		ServerWriteTimeout:   getEnvAsDuration("SERVER_WRITE_TIMEOUT", "30s"),
 		ServerMaxRequestSize: getEnvAsInt64("SERVER_MAX_REQUEST_SIZE", 100*1024*1024), // 100MB
 
 		// CORS
