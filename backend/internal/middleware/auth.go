@@ -5,17 +5,10 @@ import (
 	"strings"
 
 	"github.com/burndler/burndler/internal/config"
+	"github.com/burndler/burndler/internal/services"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
-
-// Claims represents JWT claims with user role
-type Claims struct {
-	UserID string `json:"user_id"`
-	Email  string `json:"email"`
-	Role   string `json:"role"` // Developer, Engineer, or Admin
-	jwt.RegisteredClaims
-}
 
 // JWTAuth middleware validates JWT tokens
 func JWTAuth(cfg *config.Config) gin.HandlerFunc {
@@ -45,7 +38,7 @@ func JWTAuth(cfg *config.Config) gin.HandlerFunc {
 		tokenString := parts[1]
 
 		// Parse and validate token
-		token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(tokenString, &services.Claims{}, func(token *jwt.Token) (interface{}, error) {
 			// Validate signing method
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, jwt.ErrSignatureInvalid
@@ -63,7 +56,7 @@ func JWTAuth(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		// Extract claims
-		claims, ok := token.Claims.(*Claims)
+		claims, ok := token.Claims.(*services.Claims)
 		if !ok || !token.Valid {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error":   "INVALID_CLAIMS",

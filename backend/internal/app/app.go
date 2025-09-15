@@ -34,7 +34,7 @@ func New() (*App, error) {
 	}
 
 	// Run migrations
-	if err := db.AutoMigrate(&models.User{}, &models.Build{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Build{}, &models.Setup{}); err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
 
@@ -68,7 +68,7 @@ func NewWithConfig(cfg *config.Config) (*App, error) {
 	}
 
 	// Run migrations
-	if err := db.AutoMigrate(&models.User{}, &models.Build{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Build{}, &models.Setup{}); err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
 

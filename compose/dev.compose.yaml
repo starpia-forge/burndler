@@ -11,10 +11,10 @@ version: '3.9'
 services:
   postgres:
     # PostgreSQL 15 with pinned SHA256 for reproducibility
-    image: postgres:15@sha256:8e97b8526ed19304b144f7478bc9201646acf3d4fa44bddac203568a59b73e40
+    image: postgres:15
     container_name: burndler_postgres
     environment:
-      POSTGRES_DB: burndler_dev
+      POSTGRES_DB: ${DB_NAME:-burndler}
       POSTGRES_USER: ${DB_USER:-burndler}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
     volumes:

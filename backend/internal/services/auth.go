@@ -7,11 +7,18 @@ import (
 	"time"
 
 	"github.com/burndler/burndler/internal/config"
-	"github.com/burndler/burndler/internal/middleware"
 	"github.com/burndler/burndler/internal/models"
 	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 )
+
+// Claims represents JWT claims with user role
+type Claims struct {
+	UserID string `json:"user_id"`
+	Email  string `json:"email"`
+	Role   string `json:"role"` // Developer, Engineer, or Admin
+	jwt.RegisteredClaims
+}
 
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
@@ -36,7 +43,7 @@ func NewAuthService(cfg *config.Config, db *gorm.DB) *AuthService {
 
 // GenerateToken creates a JWT access token for the user
 func (a *AuthService) GenerateToken(user *models.User) (string, error) {
-	claims := &middleware.Claims{
+	claims := &Claims{
 		UserID: strconv.FormatUint(uint64(user.ID), 10),
 		Email:  user.Email,
 		Role:   user.Role,
@@ -55,7 +62,7 @@ func (a *AuthService) GenerateToken(user *models.User) (string, error) {
 
 // GenerateRefreshToken creates a JWT refresh token for the user
 func (a *AuthService) GenerateRefreshToken(user *models.User) (string, error) {
-	claims := &middleware.Claims{
+	claims := &Claims{
 		UserID: strconv.FormatUint(uint64(user.ID), 10),
 		Email:  user.Email,
 		Role:   user.Role,
@@ -101,12 +108,12 @@ func (a *AuthService) AuthenticateUser(email, password string) (*models.User, er
 }
 
 // ValidateToken parses and validates a JWT token, returning the claims
-func (a *AuthService) ValidateToken(tokenString string) (*middleware.Claims, error) {
+func (a *AuthService) ValidateToken(tokenString string) (*Claims, error) {
 	if tokenString == "" {
 		return nil, ErrInvalidToken
 	}
 
-	token, err := jwt.ParseWithClaims(tokenString, &middleware.Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		// Validate signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -118,7 +125,7 @@ func (a *AuthService) ValidateToken(tokenString string) (*middleware.Claims, err
 		return nil, fmt.Errorf("token parsing error: %w", err)
 	}
 
-	claims, ok := token.Claims.(*middleware.Claims)
+	claims, ok := token.Claims.(*Claims)
 	if !ok || !token.Valid {
 		return nil, ErrInvalidToken
 	}

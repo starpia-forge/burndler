@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/burndler/burndler/internal/config"
+	"github.com/burndler/burndler/internal/services"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -49,7 +50,7 @@ func TestJWTAuth(t *testing.T) {
 		{
 			name: "valid token with Developer role",
 			setupToken: func() string {
-				claims := &Claims{
+				claims := &services.Claims{
 					UserID: "123",
 					Email:  "dev@example.com",
 					Role:   "Developer",
@@ -68,7 +69,7 @@ func TestJWTAuth(t *testing.T) {
 		{
 			name: "valid token with Engineer role",
 			setupToken: func() string {
-				claims := &Claims{
+				claims := &services.Claims{
 					UserID: "456",
 					Email:  "eng@example.com",
 					Role:   "Engineer",
@@ -87,7 +88,7 @@ func TestJWTAuth(t *testing.T) {
 		{
 			name: "valid token with Admin role",
 			setupToken: func() string {
-				claims := &Claims{
+				claims := &services.Claims{
 					UserID: "789",
 					Email:  "admin@example.com",
 					Role:   "Admin",
@@ -106,7 +107,7 @@ func TestJWTAuth(t *testing.T) {
 		{
 			name: "expired token",
 			setupToken: func() string {
-				claims := &Claims{
+				claims := &services.Claims{
 					UserID: "123",
 					Email:  "dev@example.com",
 					Role:   "Developer",
@@ -126,7 +127,7 @@ func TestJWTAuth(t *testing.T) {
 		{
 			name: "wrong issuer",
 			setupToken: func() string {
-				claims := &Claims{
+				claims := &services.Claims{
 					UserID: "123",
 					Email:  "dev@example.com",
 					Role:   "Developer",
@@ -146,7 +147,7 @@ func TestJWTAuth(t *testing.T) {
 		{
 			name: "wrong audience",
 			setupToken: func() string {
-				claims := &Claims{
+				claims := &services.Claims{
 					UserID: "123",
 					Email:  "dev@example.com",
 					Role:   "Developer",
@@ -166,7 +167,7 @@ func TestJWTAuth(t *testing.T) {
 		{
 			name: "invalid role",
 			setupToken: func() string {
-				claims := &Claims{
+				claims := &services.Claims{
 					UserID: "123",
 					Email:  "user@example.com",
 					Role:   "User", // Invalid role
@@ -192,7 +193,7 @@ func TestJWTAuth(t *testing.T) {
 		{
 			name: "token signed with wrong secret",
 			setupToken: func() string {
-				claims := &Claims{
+				claims := &services.Claims{
 					UserID: "123",
 					Email:  "dev@example.com",
 					Role:   "Developer",

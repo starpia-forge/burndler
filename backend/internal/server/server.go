@@ -21,25 +21,28 @@ import (
 
 // Server represents the HTTP server
 type Server struct {
-	config      *config.Config
-	db          *gorm.DB
-	merger      *services.Merger
-	linter      *services.Linter
-	packager    *services.Packager
-	authService *services.AuthService
-	router      *gin.Engine
+	config       *config.Config
+	db           *gorm.DB
+	merger       *services.Merger
+	linter       *services.Linter
+	packager     *services.Packager
+	authService  *services.AuthService
+	setupService *services.SetupService
+	router       *gin.Engine
 }
 
 // New creates a new server instance
 func New(cfg *config.Config, db *gorm.DB, merger *services.Merger, linter *services.Linter, packager *services.Packager) *Server {
 	authService := services.NewAuthService(cfg, db)
+	setupService := services.NewSetupService(db, cfg)
 	s := &Server{
-		config:      cfg,
-		db:          db,
-		merger:      merger,
-		linter:      linter,
-		packager:    packager,
-		authService: authService,
+		config:       cfg,
+		db:           db,
+		merger:       merger,
+		linter:       linter,
+		packager:     packager,
+		authService:  authService,
+		setupService: setupService,
 	}
 	s.setupRouter()
 	return s
@@ -62,16 +65,28 @@ func (s *Server) setupRouter() {
 	// Initialize handlers
 	healthHandler := handlers.NewHealthHandler()
 	authHandler := handlers.NewAuthHandler(s.authService, s.db)
+	setupHandler := handlers.NewSetupHandler(s.setupService, s.db)
 	composeHandler := handlers.NewComposeHandler(s.merger, s.linter)
 	packageHandler := handlers.NewPackageHandler(s.packager, s.db)
 
 	// API v1 routes
 	v1 := s.router.Group("/api/v1")
 
-	// Public routes
+	// Setup middleware - protect all routes except setup and health
+	v1.Use(middleware.SetupGuard(s.setupService))
+
+	// Public routes (always accessible)
 	v1.GET("/health", healthHandler.Health)
 
-	// Authentication routes (public)
+	// Setup routes (accessible during setup only)
+	setup := v1.Group("/setup")
+	setup.Use(middleware.SetupCompleteGuard(s.setupService))
+	setup.GET("/status", setupHandler.GetStatus)
+	setup.POST("/init", setupHandler.Initialize)
+	setup.POST("/admin", setupHandler.CreateAdmin)
+	setup.POST("/complete", setupHandler.Complete)
+
+	// Authentication routes (public but blocked during setup)
 	auth := v1.Group("/auth")
 	auth.POST("/login", authHandler.Login)
 	auth.POST("/refresh", authHandler.RefreshToken)

@@ -61,3 +61,6 @@ export interface Build {
   createdAt: string
   completedAt?: string
 }
+
+// Re-export setup types
+export * from './setup'
