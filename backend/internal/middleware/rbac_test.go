@@ -427,13 +427,13 @@ func TestEnforceReadOnly(t *testing.T) {
 func TestRolePermissions(t *testing.T) {
 	// Test that RolePermissions map is correctly configured
 	tests := []struct {
-		name               string
-		role               RBACRoles
-		expectedPermCount  int
-		shouldHaveRead     bool
-		shouldHaveWrite    bool
-		shouldHaveDelete   bool
-		shouldHaveAdmin    bool
+		name              string
+		role              RBACRoles
+		expectedPermCount int
+		shouldHaveRead    bool
+		shouldHaveWrite   bool
+		shouldHaveDelete  bool
+		shouldHaveAdmin   bool
 	}{
 		{
 			name:              "Developer permissions",
