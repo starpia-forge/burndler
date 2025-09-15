@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,20 +16,28 @@ import (
 // LocalFSStorage implements Storage interface using local filesystem
 // Used for development and offline deployments
 type LocalFSStorage struct {
-	basePath string
-	maxSize  string
+	basePath     string
+	maxSize      string
+	maxSizeBytes int64
 }
 
 // NewLocalFSStorage creates a new local filesystem storage instance
 func NewLocalFSStorage(cfg *config.Config) (*LocalFSStorage, error) {
+	// Parse and validate max size
+	maxSizeBytes, err := parseSizeString(cfg.LocalStorageMaxSize)
+	if err != nil {
+		return nil, fmt.Errorf("invalid max size %s: %w", cfg.LocalStorageMaxSize, err)
+	}
+
 	// Ensure base path exists
 	if err := os.MkdirAll(cfg.LocalStoragePath, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create storage directory: %w", err)
 	}
 
 	return &LocalFSStorage{
-		basePath: cfg.LocalStoragePath,
-		maxSize:  cfg.LocalStorageMaxSize,
+		basePath:     cfg.LocalStoragePath,
+		maxSize:      cfg.LocalStorageMaxSize,
+		maxSizeBytes: maxSizeBytes,
 	}, nil
 }
 
@@ -40,6 +49,11 @@ func (l *LocalFSStorage) getFullPath(key string) string {
 }
 
 func (l *LocalFSStorage) Upload(ctx context.Context, key string, reader io.Reader, size int64) (string, error) {
+	// Check size limit
+	if size > l.maxSizeBytes {
+		return "", fmt.Errorf("file size %d exceeds maximum allowed size %d", size, l.maxSizeBytes)
+	}
+
 	fullPath := l.getFullPath(key)
 
 	// Create directory if it doesn't exist
@@ -210,4 +224,55 @@ func (l *LocalFSStorage) GetURL(ctx context.Context, key string, expiry time.Dur
 	// Return file URL (for local development)
 	// In production, this would return an API endpoint URL
 	return fmt.Sprintf("file://%s", fullPath), nil
+}
+
+// parseSizeString parses size strings like "100MB", "1GB", "512KB"
+func parseSizeString(sizeStr string) (int64, error) {
+	if sizeStr == "" {
+		return 0, fmt.Errorf("empty size string")
+	}
+
+	sizeStr = strings.ToUpper(strings.TrimSpace(sizeStr))
+
+	// Extract number and unit
+	var numberPart string
+	var unit string
+
+	for i, r := range sizeStr {
+		if r >= '0' && r <= '9' || r == '.' {
+			numberPart += string(r)
+		} else {
+			unit = sizeStr[i:]
+			break
+		}
+	}
+
+	if numberPart == "" {
+		return 0, fmt.Errorf("no numeric part found in size string: %s", sizeStr)
+	}
+
+	// Parse the number
+	number, err := strconv.ParseFloat(numberPart, 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid number in size string: %s", sizeStr)
+	}
+
+	// Convert based on unit
+	var multiplier int64
+	switch unit {
+	case "B", "":
+		multiplier = 1
+	case "KB":
+		multiplier = 1024
+	case "MB":
+		multiplier = 1024 * 1024
+	case "GB":
+		multiplier = 1024 * 1024 * 1024
+	case "TB":
+		multiplier = 1024 * 1024 * 1024 * 1024
+	default:
+		return 0, fmt.Errorf("unknown size unit: %s", unit)
+	}
+
+	return int64(number * float64(multiplier)), nil
 }

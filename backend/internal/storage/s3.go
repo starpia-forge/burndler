@@ -26,6 +26,15 @@ type S3Storage struct {
 
 // NewS3Storage creates a new S3 storage instance
 func NewS3Storage(cfg *config.Config) (*S3Storage, error) {
+	// Validate required configuration
+	if cfg.S3Bucket == "" {
+		return nil, fmt.Errorf("S3 bucket name is required")
+	}
+
+	if cfg.S3AccessKeyID == "" || cfg.S3SecretAccessKey == "" {
+		return nil, fmt.Errorf("S3 credentials (access key ID and secret access key) are required")
+	}
+
 	awsConfig := &aws.Config{
 		Endpoint:         aws.String(cfg.S3Endpoint),
 		Region:           aws.String(cfg.S3Region),
