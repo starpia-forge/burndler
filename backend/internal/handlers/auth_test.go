@@ -59,10 +59,10 @@ func TestAuthHandler_Login(t *testing.T) {
 	assert.NoError(t, err)
 
 	tests := []struct {
-		name           string
-		requestBody    interface{}
-		expectedStatus int
-		expectedFields []string // Fields that should be present in response
+		name            string
+		requestBody     interface{}
+		expectedStatus  int
+		expectedFields  []string // Fields that should be present in response
 		shouldHaveToken bool
 	}{
 		{
@@ -71,8 +71,8 @@ func TestAuthHandler_Login(t *testing.T) {
 				"email":    "test@example.com",
 				"password": "testPassword123!",
 			},
-			expectedStatus: http.StatusOK,
-			expectedFields: []string{"access_token", "refresh_token", "user"},
+			expectedStatus:  http.StatusOK,
+			expectedFields:  []string{"access_token", "refresh_token", "user"},
 			shouldHaveToken: true,
 		},
 		{
@@ -81,8 +81,8 @@ func TestAuthHandler_Login(t *testing.T) {
 				"email":    "test@example.com",
 				"password": "wrongPassword",
 			},
-			expectedStatus: http.StatusUnauthorized,
-			expectedFields: []string{"error"},
+			expectedStatus:  http.StatusUnauthorized,
+			expectedFields:  []string{"error"},
 			shouldHaveToken: false,
 		},
 		{
@@ -91,8 +91,8 @@ func TestAuthHandler_Login(t *testing.T) {
 				"email":    "nonexistent@example.com",
 				"password": "testPassword123!",
 			},
-			expectedStatus: http.StatusUnauthorized,
-			expectedFields: []string{"error"},
+			expectedStatus:  http.StatusUnauthorized,
+			expectedFields:  []string{"error"},
 			shouldHaveToken: false,
 		},
 		{
@@ -100,8 +100,8 @@ func TestAuthHandler_Login(t *testing.T) {
 			requestBody: map[string]string{
 				"password": "testPassword123!",
 			},
-			expectedStatus: http.StatusBadRequest,
-			expectedFields: []string{"error"},
+			expectedStatus:  http.StatusBadRequest,
+			expectedFields:  []string{"error"},
 			shouldHaveToken: false,
 		},
 		{
@@ -109,8 +109,8 @@ func TestAuthHandler_Login(t *testing.T) {
 			requestBody: map[string]string{
 				"email": "test@example.com",
 			},
-			expectedStatus: http.StatusBadRequest,
-			expectedFields: []string{"error"},
+			expectedStatus:  http.StatusBadRequest,
+			expectedFields:  []string{"error"},
 			shouldHaveToken: false,
 		},
 		{
@@ -119,8 +119,8 @@ func TestAuthHandler_Login(t *testing.T) {
 				"email":    "",
 				"password": "testPassword123!",
 			},
-			expectedStatus: http.StatusBadRequest,
-			expectedFields: []string{"error"},
+			expectedStatus:  http.StatusBadRequest,
+			expectedFields:  []string{"error"},
 			shouldHaveToken: false,
 		},
 		{
@@ -129,15 +129,15 @@ func TestAuthHandler_Login(t *testing.T) {
 				"email":    "test@example.com",
 				"password": "",
 			},
-			expectedStatus: http.StatusBadRequest,
-			expectedFields: []string{"error"},
+			expectedStatus:  http.StatusBadRequest,
+			expectedFields:  []string{"error"},
 			shouldHaveToken: false,
 		},
 		{
-			name:           "invalid JSON",
-			requestBody:    "invalid json",
-			expectedStatus: http.StatusBadRequest,
-			expectedFields: []string{"error"},
+			name:            "invalid JSON",
+			requestBody:     "invalid json",
+			expectedStatus:  http.StatusBadRequest,
+			expectedFields:  []string{"error"},
 			shouldHaveToken: false,
 		},
 	}
@@ -278,10 +278,10 @@ func TestAuthHandler_RefreshToken(t *testing.T) {
 	assert.NoError(t, err)
 
 	tests := []struct {
-		name           string
-		requestBody    interface{}
-		expectedStatus int
-		expectedFields []string
+		name            string
+		requestBody     interface{}
+		expectedStatus  int
+		expectedFields  []string
 		shouldHaveToken bool
 	}{
 		{
@@ -289,15 +289,15 @@ func TestAuthHandler_RefreshToken(t *testing.T) {
 			requestBody: map[string]string{
 				"refresh_token": validRefreshToken,
 			},
-			expectedStatus: http.StatusOK,
-			expectedFields: []string{"access_token", "refresh_token"},
+			expectedStatus:  http.StatusOK,
+			expectedFields:  []string{"access_token", "refresh_token"},
 			shouldHaveToken: true,
 		},
 		{
-			name: "missing refresh token",
-			requestBody: map[string]string{},
-			expectedStatus: http.StatusBadRequest,
-			expectedFields: []string{"error"},
+			name:            "missing refresh token",
+			requestBody:     map[string]string{},
+			expectedStatus:  http.StatusBadRequest,
+			expectedFields:  []string{"error"},
 			shouldHaveToken: false,
 		},
 		{
@@ -305,8 +305,8 @@ func TestAuthHandler_RefreshToken(t *testing.T) {
 			requestBody: map[string]string{
 				"refresh_token": "",
 			},
-			expectedStatus: http.StatusBadRequest,
-			expectedFields: []string{"error"},
+			expectedStatus:  http.StatusBadRequest,
+			expectedFields:  []string{"error"},
 			shouldHaveToken: false,
 		},
 		{
@@ -314,15 +314,15 @@ func TestAuthHandler_RefreshToken(t *testing.T) {
 			requestBody: map[string]string{
 				"refresh_token": "invalid.token.string",
 			},
-			expectedStatus: http.StatusUnauthorized,
-			expectedFields: []string{"error"},
+			expectedStatus:  http.StatusUnauthorized,
+			expectedFields:  []string{"error"},
 			shouldHaveToken: false,
 		},
 		{
-			name:           "invalid JSON",
-			requestBody:    "invalid json",
-			expectedStatus: http.StatusBadRequest,
-			expectedFields: []string{"error"},
+			name:            "invalid JSON",
+			requestBody:     "invalid json",
+			expectedStatus:  http.StatusBadRequest,
+			expectedFields:  []string{"error"},
 			shouldHaveToken: false,
 		},
 	}

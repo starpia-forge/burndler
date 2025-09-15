@@ -12,6 +12,7 @@ type RBACRoles string
 const (
 	RoleDeveloper RBACRoles = "Developer" // Read/Write access
 	RoleEngineer  RBACRoles = "Engineer"  // Read-only access
+	RoleAdmin     RBACRoles = "Admin"     // Administrator access
 )
 
 // Permission defines what operations are allowed
@@ -34,6 +35,12 @@ var RolePermissions = map[RBACRoles][]Permission{
 	},
 	RoleEngineer: {
 		PermissionRead,
+	},
+	RoleAdmin: {
+		PermissionRead,
+		PermissionWrite,
+		PermissionDelete,
+		PermissionAdmin,
 	},
 }
 

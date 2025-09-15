@@ -38,7 +38,7 @@ func TestRequirePermission(t *testing.T) {
 		{
 			name:           "unknown role",
 			permission:     PermissionRead,
-			contextRole:    "Admin", // Unknown role
+			contextRole:    "Manager", // Unknown role
 			hasRole:        true,
 			expectedStatus: http.StatusForbidden,
 			expectedError:  "UNKNOWN_ROLE",
@@ -101,6 +101,34 @@ func TestRequirePermission(t *testing.T) {
 			hasRole:        true,
 			expectedStatus: http.StatusForbidden,
 			expectedError:  "INSUFFICIENT_PERMISSIONS",
+		},
+		{
+			name:           "Admin with read permission",
+			permission:     PermissionRead,
+			contextRole:    "Admin",
+			hasRole:        true,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Admin with write permission",
+			permission:     PermissionWrite,
+			contextRole:    "Admin",
+			hasRole:        true,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Admin with delete permission",
+			permission:     PermissionDelete,
+			contextRole:    "Admin",
+			hasRole:        true,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Admin with admin permission",
+			permission:     PermissionAdmin,
+			contextRole:    "Admin",
+			hasRole:        true,
+			expectedStatus: http.StatusOK,
 		},
 	}
 
@@ -170,6 +198,13 @@ func TestGetUserRole(t *testing.T) {
 			contextRole:  "Engineer",
 			hasRole:      true,
 			expectedRole: RoleEngineer,
+			expectedOk:   true,
+		},
+		{
+			name:         "valid Admin role",
+			contextRole:  "Admin",
+			hasRole:      true,
+			expectedRole: RoleAdmin,
 			expectedOk:   true,
 		},
 		{
@@ -262,6 +297,30 @@ func TestHasPermission(t *testing.T) {
 			role:       RoleEngineer,
 			permission: PermissionAdmin,
 			expected:   false,
+		},
+		{
+			name:       "Admin has read permission",
+			role:       RoleAdmin,
+			permission: PermissionRead,
+			expected:   true,
+		},
+		{
+			name:       "Admin has write permission",
+			role:       RoleAdmin,
+			permission: PermissionWrite,
+			expected:   true,
+		},
+		{
+			name:       "Admin has delete permission",
+			role:       RoleAdmin,
+			permission: PermissionDelete,
+			expected:   true,
+		},
+		{
+			name:       "Admin has admin permission",
+			role:       RoleAdmin,
+			permission: PermissionAdmin,
+			expected:   true,
 		},
 		{
 			name:       "unknown role has no permissions",
@@ -366,6 +425,41 @@ func TestEnforceReadOnly(t *testing.T) {
 			expectedStatus: http.StatusForbidden,
 			expectedError:  "READ_ONLY_ACCESS",
 		},
+		{
+			name:           "Admin can GET",
+			method:         http.MethodGet,
+			contextRole:    "Admin",
+			hasRole:        true,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Admin can POST",
+			method:         http.MethodPost,
+			contextRole:    "Admin",
+			hasRole:        true,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Admin can PUT",
+			method:         http.MethodPut,
+			contextRole:    "Admin",
+			hasRole:        true,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Admin can DELETE",
+			method:         http.MethodDelete,
+			contextRole:    "Admin",
+			hasRole:        true,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Admin can PATCH",
+			method:         http.MethodPatch,
+			contextRole:    "Admin",
+			hasRole:        true,
+			expectedStatus: http.StatusOK,
+		},
 	}
 
 	for _, tt := range tests {
@@ -452,6 +546,15 @@ func TestRolePermissions(t *testing.T) {
 			shouldHaveWrite:   false,
 			shouldHaveDelete:  false,
 			shouldHaveAdmin:   false,
+		},
+		{
+			name:              "Admin permissions",
+			role:              RoleAdmin,
+			expectedPermCount: 4,
+			shouldHaveRead:    true,
+			shouldHaveWrite:   true,
+			shouldHaveDelete:  true,
+			shouldHaveAdmin:   true,
 		},
 	}
 

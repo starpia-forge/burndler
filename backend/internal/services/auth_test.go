@@ -67,6 +67,47 @@ func TestAuthService_GenerateToken(t *testing.T) {
 	}
 }
 
+func TestAuthService_GenerateToken_AdminRole(t *testing.T) {
+	cfg := &config.Config{
+		JWTSecret:     "test-secret-key",
+		JWTIssuer:     "burndler",
+		JWTAudience:   "burndler-api",
+		JWTExpiration: time.Hour * 24,
+	}
+
+	authService := NewAuthService(cfg, nil)
+
+	user := &models.User{
+		ID:    1,
+		Email: "admin@example.com",
+		Role:  "Admin",
+	}
+
+	token, err := authService.GenerateToken(user)
+
+	assert.NoError(t, err)
+	assert.NotEmpty(t, token)
+
+	// Parse token to verify structure
+	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		return []byte(cfg.JWTSecret), nil
+	})
+
+	assert.NoError(t, err)
+	assert.True(t, parsedToken.Valid)
+
+	// Verify claims
+	if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok {
+		assert.Equal(t, "1", claims["user_id"])
+		assert.Equal(t, user.Email, claims["email"])
+		assert.Equal(t, "Admin", claims["role"])
+		assert.Equal(t, cfg.JWTIssuer, claims["iss"])
+		assert.Contains(t, claims["aud"], cfg.JWTAudience)
+	} else {
+		t.Error("Failed to parse token claims")
+	}
+}
+
 func TestAuthService_GenerateRefreshToken(t *testing.T) {
 	cfg := &config.Config{
 		JWTSecret:            "test-secret-key",
@@ -121,11 +162,11 @@ func TestAuthService_AuthenticateUser(t *testing.T) {
 	assert.NoError(t, err)
 
 	tests := []struct {
-		name           string
-		email          string
-		password       string
-		expectError    bool
-		expectUser     bool
+		name        string
+		email       string
+		password    string
+		expectError bool
+		expectUser  bool
 	}{
 		{
 			name:        "valid credentials",
@@ -182,6 +223,39 @@ func TestAuthService_AuthenticateUser(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAuthService_AuthenticateUser_AdminRole(t *testing.T) {
+	db := setupTestDB(t)
+	cfg := &config.Config{
+		JWTSecret:     "test-secret-key",
+		JWTIssuer:     "burndler",
+		JWTAudience:   "burndler-api",
+		JWTExpiration: time.Hour * 24,
+	}
+
+	authService := NewAuthService(cfg, db)
+
+	// Create test admin user
+	user := &models.User{
+		Email: "admin@example.com",
+		Name:  "Admin User",
+		Role:  "Admin",
+	}
+	err := user.SetPassword("adminPassword123!")
+	assert.NoError(t, err)
+
+	err = db.Create(user).Error
+	assert.NoError(t, err)
+
+	// Authenticate admin user
+	foundUser, err := authService.AuthenticateUser("admin@example.com", "adminPassword123!")
+
+	assert.NoError(t, err)
+	assert.NotNil(t, foundUser)
+	assert.Equal(t, "admin@example.com", foundUser.Email)
+	assert.Equal(t, "Admin", foundUser.Role)
+	assert.True(t, foundUser.IsAdmin())
 }
 
 func TestAuthService_AuthenticateUser_InactiveUser(t *testing.T) {

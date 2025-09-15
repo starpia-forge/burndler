@@ -13,7 +13,7 @@ import (
 type Claims struct {
 	UserID string `json:"user_id"`
 	Email  string `json:"email"`
-	Role   string `json:"role"` // Developer or Engineer
+	Role   string `json:"role"` // Developer, Engineer, or Admin
 	jwt.RegisteredClaims
 }
 
@@ -84,7 +84,7 @@ func JWTAuth(cfg *config.Config) gin.HandlerFunc {
 		}
 
 		// Validate role
-		if claims.Role != "Developer" && claims.Role != "Engineer" {
+		if claims.Role != "Developer" && claims.Role != "Engineer" && claims.Role != "Admin" {
 			c.JSON(http.StatusForbidden, gin.H{
 				"error":   "INVALID_ROLE",
 				"message": "Invalid user role",
@@ -126,9 +126,10 @@ func RequireRole(requiredRole string) gin.HandlerFunc {
 		}
 
 		// Check role hierarchy
+		// Admin has full access to everything
 		// Developer has full access (read/write)
 		// Engineer has read-only access
-		if requiredRole == "Developer" && userRole != "Developer" {
+		if requiredRole == "Developer" && userRole != "Developer" && userRole != "Admin" {
 			c.JSON(http.StatusForbidden, gin.H{
 				"error":   "INSUFFICIENT_PERMISSIONS",
 				"message": "This operation requires Developer role",

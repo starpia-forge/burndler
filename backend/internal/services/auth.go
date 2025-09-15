@@ -15,9 +15,9 @@ import (
 
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrUserNotFound      = errors.New("user not found")
-	ErrUserInactive      = errors.New("user account is inactive")
-	ErrInvalidToken      = errors.New("invalid token")
+	ErrUserNotFound       = errors.New("user not found")
+	ErrUserInactive       = errors.New("user account is inactive")
+	ErrInvalidToken       = errors.New("invalid token")
 )
 
 // AuthService handles authentication operations

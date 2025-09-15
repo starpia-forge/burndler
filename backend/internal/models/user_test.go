@@ -50,6 +50,30 @@ func TestUser_IsEngineer(t *testing.T) {
 	}
 }
 
+// Test IsAdmin method
+func TestUser_IsAdmin(t *testing.T) {
+	tests := []struct {
+		name     string
+		role     string
+		expected bool
+	}{
+		{"Admin role", "Admin", true},
+		{"Developer role", "Developer", false},
+		{"Engineer role", "Engineer", false},
+		{"Empty role", "", false},
+		{"Invalid role", "Manager", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			user := &User{Role: tt.role}
+			if got := user.IsAdmin(); got != tt.expected {
+				t.Errorf("IsAdmin() = %v, want %v", got, tt.expected)
+			}
+		})
+	}
+}
+
 // Test TableName method
 func TestUser_TableName(t *testing.T) {
 	user := User{}
@@ -109,10 +133,10 @@ func TestUser_CheckPassword(t *testing.T) {
 // Test password validation edge cases
 func TestUser_CheckPassword_EdgeCases(t *testing.T) {
 	tests := []struct {
-		name           string
-		setupPassword  string
-		checkPassword  string
-		shouldPass     bool
+		name          string
+		setupPassword string
+		checkPassword string
+		shouldPass    bool
 	}{
 		{"correct password", "myPassword123!", "myPassword123!", true},
 		{"wrong password", "myPassword123!", "wrongPassword", false},

@@ -85,6 +85,25 @@ func TestJWTAuth(t *testing.T) {
 			expectedStatus: http.StatusOK,
 		},
 		{
+			name: "valid token with Admin role",
+			setupToken: func() string {
+				claims := &Claims{
+					UserID: "789",
+					Email:  "admin@example.com",
+					Role:   "Admin",
+					RegisteredClaims: jwt.RegisteredClaims{
+						Issuer:    cfg.JWTIssuer,
+						Audience:  []string{cfg.JWTAudience},
+						ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+					},
+				}
+				token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+				tokenString, _ := token.SignedString([]byte(cfg.JWTSecret))
+				return tokenString
+			},
+			expectedStatus: http.StatusOK,
+		},
+		{
 			name: "expired token",
 			setupToken: func() string {
 				claims := &Claims{
@@ -280,6 +299,20 @@ func TestRequireRole(t *testing.T) {
 			name:           "Engineer accessing Engineer endpoint",
 			requiredRole:   "Engineer",
 			contextRole:    "Engineer",
+			hasRole:        true,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Admin accessing Developer-only endpoint",
+			requiredRole:   "Developer",
+			contextRole:    "Admin",
+			hasRole:        true,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "Admin accessing Engineer endpoint",
+			requiredRole:   "Engineer",
+			contextRole:    "Admin",
 			hasRole:        true,
 			expectedStatus: http.StatusOK,
 		},

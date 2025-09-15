@@ -132,8 +132,8 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	if err != nil {
 		// Check for specific error types and handle them appropriately
 		if errors.Is(err, services.ErrInvalidToken) ||
-		   errors.Is(err, services.ErrUserNotFound) ||
-		   errors.Is(err, services.ErrUserInactive) {
+			errors.Is(err, services.ErrUserNotFound) ||
+			errors.Is(err, services.ErrUserInactive) {
 			c.JSON(http.StatusUnauthorized, ErrorResponse{
 				Error:   "INVALID_REFRESH_TOKEN",
 				Message: "Invalid or expired refresh token",
@@ -142,8 +142,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		}
 		// Check if error contains "invalid" (for token parsing errors)
 		errorStr := err.Error()
-		if len(errorStr) > 0 && (
-			errors.Is(err, services.ErrInvalidToken) ||
+		if len(errorStr) > 0 && (errors.Is(err, services.ErrInvalidToken) ||
 			errorStr == "invalid token" ||
 			errorStr == "invalid refresh token: invalid token" ||
 			errorStr[:7] == "invalid" ||

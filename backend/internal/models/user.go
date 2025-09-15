@@ -12,8 +12,8 @@ type User struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
 	Email     string         `gorm:"uniqueIndex;not null" json:"email"`
 	Name      string         `json:"name"`
-	Password  string         `gorm:"not null" json:"-"`                        // Bcrypt hashed password, excluded from JSON
-	Role      string         `gorm:"not null;default:'Engineer'" json:"role"` // Developer or Engineer
+	Password  string         `gorm:"not null" json:"-"`                       // Bcrypt hashed password, excluded from JSON
+	Role      string         `gorm:"not null;default:'Engineer'" json:"role"` // Developer, Engineer, or Admin
 	Active    bool           `gorm:"default:true" json:"active"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
@@ -33,6 +33,11 @@ func (u *User) IsDeveloper() bool {
 // IsEngineer checks if user has Engineer role
 func (u *User) IsEngineer() bool {
 	return u.Role == "Engineer"
+}
+
+// IsAdmin checks if user has Admin role
+func (u *User) IsAdmin() bool {
+	return u.Role == "Admin"
 }
 
 // SetPassword hashes a plain text password and stores it
