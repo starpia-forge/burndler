@@ -243,3 +243,168 @@ func TestLocalFS_GetURL(t *testing.T) {
 		t.Errorf("Expected file:// URL, got %s", url)
 	}
 }
+
+// Test List method
+func TestLocalFS_List(t *testing.T) {
+	tempDir := t.TempDir()
+	cfg := &config.Config{
+		LocalStoragePath:    tempDir,
+		LocalStorageMaxSize: "100MB",
+	}
+
+	fs, err := NewLocalFSStorage(cfg)
+	if err != nil {
+		t.Fatalf("NewLocalFSStorage failed: %v", err)
+	}
+
+	ctx := context.Background()
+
+	// Upload several files in different paths
+	testFiles := []string{
+		"files/test1.txt",
+		"files/test2.txt",
+		"files/subdir/test3.txt",
+		"other/test4.txt",
+	}
+
+	for _, filePath := range testFiles {
+		content := []byte("content for " + filePath)
+		reader := bytes.NewReader(content)
+		_, err = fs.Upload(ctx, filePath, reader, int64(len(content)))
+		if err != nil {
+			t.Fatalf("Upload failed for %s: %v", filePath, err)
+		}
+	}
+
+	// Test listing files with prefix "files/"
+	objects, err := fs.List(ctx, "files/")
+	if err != nil {
+		t.Fatalf("List failed: %v", err)
+	}
+
+	// Should find 3 files in files/ directory
+	expectedCount := 3
+	if len(objects) != expectedCount {
+		t.Errorf("Expected %d objects, got %d", expectedCount, len(objects))
+	}
+
+	// Check that all returned objects have the correct prefix (handle Windows paths)
+	for _, obj := range objects {
+		hasPrefix := bytes.HasPrefix([]byte(obj.Key), []byte("files/")) ||
+			bytes.HasPrefix([]byte(obj.Key), []byte("files\\"))
+		if !hasPrefix {
+			t.Errorf("Object key %s doesn't have expected prefix", obj.Key)
+		}
+	}
+}
+
+// Test List with empty prefix
+func TestLocalFS_ListAll(t *testing.T) {
+	tempDir := t.TempDir()
+	cfg := &config.Config{
+		LocalStoragePath:    tempDir,
+		LocalStorageMaxSize: "100MB",
+	}
+
+	fs, err := NewLocalFSStorage(cfg)
+	if err != nil {
+		t.Fatalf("NewLocalFSStorage failed: %v", err)
+	}
+
+	ctx := context.Background()
+
+	// Upload test files
+	testFiles := []string{
+		"file1.txt",
+		"dir/file2.txt",
+	}
+
+	for _, filePath := range testFiles {
+		content := []byte("content")
+		reader := bytes.NewReader(content)
+		_, err = fs.Upload(ctx, filePath, reader, int64(len(content)))
+		if err != nil {
+			t.Fatalf("Upload failed for %s: %v", filePath, err)
+		}
+	}
+
+	// List all files
+	objects, err := fs.List(ctx, "")
+	if err != nil {
+		t.Fatalf("List failed: %v", err)
+	}
+
+	if len(objects) < 2 {
+		t.Errorf("Expected at least 2 objects, got %d", len(objects))
+	}
+}
+
+// Test error cases for better coverage
+func TestLocalFS_ErrorCases(t *testing.T) {
+	tempDir := t.TempDir()
+	cfg := &config.Config{
+		LocalStoragePath:    tempDir,
+		LocalStorageMaxSize: "100MB",
+	}
+
+	fs, err := NewLocalFSStorage(cfg)
+	if err != nil {
+		t.Fatalf("NewLocalFSStorage failed: %v", err)
+	}
+
+	ctx := context.Background()
+
+	// Test download non-existent file
+	_, err = fs.Download(ctx, "nonexistent.txt")
+	if err == nil {
+		t.Error("Expected error when downloading non-existent file")
+	}
+
+	// Test delete non-existent file (should not error in some implementations)
+	err = fs.Delete(ctx, "nonexistent.txt")
+	// This may or may not error depending on implementation
+
+	// Test GetURL for non-existent file
+	_, err = fs.GetURL(ctx, "nonexistent.txt", 1*time.Hour)
+	if err == nil {
+		t.Error("Expected error when getting URL for non-existent file")
+	}
+}
+
+// Test NewLocalFSStorage with invalid config
+func TestNewLocalFSStorage_InvalidConfig(t *testing.T) {
+	// Test with invalid max size
+	cfg := &config.Config{
+		LocalStoragePath:    "/tmp/test",
+		LocalStorageMaxSize: "invalid-size",
+	}
+
+	_, err := NewLocalFSStorage(cfg)
+	if err == nil {
+		t.Error("Expected error with invalid max size")
+	}
+}
+
+// Test upload size validation
+func TestLocalFS_UploadSizeLimit(t *testing.T) {
+	tempDir := t.TempDir()
+	cfg := &config.Config{
+		LocalStoragePath:    tempDir,
+		LocalStorageMaxSize: "1B", // Very small limit
+	}
+
+	fs, err := NewLocalFSStorage(cfg)
+	if err != nil {
+		t.Fatalf("NewLocalFSStorage failed: %v", err)
+	}
+
+	ctx := context.Background()
+	content := []byte("this content is larger than 1 byte")
+	reader := bytes.NewReader(content)
+
+	// Should fail due to size limit
+	_, err = fs.Upload(ctx, "test.txt", reader, int64(len(content)))
+	if err == nil {
+		t.Error("Expected error when uploading file larger than size limit")
+	}
+}
