@@ -16,7 +16,7 @@ Burndler simplifies the deployment of complex Docker-based applications by:
 - **Offline Packaging**: Creates tar.gz installers with Docker images, compose files, and installation scripts
 - **RBAC Support**: Role-based access control with Developer (read-write) and Engineer (read-only) permissions
 - **Storage Flexibility**: Supports both S3-compatible and local filesystem storage
-ㄴ
+
 ## Quick Start
 
 ### Prerequisites
