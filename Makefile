@@ -1,7 +1,7 @@
 # Burndler Makefile
 # Enforces: NO build: directives, prebuilt images only, image@sha256 preferred
 
-.PHONY: help dev dev-backend dev-frontend build test lint clean
+.PHONY: help dev dev-backend dev-frontend build build-docker test lint clean
 
 help: ## Show this help message
 	@echo "Burndler Development Commands:"
@@ -49,6 +49,16 @@ prepare-static: build-frontend ## Copy frontend build to backend for embedding
 build-backend-with-static: prepare-static ## Build Go binary with embedded frontend
 	@echo "Building backend binary with embedded frontend..."
 	cd backend && go build -o ../dist/burndler cmd/api/main.go
+
+build-docker: ## Build Docker image with embedded frontend
+	@echo "Building Docker image..."
+	docker build -t burndler:latest .
+	@if [ -n "$(VERSION)" ]; then \
+		docker tag burndler:latest burndler:$(VERSION); \
+		echo "Docker images built: burndler:latest and burndler:$(VERSION)"; \
+	else \
+		echo "Docker image built: burndler:latest"; \
+	fi
 
 build-tools: ## Build CLI tools
 	@echo "Building CLI tools..."
