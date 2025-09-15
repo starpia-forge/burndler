@@ -14,6 +14,7 @@ import (
 	"github.com/burndler/burndler/internal/handlers"
 	"github.com/burndler/burndler/internal/middleware"
 	"github.com/burndler/burndler/internal/services"
+	"github.com/burndler/burndler/internal/static"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -102,6 +103,54 @@ func (s *Server) setupRouter() {
 	// Package operations (Developer role only)
 	protected.POST("/build/package", middleware.RequireRole("Developer"), packageHandler.Create)
 	protected.GET("/build/status/:id", packageHandler.Status)
+
+	// Serve static files if enabled
+	if s.config.ServeStaticFiles {
+		s.setupStaticFileServing()
+	}
+}
+
+// setupStaticFileServing configures static file serving with SPA routing fallback
+func (s *Server) setupStaticFileServing() {
+	// Try to get the SPA handler from embedded files first
+	spaHandler, err := static.SPAHandler()
+	if err != nil {
+		log.Printf("Warning: Could not setup embedded file serving: %v", err)
+		log.Printf("Falling back to filesystem serving from: %s", s.config.StaticFilesPath)
+
+		// Fallback to filesystem serving
+		s.router.Static("/static", s.config.StaticFilesPath)
+		s.router.StaticFile("/", s.config.StaticFilesPath+"/index.html")
+		return
+	}
+
+	// Use embedded files - serve all static assets
+	staticFileHandler, err := static.StaticFileHandler()
+	if err != nil {
+		log.Printf("Warning: Could not create static file handler: %v", err)
+		return
+	}
+
+	// Serve static assets (JS, CSS, images, etc.)
+	s.router.GET("/static/*filepath", gin.WrapH(staticFileHandler))
+	s.router.GET("/assets/*filepath", gin.WrapH(staticFileHandler))
+
+	// Handle favicon and other root assets
+	s.router.GET("/favicon.ico", gin.WrapH(staticFileHandler))
+	s.router.GET("/vite.svg", gin.WrapH(staticFileHandler))
+
+	// SPA routing fallback - serve index.html for all non-API routes
+	s.router.NoRoute(func(c *gin.Context) {
+		// Skip API routes
+		path := c.Request.URL.Path
+		if path == "/api" || (len(path) >= 5 && path[:5] == "/api/") {
+			c.JSON(http.StatusNotFound, gin.H{"error": "API endpoint not found"})
+			return
+		}
+
+		// Serve index.html for SPA routes
+		spaHandler.ServeHTTP(c.Writer, c.Request)
+	})
 }
 
 // Run starts the server and handles graceful shutdown

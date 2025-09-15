@@ -31,15 +31,24 @@ dev-clean: ## Stop and remove all dev containers and volumes
 
 # ===== Build =====
 
-build: build-backend build-frontend build-tools ## Build all components
+build: build-backend-with-static build-tools ## Build all components
 
 build-backend: ## Build Go binary
 	@echo "Building backend binary..."
-	cd backend && go build -o ../dist/burndler-api cmd/api/main.go
+	cd backend && go build -o ../dist/burndler cmd/api/main.go
 
 build-frontend: ## Build React production bundle
 	@echo "Building frontend bundle..."
 	cd frontend && npm run build
+
+prepare-static: build-frontend ## Copy frontend build to backend for embedding
+	@echo "Preparing static files for embedding..."
+	@rm -rf backend/internal/static/dist
+	@cp -r frontend/dist backend/internal/static/dist
+
+build-backend-with-static: prepare-static ## Build Go binary with embedded frontend
+	@echo "Building backend binary with embedded frontend..."
+	cd backend && go build -o ../dist/burndler cmd/api/main.go
 
 build-tools: ## Build CLI tools
 	@echo "Building CLI tools..."
@@ -130,6 +139,7 @@ clean: ## Remove build artifacts
 	@echo "Cleaning build artifacts..."
 	rm -rf dist/*
 	rm -rf backend/coverage.*
+	rm -rf backend/internal/static/dist
 	rm -rf frontend/dist
 	rm -rf frontend/coverage
 	find . -name "*.log" -delete

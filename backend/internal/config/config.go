@@ -48,6 +48,10 @@ type Config struct {
 	// CORS
 	CORSAllowedOrigins []string
 
+	// Static Files
+	StaticFilesPath  string
+	ServeStaticFiles bool
+
 	// Build Worker
 	BuildWorkerCount   int
 	BuildTimeout       time.Duration
@@ -100,6 +104,10 @@ func Load() *Config {
 
 		// CORS
 		CORSAllowedOrigins: getEnvAsSlice("CORS_ALLOWED_ORIGINS", []string{"http://localhost:3000"}),
+
+		// Static Files
+		StaticFilesPath:  getEnv("STATIC_FILES_PATH", "../frontend/dist"),
+		ServeStaticFiles: getEnvAsBool("SERVE_STATIC_FILES", true),
 
 		// Build Worker
 		BuildWorkerCount:   getEnvAsInt("BUILD_WORKER_COUNT", 4),

@@ -9,7 +9,7 @@ dist/
 *.dll
 *.so
 *.dylib
-burndler-api
+burndler
 burndler-merge
 burndler-lint
 burndler-package
@@ -73,7 +73,7 @@ go.work
 /frontend/.vite/
 
 # Backend binaries
-/backend/burndler-api
+/backend/burndler
 /backend/cmd/api/api
 
 # Tools binaries
