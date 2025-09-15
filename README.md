@@ -21,8 +21,8 @@ Burndler simplifies the deployment of complex Docker-based applications by:
 
 ### Prerequisites
 
-- Go 1.22+
-- Node.js 18+
+- Go 1.24+
+- Node.js 20+
 - PostgreSQL 14+
 - Docker and Docker Compose
 
