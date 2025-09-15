@@ -17,7 +17,7 @@ func NewMerger() *Merger {
 
 // MergeRequest represents a merge request
 type MergeRequest struct {
-	Modules         []Module          `json:"modules"`
+	Modules          []Module          `json:"modules"`
 	ProjectVariables map[string]string `json:"project_variables"`
 }
 

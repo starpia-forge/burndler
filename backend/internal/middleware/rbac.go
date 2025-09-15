@@ -86,7 +86,7 @@ func RequirePermission(permission Permission) gin.HandlerFunc {
 				"message": "You don't have permission to perform this action",
 				"details": gin.H{
 					"required_permission": permission,
-					"user_role":          role,
+					"user_role":           role,
 				},
 			})
 			c.Abort()

@@ -23,9 +23,9 @@ type LintRequest struct {
 
 // LintResult contains lint errors and warnings
 type LintResult struct {
-	Valid    bool         `json:"valid"`
-	Errors   []LintIssue  `json:"errors"`
-	Warnings []LintIssue  `json:"warnings"`
+	Valid    bool        `json:"valid"`
+	Errors   []LintIssue `json:"errors"`
+	Warnings []LintIssue `json:"warnings"`
 }
 
 // LintIssue represents a single lint issue
@@ -166,14 +166,26 @@ func (l *Linter) checkVolumeReferences(serviceName string, config map[string]int
 		if vols, ok := volumes.([]interface{}); ok {
 			for _, vol := range vols {
 				if volStr, ok := vol.(string); ok {
-					// Check if it's a named volume (not a bind mount)
-					if !strings.Contains(volStr, "/") && !strings.Contains(volStr, ":") {
-						if !contains(validVolumes, volStr) {
-							result.Errors = append(result.Errors, LintIssue{
-								Rule:    "invalid-volume",
-								Message: fmt.Sprintf("Service '%s' references non-existent volume '%s'", serviceName, volStr),
-							})
+					// Parse volume string to extract volume name
+					volumeName := ""
+					if strings.Contains(volStr, ":") {
+						// Format: volume_name:/container/path or /host/path:/container/path
+						parts := strings.Split(volStr, ":")
+						if len(parts) >= 2 && !strings.HasPrefix(parts[0], "/") && !strings.HasPrefix(parts[0], "./") {
+							// Named volume (not a bind mount)
+							volumeName = parts[0]
 						}
+					} else if !strings.Contains(volStr, "/") {
+						// Just a volume name without path
+						volumeName = volStr
+					}
+
+					// Check if named volume exists in volumes section
+					if volumeName != "" && !contains(validVolumes, volumeName) {
+						result.Errors = append(result.Errors, LintIssue{
+							Rule:    "invalid-volume",
+							Message: fmt.Sprintf("Service '%s' references non-existent volume '%s'", serviceName, volumeName),
+						})
 					}
 				}
 			}
