@@ -1,0 +1,95 @@
+# Pre-commit hooks for Burndler
+# Install: pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Go formatting and linting
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      - id: go-fmt
+        args: [-w]
+        files: \.go$
+      - id: go-mod-tidy
+        files: (go\.mod|go\.sum)$
+      - id: go-unit-tests
+        args: [-short]
+        files: \.go$
+
+  # TypeScript/JavaScript formatting and linting
+  - repo: local
+    hooks:
+      - id: eslint-frontend
+        name: ESLint (Frontend)
+        entry: bash -c 'cd frontend && npm run lint'
+        language: system
+        files: ^frontend/.*\.(ts|tsx|js|jsx)$
+        pass_filenames: false
+
+      - id: prettier-frontend
+        name: Prettier (Frontend)
+        entry: bash -c 'cd frontend && npm run format'
+        language: system
+        files: ^frontend/.*\.(ts|tsx|js|jsx|css|md)$
+        pass_filenames: false
+
+  # Generic file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^frontend/.*\.md$
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=10240]  # 10MB limit
+      - id: detect-private-key
+      - id: check-case-conflict
+
+  # Burndler-specific architectural constraints
+  - repo: local
+    hooks:
+      - id: check-compose-build-directive
+        name: Check for forbidden build directives
+        entry: bash -c 'if grep -r "build:" compose/*.yaml 2>/dev/null; then echo "ERROR: build: directive found in compose files!"; exit 1; fi'
+        language: system
+        files: ^compose/.*\.ya?ml$
+        pass_filenames: false
+
+      - id: check-dockerfiles
+        name: Check for unexpected Dockerfiles
+        entry: bash -c 'if find . -name "Dockerfile*" -not -path "./.git/*" | grep -v "./Dockerfile$"; then echo "ERROR: Unexpected Dockerfiles found! Use prebuilt images only"; exit 1; fi'
+        language: system
+        files: ^.*Dockerfile.*$
+        pass_filenames: false
+
+      - id: check-secrets-in-env
+        name: Check for secrets in .env files
+        entry: bash -c 'if grep -E "(password|secret|key).*=.{8,}" .env.example 2>/dev/null; then echo "WARNING: Potential secrets in .env.example"; fi'
+        language: system
+        files: ^\.env.*$
+        pass_filenames: false
+
+  # Security checks
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: package-lock\.json$
+
+  # YAML/JSON formatting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [-c=.yamllint.yml]
+        files: \.(ya?ml)$
+
+# Global configuration
+default_stages: [commit]
+fail_fast: false
+minimum_pre_commit_version: '3.0.0'
