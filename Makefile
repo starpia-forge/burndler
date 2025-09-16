@@ -129,6 +129,35 @@ test-coverage: ## Generate test coverage report
 
 # ===== Quality =====
 
+format: format-backend format-frontend ## Format all code to match CI requirements
+
+format-backend: ## Fix Go code issues with golangci-lint
+	@echo "🔧 Fixing Go code issues..."
+	@make install-golangci-lint
+	cd backend && golangci-lint run --fix
+	@if find tools -name "*.go" -type f | grep -q .; then \
+		echo "Fixing tools directory..."; \
+		cd tools && golangci-lint run --fix; \
+	fi
+	@echo "✅ Go code checked and fixed"
+
+format-frontend: ## Format frontend code with Prettier
+	@echo "🎨 Formatting frontend code..."
+	cd frontend && npm run format
+	@echo "✅ Frontend code formatted"
+
+pre-commit: format-backend format-frontend ## Run all pre-commit formatting
+	@echo "🔍 Verifying CI compliance..."
+	@make install-golangci-lint
+	cd backend && golangci-lint run
+	@if find tools -name "*.go" -type f | grep -q .; then \
+		echo "Checking tools directory..."; \
+		cd tools && golangci-lint run; \
+	fi
+	cd frontend && npm run format:check
+	cd frontend && npm run lint
+	@echo "✅ Ready to commit! All CI checks will pass"
+
 lint: lint-go lint-js lint-compose ## Run all linters
 
 lint-go: ## Run golangci-lint

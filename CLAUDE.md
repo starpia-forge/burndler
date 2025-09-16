@@ -76,5 +76,42 @@ If a request conflicts with these architectural rules:
 2. **Propose** compliant alternative approach
 3. **Abort** if user insists on non-compliant change
 
+## Pre-commit Formatting Requirements (MANDATORY)
+
+Claude MUST run these exact commands before ANY commit to match CI requirements:
+
+### Backend (Go)
+```bash
+# Run golangci-lint to check for issues (same as CI)
+cd backend && golangci-lint run
+
+# If golangci-lint has auto-fixable issues, fix them:
+cd backend && golangci-lint run --fix
+
+# Also check tools directory if it has Go files
+if find tools -name "*.go" -type f | grep -q .; then
+  cd tools && golangci-lint run --fix
+fi
+```
+
+### Frontend (React/TypeScript)
+```bash
+# Format code with Prettier (MUST pass CI check)
+cd frontend && npm run format
+
+# Verify formatting is correct (same check as CI)
+cd frontend && npm run format:check
+
+# Check ESLint rules (same as CI)
+cd frontend && npm run lint
+```
+
+### Commit Checklist
+1. ✅ Backend: `golangci-lint run` passes without errors
+2. ✅ Frontend: `npm run format:check` passes (no formatting issues)
+3. ✅ Frontend: `npm run lint` passes (or only warnings allowed by config)
+4. ✅ Include any auto-fixed changes in the commit
+5. ✅ If formatting modified files, mention in commit message
+
 ## Programming Instructions
 Always adhere to @.claude/docs/TDD.md when writing or modifying source code.
