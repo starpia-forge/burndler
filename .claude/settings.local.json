@@ -14,7 +14,8 @@
       "Bash(gh run list:*)",
       "Bash(gh workflow:*)",
       "Bash(gh run view:*)",
-      "Bash(golangci-lint run:*)"
+      "Bash(golangci-lint run:*)",
+      "Bash(npm run lint)"
     ],
     "deny": [],
     "ask": []
