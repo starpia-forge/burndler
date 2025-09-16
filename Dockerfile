@@ -19,6 +19,11 @@ RUN npm run build
 # Stage 2: Backend Builder
 FROM golang:1.24-alpine AS backend-builder
 
+# Build arguments for version information
+ARG VERSION=dev
+ARG BUILD_TIME=unknown
+ARG GIT_COMMIT=unknown
+
 WORKDIR /app
 
 # Install build dependencies
@@ -36,10 +41,10 @@ COPY backend/ ./backend/
 # Copy frontend build from previous stage
 COPY --from=frontend-builder /app/frontend/dist ./backend/internal/static/dist/
 
-# Build the binary
+# Build the binary with version information
 WORKDIR /app/backend
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags='-w -s -extldflags "-static"' \
+    -ldflags="-w -s -extldflags '-static' -X main.Version=${VERSION} -X main.BuildTime=${BUILD_TIME} -X main.GitCommit=${GIT_COMMIT}" \
     -a -installsuffix cgo \
     -o /app/burndler \
     cmd/api/main.go
