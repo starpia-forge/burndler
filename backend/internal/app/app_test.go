@@ -16,18 +16,34 @@ func TestNew(t *testing.T) {
 	// Test that New creates an App instance with all dependencies
 	app, err := New()
 
-	// For testing, we expect an error since we don't have a real database
-	// In a real test environment, we'd mock the database connection
-	assert.Error(t, err)
-	assert.Nil(t, app)
-	assert.Contains(t, err.Error(), "failed to connect to database")
+	// In CI environment, database is available and connection should succeed
+	// In local environment, database connection will fail
+	if err != nil {
+		// Local environment case - database connection fails
+		assert.Error(t, err)
+		assert.Nil(t, app)
+		assert.Contains(t, err.Error(), "failed to connect to database")
+	} else {
+		// CI environment case - database connection succeeds
+		assert.NoError(t, err)
+		assert.NotNil(t, app)
+		assert.NotNil(t, app.Config)
+		assert.NotNil(t, app.DB)
+		assert.NotNil(t, app.Storage)
+		assert.NotNil(t, app.Merger)
+		assert.NotNil(t, app.Linter)
+		assert.NotNil(t, app.Packager)
+
+		// Clean up
+		app.Close()
+	}
 }
 
 func TestNewWithConfig(t *testing.T) {
-	// Test with a test configuration
+	// Test with a test configuration that should fail to connect
 	cfg := &config.Config{
 		DBHost:               "localhost",
-		DBPort:               "5432",
+		DBPort:               "9999", // Intentionally wrong port to ensure connection failure
 		DBUser:               "test",
 		DBPassword:           "test",
 		DBName:               "test_db",
@@ -41,7 +57,7 @@ func TestNewWithConfig(t *testing.T) {
 
 	app, err := NewWithConfig(cfg)
 
-	// We expect an error since we don't have a real database connection
+	// We expect an error since we're using an invalid port
 	assert.Error(t, err)
 	assert.Nil(t, app)
 	assert.Contains(t, err.Error(), "failed to connect to database")
