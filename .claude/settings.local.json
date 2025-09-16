@@ -16,7 +16,10 @@
       "Bash(gh run view:*)",
       "Bash(golangci-lint run:*)",
       "Bash(npm run lint)",
-      "Bash(make pre-commit:*)"
+      "Bash(make pre-commit:*)",
+      "Bash(make lint-backend:*)",
+      "Bash(make lint-frontend:*)",
+      "Bash(make lint:*)"
     ],
     "deny": [],
     "ask": []

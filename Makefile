@@ -149,18 +149,13 @@ format-frontend: ## Format frontend code with Prettier
 pre-commit: format-backend format-frontend ## Run all pre-commit formatting
 	@echo "🔍 Verifying CI compliance..."
 	@make install-golangci-lint
-	cd backend && golangci-lint run
-	@if find tools -name "*.go" -type f | grep -q .; then \
-		echo "Checking tools directory..."; \
-		cd tools && golangci-lint run; \
-	fi
-	cd frontend && npm run format:check
-	cd frontend && npm run lint
+	@make lint-backend
+	@make lint-frontend
 	@echo "✅ Ready to commit! All CI checks will pass"
 
-lint: lint-go lint-js lint-compose ## Run all linters
+lint: lint-backend lint-frontend lint-compose ## Run all linters
 
-lint-go: ## Run golangci-lint
+lint-backend: ## Run golangci-lint
 	@echo "Linting Go code..."
 	@make install-golangci-lint
 	cd backend && golangci-lint run
@@ -171,7 +166,7 @@ lint-go: ## Run golangci-lint
 		echo "Skipping tools directory (no Go files found)"; \
 	fi
 
-lint-js: ## Run ESLint and Prettier
+lint-frontend: ## Run ESLint and Prettier
 	@echo "Linting JavaScript/TypeScript..."
 	cd frontend && npm run lint
 	cd frontend && npm run format:check
