@@ -1,7 +1,13 @@
 # Burndler Makefile
 # Enforces: NO build: directives, prebuilt images only, image@sha256 preferred
 
-.PHONY: help dev dev-backend dev-frontend build build-docker test lint clean
+# Version information
+VERSION ?= $(shell cat VERSION 2>/dev/null || echo "dev")
+BUILD_TIME ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+GIT_COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+LDFLAGS = -X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.GitCommit=$(GIT_COMMIT)
+
+.PHONY: help dev dev-backend dev-frontend build build-docker test lint clean version release
 
 help: ## Show this help message
 	@echo "Burndler Development Commands:"
@@ -34,8 +40,8 @@ dev-clean: ## Stop and remove all dev containers and volumes
 build: build-backend-with-static build-tools ## Build all components
 
 build-backend: ## Build Go binary
-	@echo "Building backend binary..."
-	cd backend && go build -o ../dist/burndler cmd/api/main.go
+	@echo "Building backend binary with version $(VERSION)..."
+	cd backend && go build -ldflags="$(LDFLAGS)" -o ../dist/burndler cmd/api/main.go
 
 build-frontend: ## Build React production bundle
 	@echo "Building frontend bundle..."
@@ -47,24 +53,25 @@ prepare-static: build-frontend ## Copy frontend build to backend for embedding
 	@cp -r frontend/dist backend/internal/static/dist
 
 build-backend-with-static: prepare-static ## Build Go binary with embedded frontend
-	@echo "Building backend binary with embedded frontend..."
-	cd backend && go build -o ../dist/burndler cmd/api/main.go
+	@echo "Building backend binary with embedded frontend (v$(VERSION))..."
+	cd backend && go build -ldflags="$(LDFLAGS)" -o ../dist/burndler cmd/api/main.go
 
 build-docker: ## Build Docker image with embedded frontend
-	@echo "Building Docker image..."
-	docker build -t burndler:latest .
-	@if [ -n "$(VERSION)" ]; then \
-		docker tag burndler:latest burndler:$(VERSION); \
-		echo "Docker images built: burndler:latest and burndler:$(VERSION)"; \
-	else \
-		echo "Docker image built: burndler:latest"; \
-	fi
+	@echo "Building Docker image v$(VERSION)..."
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME=$(BUILD_TIME) \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		-t burndler:latest \
+		-t burndler:$(VERSION) \
+		.
+	@echo "Docker images built: burndler:latest and burndler:$(VERSION)"
 
 build-tools: ## Build CLI tools
-	@echo "Building CLI tools..."
-	cd tools/merge && go build -o ../../dist/burndler-merge .
-	cd tools/lint && go build -o ../../dist/burndler-lint .
-	cd tools/package && go build -o ../../dist/burndler-package .
+	@echo "Building CLI tools v$(VERSION)..."
+	cd tools/merge && go build -ldflags="-X main.Version=$(VERSION)" -o ../../dist/burndler-merge .
+	cd tools/lint && go build -ldflags="-X main.Version=$(VERSION)" -o ../../dist/burndler-lint .
+	cd tools/package && go build -ldflags="-X main.Version=$(VERSION)" -o ../../dist/burndler-package .
 
 # ===== Testing =====
 
@@ -182,3 +189,50 @@ ci-test: test-unit test-integration ## CI test step
 
 ci-build: build ## CI build step
 	@echo "CI build completed"
+
+# ===== Release Management =====
+
+version: ## Show current version
+	@echo "Burndler v$(VERSION)"
+	@echo "Build Time: $(BUILD_TIME)"
+	@echo "Git Commit: $(GIT_COMMIT)"
+
+release-local: ## Prepare local release build
+	@echo "Preparing local release v$(VERSION)..."
+	@make clean
+	@make build
+	@make build-docker
+	@echo "✅ Local release v$(VERSION) ready"
+
+release-check: ## Validate release readiness
+	@echo "🔍 Checking release readiness..."
+	@if [ "$(VERSION)" = "dev" ]; then \
+		echo "❌ VERSION file must contain a proper version (not 'dev')"; \
+		exit 1; \
+	fi
+	@if ! git diff-index --quiet HEAD --; then \
+		echo "❌ Working directory not clean. Commit or stash changes."; \
+		exit 1; \
+	fi
+	@if [ -z "$(shell git tag -l "v$(VERSION)")" ]; then \
+		echo "✅ Version v$(VERSION) is not yet tagged"; \
+	else \
+		echo "❌ Version v$(VERSION) already tagged"; \
+		exit 1; \
+	fi
+	@echo "✅ Release readiness check passed"
+
+pre-commit-install: ## Install pre-commit hooks
+	@echo "Installing pre-commit hooks..."
+	@which pre-commit > /dev/null || pip install pre-commit
+	@pre-commit install
+	@echo "✅ Pre-commit hooks installed"
+
+pre-commit-run: ## Run pre-commit hooks on all files
+	@echo "Running pre-commit hooks..."
+	@pre-commit run --all-files
+
+sync-version: ## Sync version across package.json and VERSION file
+	@echo "Syncing version $(VERSION) across files..."
+	@sed -i 's/"version": "[^"]*"/"version": "$(VERSION)"/' frontend/package.json
+	@echo "✅ Version synced to $(VERSION)"
