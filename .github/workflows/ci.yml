@@ -22,8 +22,8 @@ jobs:
         run: |
           echo "🔍 Validating Burndler architectural constraints..."
 
-          # Check for forbidden build directives
-          if grep -r "build:" compose/*.yaml; then
+          # Check for forbidden build directives (ignore comments)
+          if grep -r "^[[:space:]]*build:" compose/*.yaml 2>/dev/null; then
             echo "❌ ERROR: 'build:' directive found in compose files!"
             exit 1
           fi

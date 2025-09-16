@@ -113,7 +113,7 @@ lint-js: ## Run ESLint and Prettier
 lint-compose: ## Validate compose files (no build:, etc.)
 	@echo "Validating compose files..."
 	@echo "Checking for forbidden 'build:' directives..."
-	@! grep -r "build:" compose/*.yaml 2>/dev/null || (echo "ERROR: 'build:' directive found in compose files!" && exit 1)
+	@! grep -r "^[[:space:]]*build:" compose/*.yaml 2>/dev/null || (echo "ERROR: 'build:' directive found in compose files!" && exit 1)
 	@echo "Checking for image SHA256 usage..."
 	@grep -E "image:.*@sha256:" compose/dev.compose.yaml > /dev/null || echo "WARNING: Not all images use SHA256 digests"
 	@echo "Compose files validated ✓"

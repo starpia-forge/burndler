@@ -54,7 +54,7 @@ repos:
     hooks:
       - id: check-compose-build-directive
         name: Check for forbidden build directives
-        entry: bash -c 'if grep -r "build:" compose/*.yaml 2>/dev/null; then echo "ERROR: build: directive found in compose files!"; exit 1; fi'
+        entry: bash -c 'if grep -r "^[[:space:]]*build:" compose/*.yaml 2>/dev/null; then echo "ERROR: build: directive found in compose files!"; exit 1; fi'
         language: system
         files: ^compose/.*\.ya?ml$
         pass_filenames: false
