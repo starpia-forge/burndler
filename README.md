@@ -1,5 +1,10 @@
 # Burndler
 
+[![CI](https://github.com/starpia-forge/burndler/actions/workflows/ci.yml/badge.svg)](https://github.com/starpia-forge/burndler/actions/workflows/ci.yml)
+[![Release](https://github.com/starpia-forge/burndler/actions/workflows/release.yml/badge.svg)](https://github.com/starpia-forge/burndler/actions/workflows/release.yml)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/starpia-forge/burndler)](https://github.com/starpia-forge/burndler/releases/latest)
+[![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2Fstarpia--forge%2Fburndler-blue)](https://github.com/starpia-forge/burndler/pkgs/container/burndler)
+
 A Docker Compose orchestration tool for merging, validating, and packaging multi-module applications for offline deployment.
 
 ## Overview
@@ -108,9 +113,51 @@ JWT_SECRET=your-secret-key
 
 API documentation is available in OpenAPI format at `/backend/openapi/openapi.yaml`
 
+## Release Management
+
+### Development Workflow
+
+Burndler uses automated semantic versioning based on [Conventional Commits](https://www.conventionalcommits.org/):
+
+- **feat:** New feature (minor version bump)
+- **fix:** Bug fix (patch version bump)
+- **BREAKING CHANGE:** Major version bump
+- **chore/docs/style/refactor/test:** No version bump
+
+### Release Process
+
+1. **Automatic Releases**: Triggered by pushes to `main` branch
+2. **Manual Releases**: Use `make release-local` for local testing
+3. **Version Check**: Run `make version` to see current version info
+4. **Pre-commit Hooks**: Run `make pre-commit-install` to set up quality gates
+
+### Available Artifacts
+
+- **Binaries**: Linux AMD64 binaries attached to GitHub releases
+- **Docker Images**: `ghcr.io/starpia-forge/burndler:latest` and tagged versions
+- **Offline Installers**: Complete deployment packages in release assets
+
+### Development Commands
+
+Essential commands for contributors:
+
+```bash
+# Setup development environment
+make setup && make pre-commit-install
+
+# Run tests and quality checks
+make test && make lint
+
+# Build and verify
+make build && make version
+
+# Check release readiness
+make release-check
+```
+
 ## Contributing
 
-Please read our contributing guidelines before submitting pull requests.
+Please read our contributing guidelines before submitting pull requests. Ensure all commits follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
 
 ## License
 
