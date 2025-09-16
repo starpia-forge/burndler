@@ -10,7 +10,11 @@
       "Bash(git commit:*)",
       "Bash(make test-unit:*)",
       "Bash(npm install)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh workflow:*)",
+      "Bash(gh run view:*)",
+      "Bash(golangci-lint run:*)"
     ],
     "deny": [],
     "ask": []
