@@ -7,7 +7,9 @@
       "Bash(make lint-go:*)",
       "Bash(git tag:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(make test-unit:*)",
+      "Bash(npm install)"
     ],
     "deny": [],
     "ask": []
