@@ -72,6 +72,10 @@ go.work
 /frontend/dist/
 /frontend/.vite/
 
+# Backend embedded frontend (keep placeholder, ignore built assets)
+/backend/internal/static/dist/*
+!/backend/internal/static/dist/index.html
+
 # Backend binaries
 /backend/burndler
 /backend/cmd/api/api
