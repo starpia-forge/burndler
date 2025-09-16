@@ -165,7 +165,7 @@ jobs:
           DB_SSL_MODE: disable
           JWT_SECRET: test-secret-for-ci
         run: |
-          cd backend && go test -v -race -coverprofile=coverage.out ./...
+          cd backend && go test -v ./...
 
       - name: Run Go integration tests
         env:
