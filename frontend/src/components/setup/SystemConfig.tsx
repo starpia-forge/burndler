@@ -1,13 +1,13 @@
-import { useState } from 'react'
-import { useSetup } from '../../hooks/useSetup'
-import { CogIcon, BuildingOfficeIcon } from '@heroicons/react/24/outline'
+import { useState } from 'react';
+import { useSetup } from '../../hooks/useSetup';
+import { CogIcon, BuildingOfficeIcon } from '@heroicons/react/24/outline';
 
 interface SystemConfigProps {
-  onConfigComplete: () => void
+  onConfigComplete: () => void;
 }
 
 export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
-  const { completeSetup, loading, error } = useSetup()
+  const { completeSetup, loading, error } = useSetup();
   const [formData, setFormData] = useState({
     companyName: '',
     systemSettings: {
@@ -15,69 +15,71 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
       max_concurrent_builds: '3',
       storage_retention_days: '30',
       auto_cleanup_enabled: 'true',
-      notification_email: ''
-    }
-  })
-  const [formError, setFormError] = useState('')
+      notification_email: '',
+    },
+  });
+  const [formError, setFormError] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
 
     if (name === 'companyName') {
       setFormData({
         ...formData,
-        companyName: value
-      })
+        companyName: value,
+      });
     } else {
       setFormData({
         ...formData,
         systemSettings: {
           ...formData.systemSettings,
-          [name]: value
-        }
-      })
+          [name]: value,
+        },
+      });
     }
-    setFormError('')
-  }
+    setFormError('');
+  };
 
   const validateForm = () => {
     if (!formData.companyName.trim()) {
-      setFormError('Company name is required')
-      return false
+      setFormError('Company name is required');
+      return false;
     }
     if (!formData.systemSettings.default_namespace.trim()) {
-      setFormError('Default namespace is required')
-      return false
+      setFormError('Default namespace is required');
+      return false;
     }
     if (!/^[a-z0-9-]+$/.test(formData.systemSettings.default_namespace)) {
-      setFormError('Namespace can only contain lowercase letters, numbers, and hyphens')
-      return false
+      setFormError('Namespace can only contain lowercase letters, numbers, and hyphens');
+      return false;
     }
-    if (formData.systemSettings.notification_email &&
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.systemSettings.notification_email)) {
-      setFormError('Please enter a valid notification email address')
-      return false
+    if (
+      formData.systemSettings.notification_email &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.systemSettings.notification_email)
+    ) {
+      setFormError('Please enter a valid notification email address');
+      return false;
     }
-    return true
-  }
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      return;
     }
 
     try {
       await completeSetup({
         company_name: formData.companyName,
-        system_settings: formData.systemSettings
-      })
-      onConfigComplete()
+        system_settings: formData.systemSettings,
+      });
+      onConfigComplete();
     } catch (err) {
       // Error is already handled by useSetup hook
     }
-  }
+  };
 
   return (
     <div className="p-8">
@@ -91,9 +93,7 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
 
       {(error || formError) && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <div className="text-sm text-red-700">
-            {error || formError}
-          </div>
+          <div className="text-sm text-red-700">{error || formError}</div>
         </div>
       )}
 
@@ -131,7 +131,10 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="default_namespace" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="default_namespace"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Default Namespace *
               </label>
               <input
@@ -148,7 +151,10 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
             </div>
 
             <div>
-              <label htmlFor="max_concurrent_builds" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="max_concurrent_builds"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Max Concurrent Builds
               </label>
               <select
@@ -168,7 +174,10 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
             </div>
 
             <div>
-              <label htmlFor="storage_retention_days" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="storage_retention_days"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Storage Retention (Days)
               </label>
               <input
@@ -185,7 +194,10 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
             </div>
 
             <div>
-              <label htmlFor="auto_cleanup_enabled" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="auto_cleanup_enabled"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Auto Cleanup
               </label>
               <select
@@ -203,7 +215,10 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
           </div>
 
           <div className="mt-6">
-            <label htmlFor="notification_email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="notification_email"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Notification Email
             </label>
             <input
@@ -242,5 +257,5 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
         </div>
       </form>
     </div>
-  )
+  );
 }

@@ -1,9 +1,13 @@
-import { CheckCircleIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline'
-import { SetupStatus as SetupStatusType } from '../../types/setup'
+import {
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+} from '@heroicons/react/24/outline';
+import { SetupStatus as SetupStatusType } from '../../types/setup';
 
 interface SetupStatusProps {
-  setupStatus: SetupStatusType
-  onContinue: () => void
+  setupStatus: SetupStatusType;
+  onContinue: () => void;
 }
 
 export default function SetupStatus({ setupStatus, onContinue }: SetupStatusProps) {
@@ -11,23 +15,21 @@ export default function SetupStatus({ setupStatus, onContinue }: SetupStatusProp
     {
       label: 'System Database',
       status: 'ready',
-      message: 'Database connection established'
+      message: 'Database connection established',
     },
     {
       label: 'Admin Account',
       status: setupStatus.admin_exists ? 'ready' : 'pending',
       message: setupStatus.admin_exists
         ? 'Admin account exists'
-        : 'Admin account needs to be created'
+        : 'Admin account needs to be created',
     },
     {
       label: 'Setup Status',
       status: setupStatus.is_completed ? 'complete' : 'pending',
-      message: setupStatus.is_completed
-        ? 'System setup is complete'
-        : 'System setup required'
-    }
-  ]
+      message: setupStatus.is_completed ? 'System setup is complete' : 'System setup required',
+    },
+  ];
 
   return (
     <div className="p-8">
@@ -52,14 +54,21 @@ export default function SetupStatus({ setupStatus, onContinue }: SetupStatusProp
             <div className="ml-4 flex-1">
               <div className="flex justify-between items-center">
                 <h3 className="text-sm font-medium text-gray-900">{item.label}</h3>
-                <span className={`
+                <span
+                  className={`
                   px-2 py-1 text-xs font-medium rounded-full
-                  ${item.status === 'ready' || item.status === 'complete'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-yellow-100 text-yellow-800'
+                  ${
+                    item.status === 'ready' || item.status === 'complete'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-yellow-100 text-yellow-800'
                   }
-                `}>
-                  {item.status === 'complete' ? 'Complete' : item.status === 'ready' ? 'Ready' : 'Pending'}
+                `}
+                >
+                  {item.status === 'complete'
+                    ? 'Complete'
+                    : item.status === 'ready'
+                      ? 'Ready'
+                      : 'Pending'}
                 </span>
               </div>
               <p className="text-sm text-gray-500 mt-1">{item.message}</p>
@@ -75,7 +84,9 @@ export default function SetupStatus({ setupStatus, onContinue }: SetupStatusProp
             <div className="ml-3">
               <h3 className="text-sm font-medium text-blue-800">Setup Required</h3>
               <div className="text-sm text-blue-700 mt-1">
-                <p>Your system needs to be configured before you can use Burndler. This process will:</p>
+                <p>
+                  Your system needs to be configured before you can use Burndler. This process will:
+                </p>
                 <ul className="list-disc list-inside mt-2 space-y-1">
                   <li>Create an initial admin account</li>
                   <li>Configure system settings</li>
@@ -96,5 +107,5 @@ export default function SetupStatus({ setupStatus, onContinue }: SetupStatusProp
         </button>
       </div>
     </div>
-  )
+  );
 }

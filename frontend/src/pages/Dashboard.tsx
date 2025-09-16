@@ -5,35 +5,86 @@ import {
   ChartBarIcon,
   ServerIcon,
   CheckCircleIcon,
-  XCircleIcon
-} from '@heroicons/react/24/outline'
-import { useAuth } from '../hooks/useAuth'
-import { Link } from 'react-router-dom'
+  XCircleIcon,
+} from '@heroicons/react/24/outline';
+import { useAuth } from '../hooks/useAuth';
+import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
-  const { user, isDeveloper } = useAuth()
+  const { user, isDeveloper } = useAuth();
 
   const stats = [
     { name: 'Total Merges', value: '24', icon: DocumentDuplicateIcon, color: 'bg-blue-500' },
     { name: 'Packages Built', value: '12', icon: CubeIcon, color: 'bg-green-500' },
     { name: 'Lint Checks', value: '156', icon: DocumentCheckIcon, color: 'bg-yellow-500' },
     { name: 'Deploy Ready', value: '8', icon: ServerIcon, color: 'bg-purple-500' },
-  ]
+  ];
 
   const recentActivity = [
-    { id: 1, action: 'Merged compose files', project: 'web-app', status: 'success', time: '2 hours ago' },
-    { id: 2, action: 'Built offline package', project: 'api-service', status: 'success', time: '4 hours ago' },
-    { id: 3, action: 'Lint validation failed', project: 'database', status: 'error', time: '5 hours ago' },
-    { id: 4, action: 'Merged compose files', project: 'monitoring', status: 'success', time: '1 day ago' },
-    { id: 5, action: 'Built offline package', project: 'auth-service', status: 'success', time: '2 days ago' },
-  ]
+    {
+      id: 1,
+      action: 'Merged compose files',
+      project: 'web-app',
+      status: 'success',
+      time: '2 hours ago',
+    },
+    {
+      id: 2,
+      action: 'Built offline package',
+      project: 'api-service',
+      status: 'success',
+      time: '4 hours ago',
+    },
+    {
+      id: 3,
+      action: 'Lint validation failed',
+      project: 'database',
+      status: 'error',
+      time: '5 hours ago',
+    },
+    {
+      id: 4,
+      action: 'Merged compose files',
+      project: 'monitoring',
+      status: 'success',
+      time: '1 day ago',
+    },
+    {
+      id: 5,
+      action: 'Built offline package',
+      project: 'auth-service',
+      status: 'success',
+      time: '2 days ago',
+    },
+  ];
 
   const quickActions = [
-    { name: 'Merge Compose Files', href: '/merge', icon: DocumentDuplicateIcon, description: 'Combine multiple Docker Compose files' },
-    { name: 'Build Package', href: '/package', icon: CubeIcon, description: 'Create offline deployment package', requireDeveloper: true },
-    { name: 'View Lint Reports', href: '/lint', icon: DocumentCheckIcon, description: 'Check validation and lint results' },
-    { name: 'CLI Tools', href: '/cli', icon: ServerIcon, description: 'Access command-line utilities' },
-  ]
+    {
+      name: 'Merge Compose Files',
+      href: '/merge',
+      icon: DocumentDuplicateIcon,
+      description: 'Combine multiple Docker Compose files',
+    },
+    {
+      name: 'Build Package',
+      href: '/package',
+      icon: CubeIcon,
+      description: 'Create offline deployment package',
+      requireDeveloper: true,
+    },
+    {
+      name: 'View Lint Reports',
+      href: '/lint',
+      icon: DocumentCheckIcon,
+      description: 'Check validation and lint results',
+    },
+    {
+      name: 'CLI Tools',
+      href: '/cli',
+      icon: ServerIcon,
+      description: 'Access command-line utilities',
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -48,7 +99,10 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <div key={stat.name} className="bg-white overflow-hidden rounded-lg shadow hover:shadow-lg transition-shadow">
+          <div
+            key={stat.name}
+            className="bg-white overflow-hidden rounded-lg shadow hover:shadow-lg transition-shadow"
+          >
             <div className="p-5">
               <div className="flex items-center">
                 <div className={`${stat.color} rounded-lg p-3`}>
@@ -74,7 +128,7 @@ export default function Dashboard() {
           </div>
           <div className="p-6 space-y-4">
             {quickActions.map((action) => {
-              if (action.requireDeveloper && !isDeveloper) return null
+              if (action.requireDeveloper && !isDeveloper) return null;
               return (
                 <Link
                   key={action.name}
@@ -90,7 +144,7 @@ export default function Dashboard() {
                   </div>
                   <ChartBarIcon className="h-5 w-5 text-gray-400" />
                 </Link>
-              )
+              );
             })}
           </div>
         </div>
@@ -171,5 +225,5 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

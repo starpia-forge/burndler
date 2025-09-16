@@ -1,84 +1,82 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../hooks/useAuth'
-import { Build } from '../types'
-import api from '../services/api'
+import { useState, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { Build } from '../types';
+import api from '../services/api';
 
 export default function PackageBuilder() {
-  const { isDeveloper } = useAuth()
-  const [packageName, setPackageName] = useState('')
-  const [composeContent, setComposeContent] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [currentBuild, setCurrentBuild] = useState<Build | null>(null)
-  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null)
+  const { isDeveloper } = useAuth();
+  const [packageName, setPackageName] = useState('');
+  const [composeContent, setComposeContent] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [currentBuild, setCurrentBuild] = useState<Build | null>(null);
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
       if (pollingInterval) {
-        clearInterval(pollingInterval)
+        clearInterval(pollingInterval);
       }
-    }
-  }, [pollingInterval])
+    };
+  }, [pollingInterval]);
 
   const pollBuildStatus = async (buildId: string) => {
     try {
-      const status = await api.getBuildStatus(buildId)
-      setCurrentBuild(status)
+      const status = await api.getBuildStatus(buildId);
+      setCurrentBuild(status);
 
       if (status.status === 'completed' || status.status === 'failed') {
         if (pollingInterval) {
-          clearInterval(pollingInterval)
-          setPollingInterval(null)
+          clearInterval(pollingInterval);
+          setPollingInterval(null);
         }
       }
     } catch (err) {
-      console.error('Failed to poll build status:', err)
+      console.error('Failed to poll build status:', err);
     }
-  }
+  };
 
   const handleCreatePackage = async () => {
     if (!isDeveloper) {
-      setError('Only Developers can create packages')
-      return
+      setError('Only Developers can create packages');
+      return;
     }
 
-    setIsLoading(true)
-    setError(null)
-    setCurrentBuild(null)
+    setIsLoading(true);
+    setError(null);
+    setCurrentBuild(null);
 
     try {
       const result = await api.createPackage({
         name: packageName,
         compose: composeContent,
-      })
+      });
 
       // Start polling for build status
       const interval = setInterval(() => {
-        pollBuildStatus(result.build_id)
-      }, 2000)
-      setPollingInterval(interval)
+        pollBuildStatus(result.build_id);
+      }, 2000);
+      setPollingInterval(interval);
 
       // Initial status fetch
-      pollBuildStatus(result.build_id)
+      pollBuildStatus(result.build_id);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create package')
+      setError(err.response?.data?.message || 'Failed to create package');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (!isDeveloper) {
     return (
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-yellow-800 mb-2">
-          Developer Access Required
-        </h3>
+        <h3 className="text-lg font-medium text-yellow-800 mb-2">Developer Access Required</h3>
         <p className="text-yellow-700">
-          Package creation is restricted to users with Developer role.
-          Engineers have read-only access to the system.
+          Package creation is restricted to users with Developer role. Engineers have read-only
+          access to the system.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -93,9 +91,7 @@ export default function PackageBuilder() {
       {/* Package Configuration */}
       <div className="bg-white p-6 rounded-lg shadow space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Package Name
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Package Name</label>
           <input
             type="text"
             value={packageName}
@@ -154,10 +150,10 @@ export default function PackageBuilder() {
                   currentBuild.status === 'completed'
                     ? 'bg-green-100 text-green-800'
                     : currentBuild.status === 'failed'
-                    ? 'bg-red-100 text-red-800'
-                    : currentBuild.status === 'building'
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-gray-100 text-gray-800'
+                      ? 'bg-red-100 text-red-800'
+                      : currentBuild.status === 'building'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
                 }`}
               >
                 {currentBuild.status}
@@ -187,9 +183,7 @@ export default function PackageBuilder() {
 
             {currentBuild.downloadUrl && (
               <div className="bg-green-50 border border-green-200 p-3 rounded">
-                <p className="text-sm text-green-700 mb-2">
-                  Package created successfully!
-                </p>
+                <p className="text-sm text-green-700 mb-2">Package created successfully!</p>
                 <a
                   href={currentBuild.downloadUrl}
                   download
@@ -203,5 +197,5 @@ export default function PackageBuilder() {
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,30 +1,30 @@
-import { useEffect } from 'react'
-import { CheckCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
-import { useAuth } from '../../hooks/useAuth'
-import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react';
+import { CheckCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 export default function SetupComplete() {
-  const { isAuthenticated } = useAuth()
-  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Auto-redirect to dashboard after 5 seconds if user is authenticated
     if (isAuthenticated) {
       const timer = setTimeout(() => {
-        navigate('/')
-      }, 5000)
+        navigate('/');
+      }, 5000);
 
-      return () => clearTimeout(timer)
+      return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, navigate]);
 
   const handleGoToDashboard = () => {
     if (isAuthenticated) {
-      navigate('/')
+      navigate('/');
     } else {
-      navigate('/login')
+      navigate('/login');
     }
-  }
+  };
 
   const completedItems = [
     'System database initialized',
@@ -32,8 +32,8 @@ export default function SetupComplete() {
     'Company profile configured',
     'System settings applied',
     'Default namespace configured',
-    'Security policies activated'
-  ]
+    'Security policies activated',
+  ];
 
   return (
     <div className="p-8 text-center">
@@ -62,10 +62,10 @@ export default function SetupComplete() {
       <div className="space-y-4">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-sm text-blue-700">
-            <strong>Next Steps:</strong> {isAuthenticated
+            <strong>Next Steps:</strong>{' '}
+            {isAuthenticated
               ? 'You can now access your dashboard and start managing your Docker Compose deployments.'
-              : 'Please log in with your admin credentials to access the dashboard.'
-            }
+              : 'Please log in with your admin credentials to access the dashboard.'}
           </p>
         </div>
 
@@ -80,9 +80,7 @@ export default function SetupComplete() {
         </div>
 
         {isAuthenticated && (
-          <p className="text-sm text-gray-500">
-            Redirecting automatically in 5 seconds...
-          </p>
+          <p className="text-sm text-gray-500">Redirecting automatically in 5 seconds...</p>
         )}
       </div>
 
@@ -90,14 +88,20 @@ export default function SetupComplete() {
         <div className="text-sm text-gray-500">
           <p className="mb-2">Need help getting started?</p>
           <div className="flex justify-center space-x-4">
-            <a href="#" className="text-blue-600 hover:text-blue-500">Documentation</a>
+            <a href="#" className="text-blue-600 hover:text-blue-500">
+              Documentation
+            </a>
             <span>·</span>
-            <a href="#" className="text-blue-600 hover:text-blue-500">API Guide</a>
+            <a href="#" className="text-blue-600 hover:text-blue-500">
+              API Guide
+            </a>
             <span>·</span>
-            <a href="#" className="text-blue-600 hover:text-blue-500">Support</a>
+            <a href="#" className="text-blue-600 hover:text-blue-500">
+              Support
+            </a>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

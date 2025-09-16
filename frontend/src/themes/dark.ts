@@ -1,4 +1,4 @@
-import { Theme } from '../types/theme'
+import { Theme } from '../types/theme';
 
 export const darkTheme: Theme = {
   name: 'Dark',
@@ -52,4 +52,4 @@ export const darkTheme: Theme = {
     info: '#0891b2',
     infoForeground: '#ffffff',
   },
-}
+};

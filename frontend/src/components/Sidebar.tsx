@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink } from 'react-router-dom';
 import {
   HomeIcon,
   DocumentDuplicateIcon,
@@ -9,16 +9,16 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CommandLineIcon,
-  ShieldCheckIcon
-} from '@heroicons/react/24/outline'
-import { useState } from 'react'
-import { useAuth } from '../hooks/useAuth'
+  ShieldCheckIcon,
+} from '@heroicons/react/24/outline';
+import { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
 
 interface NavItem {
-  name: string
-  href: string
-  icon: React.ComponentType<any>
-  requiredRole?: 'Developer' | 'Engineer'
+  name: string;
+  href: string;
+  icon: React.ComponentType<any>;
+  requiredRole?: 'Developer' | 'Engineer';
 }
 
 const navigation: NavItem[] = [
@@ -30,17 +30,17 @@ const navigation: NavItem[] = [
   { name: 'CLI Tools', href: '/cli', icon: CommandLineIcon },
   { name: 'RBAC Manager', href: '/rbac', icon: ShieldCheckIcon, requiredRole: 'Developer' },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
-]
+];
 
 export default function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false)
-  const { user, isDeveloper } = useAuth()
+  const [collapsed, setCollapsed] = useState(false);
+  const { user, isDeveloper } = useAuth();
 
-  const filteredNavigation = navigation.filter(item => {
-    if (!item.requiredRole) return true
-    if (item.requiredRole === 'Developer' && !isDeveloper) return false
-    return true
-  })
+  const filteredNavigation = navigation.filter((item) => {
+    if (!item.requiredRole) return true;
+    if (item.requiredRole === 'Developer' && !isDeveloper) return false;
+    return true;
+  });
 
   return (
     <aside
@@ -75,14 +75,8 @@ export default function Sidebar() {
             }
             title={collapsed ? item.name : undefined}
           >
-            <item.icon
-              className={`${
-                collapsed ? 'mx-auto' : 'mr-3'
-              } h-6 w-6 flex-shrink-0`}
-            />
-            {!collapsed && (
-              <span className="truncate">{item.name}</span>
-            )}
+            <item.icon className={`${collapsed ? 'mx-auto' : 'mr-3'} h-6 w-6 flex-shrink-0`} />
+            {!collapsed && <span className="truncate">{item.name}</span>}
             {!collapsed && item.requiredRole && (
               <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-700 text-gray-300">
                 {item.requiredRole}
@@ -111,10 +105,8 @@ export default function Sidebar() {
 
       {/* Version */}
       <div className={`p-4 text-center ${collapsed ? 'px-2' : ''}`}>
-        <p className="text-xs text-gray-500">
-          {collapsed ? 'v0.1' : 'Burndler v0.1.0'}
-        </p>
+        <p className="text-xs text-gray-500">{collapsed ? 'v0.1' : 'Burndler v0.1.0'}</p>
       </div>
     </aside>
-  )
+  );
 }

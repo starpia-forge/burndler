@@ -1,15 +1,15 @@
-import { ReactNode } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { ReactNode } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 interface ProtectedRouteProps {
-  children: ReactNode
-  requireAuth?: boolean
+  children: ReactNode;
+  requireAuth?: boolean;
 }
 
 export function ProtectedRoute({ children, requireAuth = true }: ProtectedRouteProps) {
-  const { isAuthenticated, loading } = useAuth()
-  const location = useLocation()
+  const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
 
   // Show loading spinner while checking authentication
   if (loading) {
@@ -20,20 +20,20 @@ export function ProtectedRoute({ children, requireAuth = true }: ProtectedRouteP
           <p className="mt-2 text-sm text-muted-foreground">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   // If authentication is required and user is not authenticated, redirect to login
   if (requireAuth && !isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // If authentication is not required and user is authenticated, redirect to dashboard
   if (!requireAuth && isAuthenticated) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/dashboard" replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
-export default ProtectedRoute
+export default ProtectedRoute;

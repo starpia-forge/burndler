@@ -1,13 +1,13 @@
-import { ReactNode } from 'react'
-import { Navigate } from 'react-router-dom'
-import { useSetup } from '../hooks/useSetup'
+import { ReactNode } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useSetup } from '../hooks/useSetup';
 
 interface SetupGuardProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export function SetupGuard({ children }: SetupGuardProps) {
-  const { isSetupCompleted, isSetupRequired, loading } = useSetup()
+  const { isSetupCompleted, isSetupRequired, loading } = useSetup();
 
   // Show loading spinner while checking setup status
   if (loading) {
@@ -18,16 +18,16 @@ export function SetupGuard({ children }: SetupGuardProps) {
           <p className="mt-4 text-gray-600">Checking system status...</p>
         </div>
       </div>
-    )
+    );
   }
 
   // If setup is required and not completed, redirect to setup
   if (isSetupRequired && !isSetupCompleted) {
-    return <Navigate to="/setup" replace />
+    return <Navigate to="/setup" replace />;
   }
 
   // If setup is completed, render the children
-  return <>{children}</>
+  return <>{children}</>;
 }
 
-export default SetupGuard
+export default SetupGuard;

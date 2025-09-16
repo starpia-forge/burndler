@@ -1,17 +1,17 @@
-import { Fragment } from 'react'
-import { Menu, Transition } from '@headlessui/react'
+import { Fragment } from 'react';
+import { Menu, Transition } from '@headlessui/react';
 import {
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
   Cog6ToothIcon,
-  UserIcon
-} from '@heroicons/react/24/outline'
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import { useAuth } from '../hooks/useAuth'
-import ThemeToggle from './ThemeToggle'
+  UserIcon,
+} from '@heroicons/react/24/outline';
+import { ChevronDownIcon } from '@heroicons/react/20/solid';
+import { useAuth } from '../hooks/useAuth';
+import ThemeToggle from './ThemeToggle';
 
 export default function Header() {
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, logout } = useAuth();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-background border-b border-border shadow-sm">
@@ -35,7 +35,9 @@ export default function Header() {
                 <Menu.Button className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
                   <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-accent transition-colors">
                     <div className="text-right hidden sm:block">
-                      <p className="text-sm font-medium text-foreground">{user?.name || user?.email}</p>
+                      <p className="text-sm font-medium text-foreground">
+                        {user?.name || user?.email}
+                      </p>
                       <p className="text-xs text-muted-foreground">{user?.role}</p>
                     </div>
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
@@ -59,11 +61,13 @@ export default function Header() {
                       <div className="px-3 py-2 border-b border-border">
                         <p className="text-sm font-medium text-foreground">{user?.email}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                            user?.role === 'Developer'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-blue-100 text-blue-800'
-                          }`}>
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                              user?.role === 'Developer'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}
+                          >
                             {user?.role}
                           </span>
                         </p>
@@ -124,5 +128,5 @@ export default function Header() {
         </div>
       </div>
     </header>
-  )
+  );
 }

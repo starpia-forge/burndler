@@ -3,10 +3,10 @@ import {
   AdminCreateRequest,
   AdminCreateResponse,
   SetupCompleteRequest,
-  SetupError
-} from '../types/setup'
+  SetupError,
+} from '../types/setup';
 
-const API_BASE_URL = '/api/v1'
+const API_BASE_URL = '/api/v1';
 
 class SetupService {
   /**
@@ -18,14 +18,14 @@ class SetupService {
       headers: {
         'Content-Type': 'application/json',
       },
-    })
+    });
 
     if (!response.ok) {
-      const error: SetupError = await response.json()
-      throw new Error(error.message || 'Failed to get setup status')
+      const error: SetupError = await response.json();
+      throw new Error(error.message || 'Failed to get setup status');
     }
 
-    return response.json()
+    return response.json();
   }
 
   /**
@@ -37,14 +37,14 @@ class SetupService {
       headers: {
         'Content-Type': 'application/json',
       },
-    })
+    });
 
     if (!response.ok) {
-      const error: SetupError = await response.json()
-      throw new Error(error.message || 'Failed to initialize setup')
+      const error: SetupError = await response.json();
+      throw new Error(error.message || 'Failed to initialize setup');
     }
 
-    return response.json()
+    return response.json();
   }
 
   /**
@@ -57,14 +57,14 @@ class SetupService {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(request),
-    })
+    });
 
     if (!response.ok) {
-      const error: SetupError = await response.json()
-      throw new Error(error.message || 'Failed to create admin user')
+      const error: SetupError = await response.json();
+      throw new Error(error.message || 'Failed to create admin user');
     }
 
-    return response.json()
+    return response.json();
   }
 
   /**
@@ -77,14 +77,14 @@ class SetupService {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(request),
-    })
+    });
 
     if (!response.ok) {
-      const error: SetupError = await response.json()
-      throw new Error(error.message || 'Failed to complete setup')
+      const error: SetupError = await response.json();
+      throw new Error(error.message || 'Failed to complete setup');
     }
 
-    return response.json()
+    return response.json();
   }
 
   /**
@@ -92,12 +92,12 @@ class SetupService {
    */
   async isSetupCompleted(): Promise<boolean> {
     try {
-      const status = await this.getStatus()
-      return status.is_completed
+      const status = await this.getStatus();
+      return status.is_completed;
     } catch (error) {
       // If we can't get setup status, assume setup is not completed
-      console.error('Error checking setup status:', error)
-      return false
+      console.error('Error checking setup status:', error);
+      return false;
     }
   }
 
@@ -106,12 +106,12 @@ class SetupService {
    */
   async isSetupRequired(): Promise<boolean> {
     try {
-      const status = await this.getStatus()
-      return status.requires_setup
+      const status = await this.getStatus();
+      return status.requires_setup;
     } catch (error) {
       // If we can't get setup status, assume setup is required
-      console.error('Error checking setup requirements:', error)
-      return true
+      console.error('Error checking setup requirements:', error);
+      return true;
     }
   }
 
@@ -120,13 +120,13 @@ class SetupService {
    */
   async getSetupToken(): Promise<string | null> {
     try {
-      const status = await this.getStatus()
-      return status.setup_token || null
+      const status = await this.getStatus();
+      return status.setup_token || null;
     } catch (error) {
-      console.error('Error getting setup token:', error)
-      return null
+      console.error('Error getting setup token:', error);
+      return null;
     }
   }
 }
 
-export const setupService = new SetupService()
+export const setupService = new SetupService();
