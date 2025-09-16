@@ -49,7 +49,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize application: %v", err)
 	}
-	defer application.Close()
+	defer func() {
+		if closeErr := application.Close(); closeErr != nil {
+			log.Printf("Error closing application: %v", closeErr)
+		}
+	}()
 
 	// Run the application
 	if err := application.Run(); err != nil {
@@ -63,7 +67,11 @@ func runMigrations() error {
 	if err != nil {
 		return err
 	}
-	defer application.Close()
+	defer func() {
+		if closeErr := application.Close(); closeErr != nil {
+			log.Printf("Error closing application during migration: %v", closeErr)
+		}
+	}()
 
 	log.Println("Database migrations completed - application initialized successfully")
 	return nil

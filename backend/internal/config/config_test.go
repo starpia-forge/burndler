@@ -54,29 +54,69 @@ func TestLoad(t *testing.T) {
 
 func TestLoadWithEnvVars(t *testing.T) {
 	// Set environment variables
-	os.Setenv("DB_HOST", "db.example.com")
-	os.Setenv("DB_PORT", "5433")
-	os.Setenv("DB_MAX_CONNECTIONS", "50")
-	os.Setenv("STORAGE_MODE", "s3")
-	os.Setenv("S3_BUCKET", "test-bucket")
-	os.Setenv("S3_USE_SSL", "false")
-	os.Setenv("SERVER_PORT", "9090")
-	os.Setenv("SERVER_MAX_REQUEST_SIZE", "200000000")
-	os.Setenv("BUILD_WORKER_COUNT", "8")
-	os.Setenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:4000")
+	if err := os.Setenv("DB_HOST", "db.example.com"); err != nil {
+		t.Fatalf("Failed to set DB_HOST: %v", err)
+	}
+	if err := os.Setenv("DB_PORT", "5433"); err != nil {
+		t.Fatalf("Failed to set DB_PORT: %v", err)
+	}
+	if err := os.Setenv("DB_MAX_CONNECTIONS", "50"); err != nil {
+		t.Fatalf("Failed to set DB_MAX_CONNECTIONS: %v", err)
+	}
+	if err := os.Setenv("STORAGE_MODE", "s3"); err != nil {
+		t.Fatalf("Failed to set STORAGE_MODE: %v", err)
+	}
+	if err := os.Setenv("S3_BUCKET", "test-bucket"); err != nil {
+		t.Fatalf("Failed to set S3_BUCKET: %v", err)
+	}
+	if err := os.Setenv("S3_USE_SSL", "false"); err != nil {
+		t.Fatalf("Failed to set S3_USE_SSL: %v", err)
+	}
+	if err := os.Setenv("SERVER_PORT", "9090"); err != nil {
+		t.Fatalf("Failed to set SERVER_PORT: %v", err)
+	}
+	if err := os.Setenv("SERVER_MAX_REQUEST_SIZE", "200000000"); err != nil {
+		t.Fatalf("Failed to set SERVER_MAX_REQUEST_SIZE: %v", err)
+	}
+	if err := os.Setenv("BUILD_WORKER_COUNT", "8"); err != nil {
+		t.Fatalf("Failed to set BUILD_WORKER_COUNT: %v", err)
+	}
+	if err := os.Setenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:4000"); err != nil {
+		t.Fatalf("Failed to set CORS_ALLOWED_ORIGINS: %v", err)
+	}
 
 	defer func() {
 		// Clean up environment variables
-		os.Unsetenv("DB_HOST")
-		os.Unsetenv("DB_PORT")
-		os.Unsetenv("DB_MAX_CONNECTIONS")
-		os.Unsetenv("STORAGE_MODE")
-		os.Unsetenv("S3_BUCKET")
-		os.Unsetenv("S3_USE_SSL")
-		os.Unsetenv("SERVER_PORT")
-		os.Unsetenv("SERVER_MAX_REQUEST_SIZE")
-		os.Unsetenv("BUILD_WORKER_COUNT")
-		os.Unsetenv("CORS_ALLOWED_ORIGINS")
+		if err := os.Unsetenv("DB_HOST"); err != nil {
+			t.Logf("Warning: failed to unset DB_HOST: %v", err)
+		}
+		if err := os.Unsetenv("DB_PORT"); err != nil {
+			t.Logf("Warning: failed to unset DB_PORT: %v", err)
+		}
+		if err := os.Unsetenv("DB_MAX_CONNECTIONS"); err != nil {
+			t.Logf("Warning: failed to unset DB_MAX_CONNECTIONS: %v", err)
+		}
+		if err := os.Unsetenv("STORAGE_MODE"); err != nil {
+			t.Logf("Warning: failed to unset STORAGE_MODE: %v", err)
+		}
+		if err := os.Unsetenv("S3_BUCKET"); err != nil {
+			t.Logf("Warning: failed to unset S3_BUCKET: %v", err)
+		}
+		if err := os.Unsetenv("S3_USE_SSL"); err != nil {
+			t.Logf("Warning: failed to unset S3_USE_SSL: %v", err)
+		}
+		if err := os.Unsetenv("SERVER_PORT"); err != nil {
+			t.Logf("Warning: failed to unset SERVER_PORT: %v", err)
+		}
+		if err := os.Unsetenv("SERVER_MAX_REQUEST_SIZE"); err != nil {
+			t.Logf("Warning: failed to unset SERVER_MAX_REQUEST_SIZE: %v", err)
+		}
+		if err := os.Unsetenv("BUILD_WORKER_COUNT"); err != nil {
+			t.Logf("Warning: failed to unset BUILD_WORKER_COUNT: %v", err)
+		}
+		if err := os.Unsetenv("CORS_ALLOWED_ORIGINS"); err != nil {
+			t.Logf("Warning: failed to unset CORS_ALLOWED_ORIGINS: %v", err)
+		}
 	}()
 
 	cfg := Load()
@@ -149,8 +189,14 @@ func TestGetEnv(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.envValue != "" {
-				os.Setenv(tt.key, tt.envValue)
-				defer os.Unsetenv(tt.key)
+				if err := os.Setenv(tt.key, tt.envValue); err != nil {
+					t.Fatalf("Failed to set env var %s: %v", tt.key, err)
+				}
+				defer func() {
+					if err := os.Unsetenv(tt.key); err != nil {
+						t.Logf("Warning: failed to unset %s: %v", tt.key, err)
+					}
+				}()
 			}
 
 			result := getEnv(tt.key, tt.defaultValue)
@@ -195,8 +241,14 @@ func TestGetEnvAsInt(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.envValue != "" {
-				os.Setenv(tt.key, tt.envValue)
-				defer os.Unsetenv(tt.key)
+				if err := os.Setenv(tt.key, tt.envValue); err != nil {
+					t.Fatalf("Failed to set env var %s: %v", tt.key, err)
+				}
+				defer func() {
+					if err := os.Unsetenv(tt.key); err != nil {
+						t.Logf("Warning: failed to unset %s: %v", tt.key, err)
+					}
+				}()
 			}
 
 			result := getEnvAsInt(tt.key, tt.defaultValue)
@@ -241,8 +293,14 @@ func TestGetEnvAsInt64(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.envValue != "" {
-				os.Setenv(tt.key, tt.envValue)
-				defer os.Unsetenv(tt.key)
+				if err := os.Setenv(tt.key, tt.envValue); err != nil {
+					t.Fatalf("Failed to set env var %s: %v", tt.key, err)
+				}
+				defer func() {
+					if err := os.Unsetenv(tt.key); err != nil {
+						t.Logf("Warning: failed to unset %s: %v", tt.key, err)
+					}
+				}()
 			}
 
 			result := getEnvAsInt64(tt.key, tt.defaultValue)
@@ -308,8 +366,14 @@ func TestGetEnvAsBool(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.envValue != "" {
-				os.Setenv(tt.key, tt.envValue)
-				defer os.Unsetenv(tt.key)
+				if err := os.Setenv(tt.key, tt.envValue); err != nil {
+					t.Fatalf("Failed to set env var %s: %v", tt.key, err)
+				}
+				defer func() {
+					if err := os.Unsetenv(tt.key); err != nil {
+						t.Logf("Warning: failed to unset %s: %v", tt.key, err)
+					}
+				}()
 			}
 
 			result := getEnvAsBool(tt.key, tt.defaultValue)
@@ -368,8 +432,14 @@ func TestGetEnvAsDuration(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.envValue != "" {
-				os.Setenv(tt.key, tt.envValue)
-				defer os.Unsetenv(tt.key)
+				if err := os.Setenv(tt.key, tt.envValue); err != nil {
+					t.Fatalf("Failed to set env var %s: %v", tt.key, err)
+				}
+				defer func() {
+					if err := os.Unsetenv(tt.key); err != nil {
+						t.Logf("Warning: failed to unset %s: %v", tt.key, err)
+					}
+				}()
 			}
 
 			result := getEnvAsDuration(tt.key, tt.defaultValue)
@@ -421,8 +491,14 @@ func TestGetEnvAsSlice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.envValue != "" {
-				os.Setenv(tt.key, tt.envValue)
-				defer os.Unsetenv(tt.key)
+				if err := os.Setenv(tt.key, tt.envValue); err != nil {
+					t.Fatalf("Failed to set env var %s: %v", tt.key, err)
+				}
+				defer func() {
+					if err := os.Unsetenv(tt.key); err != nil {
+						t.Logf("Warning: failed to unset %s: %v", tt.key, err)
+					}
+				}()
 			}
 
 			result := getEnvAsSlice(tt.key, tt.defaultValue)
@@ -440,14 +516,26 @@ func TestGetEnvAsSlice(t *testing.T) {
 
 func TestDurationValues(t *testing.T) {
 	// Test duration parsing with actual config
-	os.Setenv("JWT_EXPIRATION", "48h")
-	os.Setenv("SERVER_READ_TIMEOUT", "1m30s")
-	os.Setenv("BUILD_TIMEOUT", "45m")
+	if err := os.Setenv("JWT_EXPIRATION", "48h"); err != nil {
+		t.Fatalf("Failed to set JWT_EXPIRATION: %v", err)
+	}
+	if err := os.Setenv("SERVER_READ_TIMEOUT", "1m30s"); err != nil {
+		t.Fatalf("Failed to set SERVER_READ_TIMEOUT: %v", err)
+	}
+	if err := os.Setenv("BUILD_TIMEOUT", "45m"); err != nil {
+		t.Fatalf("Failed to set BUILD_TIMEOUT: %v", err)
+	}
 
 	defer func() {
-		os.Unsetenv("JWT_EXPIRATION")
-		os.Unsetenv("SERVER_READ_TIMEOUT")
-		os.Unsetenv("BUILD_TIMEOUT")
+		if err := os.Unsetenv("JWT_EXPIRATION"); err != nil {
+			t.Logf("Warning: failed to unset JWT_EXPIRATION: %v", err)
+		}
+		if err := os.Unsetenv("SERVER_READ_TIMEOUT"); err != nil {
+			t.Logf("Warning: failed to unset SERVER_READ_TIMEOUT: %v", err)
+		}
+		if err := os.Unsetenv("BUILD_TIMEOUT"); err != nil {
+			t.Logf("Warning: failed to unset BUILD_TIMEOUT: %v", err)
+		}
 	}()
 
 	cfg := Load()
@@ -465,16 +553,32 @@ func TestDurationValues(t *testing.T) {
 
 func TestInvalidTypeConversions(t *testing.T) {
 	// Test that invalid values fall back to defaults
-	os.Setenv("DB_MAX_CONNECTIONS", "not-a-number")
-	os.Setenv("S3_USE_SSL", "maybe")
-	os.Setenv("SERVER_MAX_REQUEST_SIZE", "way-too-big")
-	os.Setenv("BUILD_TIMEOUT", "forever")
+	if err := os.Setenv("DB_MAX_CONNECTIONS", "not-a-number"); err != nil {
+		t.Fatalf("Failed to set DB_MAX_CONNECTIONS: %v", err)
+	}
+	if err := os.Setenv("S3_USE_SSL", "maybe"); err != nil {
+		t.Fatalf("Failed to set S3_USE_SSL: %v", err)
+	}
+	if err := os.Setenv("SERVER_MAX_REQUEST_SIZE", "way-too-big"); err != nil {
+		t.Fatalf("Failed to set SERVER_MAX_REQUEST_SIZE: %v", err)
+	}
+	if err := os.Setenv("BUILD_TIMEOUT", "forever"); err != nil {
+		t.Fatalf("Failed to set BUILD_TIMEOUT: %v", err)
+	}
 
 	defer func() {
-		os.Unsetenv("DB_MAX_CONNECTIONS")
-		os.Unsetenv("S3_USE_SSL")
-		os.Unsetenv("SERVER_MAX_REQUEST_SIZE")
-		os.Unsetenv("BUILD_TIMEOUT")
+		if err := os.Unsetenv("DB_MAX_CONNECTIONS"); err != nil {
+			t.Logf("Warning: failed to unset DB_MAX_CONNECTIONS: %v", err)
+		}
+		if err := os.Unsetenv("S3_USE_SSL"); err != nil {
+			t.Logf("Warning: failed to unset S3_USE_SSL: %v", err)
+		}
+		if err := os.Unsetenv("SERVER_MAX_REQUEST_SIZE"); err != nil {
+			t.Logf("Warning: failed to unset SERVER_MAX_REQUEST_SIZE: %v", err)
+		}
+		if err := os.Unsetenv("BUILD_TIMEOUT"); err != nil {
+			t.Logf("Warning: failed to unset BUILD_TIMEOUT: %v", err)
+		}
 	}()
 
 	cfg := Load()
