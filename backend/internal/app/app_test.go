@@ -72,14 +72,16 @@ func TestInitStorage_LocalFS(t *testing.T) {
 
 func TestInitStorage_S3(t *testing.T) {
 	cfg := &config.Config{
-		StorageMode: "s3",
-		S3Bucket:    "test-bucket",
-		S3Region:    "us-east-1",
-		S3Endpoint:  "",
+		StorageMode:       "s3",
+		S3Bucket:          "test-bucket",
+		S3Region:          "us-east-1",
+		S3Endpoint:        "",
+		S3AccessKeyID:     "test-access-key",
+		S3SecretAccessKey: "test-secret-key",
 	}
 
 	storage, err := initStorage(cfg)
-	// S3 storage should work even without real credentials for initialization
+	// S3 storage should initialize successfully with test credentials
 	require.NoError(t, err)
 	assert.NotNil(t, storage)
 }
