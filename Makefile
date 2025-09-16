@@ -111,7 +111,7 @@ test: check-init test-unit test-integration ## Run all tests
 
 test-unit: ## Run unit tests
 	@echo "Running unit tests..."
-	cd backend && go test ./...
+	cd backend && go test -v ./...
 	cd frontend && npm test
 
 test-integration: ## Run integration tests
