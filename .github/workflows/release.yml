@@ -1,0 +1,226 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+env:
+  GO_VERSION: '1.24'
+  NODE_VERSION: '20'
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    if: github.repository == 'starpia-forge/burndler'
+    outputs:
+      released: ${{ steps.semantic.outputs.new_release_published }}
+      version: ${{ steps.semantic.outputs.new_release_version }}
+      tag: ${{ steps.semantic.outputs.new_release_git_tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Install semantic-release dependencies
+        run: |
+          npm install -g \
+            semantic-release \
+            @semantic-release/changelog \
+            @semantic-release/exec \
+            @semantic-release/git \
+            @semantic-release/github \
+            conventional-changelog-conventionalcommits
+
+      - name: Install build dependencies
+        run: |
+          cd frontend && npm ci
+          cd ../backend && go mod download
+
+      - name: Build application for release
+        run: |
+          # Build frontend
+          cd frontend && npm run build
+
+          # Prepare embedded static files
+          rm -rf backend/internal/static/dist
+          cp -r frontend/dist backend/internal/static/dist
+
+          # Create dist directory
+          mkdir -p dist
+
+      - name: Run semantic release
+        id: semantic
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+
+      - name: Build release binaries
+        if: steps.semantic.outputs.new_release_published == 'true'
+        env:
+          VERSION: ${{ steps.semantic.outputs.new_release_version }}
+        run: |
+          # Build main binary with version info
+          cd backend && go build \
+            -ldflags="-X main.Version=${VERSION} -X main.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) -X main.GitCommit=${GITHUB_SHA}" \
+            -o ../dist/burndler \
+            cmd/api/main.go
+
+          # Build CLI tools
+          cd ../tools/merge && go build \
+            -ldflags="-X main.Version=${VERSION}" \
+            -o ../../dist/burndler-merge .
+
+          cd ../lint && go build \
+            -ldflags="-X main.Version=${VERSION}" \
+            -o ../../dist/burndler-lint .
+
+          cd ../package && go build \
+            -ldflags="-X main.Version=${VERSION}" \
+            -o ../../dist/burndler-package .
+
+          # Make binaries executable
+          chmod +x dist/*
+
+      - name: Upload release artifacts
+        if: steps.semantic.outputs.new_release_published == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-binaries-${{ steps.semantic.outputs.new_release_version }}
+          path: |
+            dist/burndler
+            dist/burndler-*
+          retention-days: 90
+
+  docker-release:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: release
+    if: needs.release.outputs.released == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ needs.release.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.release.outputs.version }}
+            type=semver,pattern={{major}},value=${{ needs.release.outputs.version }}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VERSION=${{ needs.release.outputs.version }}
+            BUILD_TIME=${{ github.event.head_commit.timestamp }}
+            GIT_COMMIT=${{ github.sha }}
+
+  package-release:
+    name: Create Offline Installer Package
+    runs-on: ubuntu-latest
+    needs: [release, docker-release]
+    if: needs.release.outputs.released == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Download release binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: release-binaries-${{ needs.release.outputs.version }}
+          path: dist/
+
+      - name: Make binaries executable
+        run: chmod +x dist/*
+
+      - name: Create offline installer package
+        env:
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          # Create installer package
+          mkdir -p dist/installers
+
+          # Use our package tool to create the installer
+          ./dist/burndler-package \
+            --compose deploy/docker-compose.prod.yaml \
+            --version ${VERSION} \
+            --output dist/installers/burndler-${VERSION}-installer.tar.gz
+
+      - name: Upload installer package
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-package-${{ needs.release.outputs.version }}
+          path: dist/installers/*.tar.gz
+          retention-days: 365
+
+      - name: Attach installer to GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ needs.release.outputs.tag }} \
+            dist/installers/burndler-${{ needs.release.outputs.version }}-installer.tar.gz \
+            --clobber
+
+  notify:
+    name: Release Notification
+    runs-on: ubuntu-latest
+    needs: [release, docker-release, package-release]
+    if: needs.release.outputs.released == 'true'
+
+    steps:
+      - name: Notify release completion
+        run: |
+          echo "🚀 Burndler v${{ needs.release.outputs.version }} has been released!"
+          echo "📦 Docker image: ghcr.io/${{ github.repository }}:${{ needs.release.outputs.version }}"
+          echo "💾 Offline installer: burndler-${{ needs.release.outputs.version }}-installer.tar.gz"
+          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.release.outputs.tag }}"
