@@ -85,7 +85,13 @@ jobs:
       - name: Lint Go code
         run: |
           cd backend && $(go env GOPATH)/bin/golangci-lint run
-          cd tools && $(go env GOPATH)/bin/golangci-lint run
+          # Only lint tools directory if it contains Go files
+          if find tools -name "*.go" -type f | grep -q .; then
+            echo "Linting tools directory..."
+            cd tools && $(go env GOPATH)/bin/golangci-lint run
+          else
+            echo "Skipping tools directory (no Go files found)"
+          fi
 
       - name: Lint TypeScript/React
         run: |
