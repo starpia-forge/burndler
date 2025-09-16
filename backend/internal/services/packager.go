@@ -109,11 +109,7 @@ func (p *Packager) CreatePackage(ctx context.Context, req *PackageRequest) (stri
 
 	// Add resources
 	for _, resource := range req.Resources {
-		manifest.Resources = append(manifest.Resources, ResourceInfo{
-			Module:  resource.Module,
-			Version: resource.Version,
-			Files:   resource.Files,
-		})
+		manifest.Resources = append(manifest.Resources, ResourceInfo(resource))
 	}
 
 	// Add manifest.json

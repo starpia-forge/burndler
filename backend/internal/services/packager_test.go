@@ -60,7 +60,7 @@ func TestNewPackager(t *testing.T) {
 	packager := NewPackager(mockStorage)
 
 	if packager == nil {
-		t.Error("Expected NewPackager to return non-nil packager")
+		t.Fatal("Expected NewPackager to return non-nil packager")
 	}
 
 	// We can't directly compare storage interface, but we can verify it's set
