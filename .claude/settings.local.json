@@ -5,7 +5,9 @@
       "Bash(go tool cover:*)",
       "Bash(go fmt:*)",
       "Bash(make lint-go:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
