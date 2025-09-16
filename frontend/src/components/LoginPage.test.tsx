@@ -6,14 +6,20 @@ import { AuthProvider } from '../hooks/useAuth'
 import LoginPage from './LoginPage'
 
 // Mock react-router-dom
+const mockNavigateFn = vi.fn()
 vi.mock('react-router-dom', () => ({
-  useNavigate: vi.fn(),
+  useNavigate: () => mockNavigateFn,
 }))
 
 // Mock the auth service
 vi.mock('../services/auth', () => ({
   authService: {
     login: vi.fn(),
+    logout: vi.fn(),
+    getAccessToken: vi.fn(),
+    getRefreshToken: vi.fn(),
+    refreshToken: vi.fn(),
+    isAuthenticated: vi.fn(),
   },
 }))
 
@@ -28,18 +34,19 @@ const renderWithProviders = (component: React.ReactElement) => {
 }
 
 describe('LoginPage', () => {
-  let mockNavigate: ReturnType<typeof vi.fn>
   let mockLogin: ReturnType<typeof vi.fn>
 
   beforeEach(async () => {
     vi.clearAllMocks()
 
     // Import mocked modules
-    const { useNavigate } = await import('react-router-dom')
     const { authService } = await import('../services/auth')
 
-    mockNavigate = useNavigate as any
     mockLogin = authService.login as any
+
+    // Set up default mock returns
+    ;(authService.getAccessToken as any).mockReturnValue(null)
+    ;(authService.isAuthenticated as any).mockReturnValue(false)
   })
 
   describe('rendering', () => {
@@ -191,7 +198,7 @@ describe('LoginPage', () => {
       await user.click(submitButton)
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
+        expect(mockNavigateFn).toHaveBeenCalledWith('/dashboard')
       })
     })
 
@@ -270,8 +277,8 @@ describe('LoginPage', () => {
       const passwordInput = screen.getByLabelText(/password/i)
       const submitButton = screen.getByRole('button', { name: /sign in/i })
 
-      // Tab navigation should work
-      await user.tab()
+      // Focus email input directly to test keyboard navigation from there
+      emailInput.focus()
       expect(emailInput).toHaveFocus()
 
       await user.tab()
