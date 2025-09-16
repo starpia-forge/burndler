@@ -35,7 +35,8 @@ func TestNew(t *testing.T) {
 		assert.NotNil(t, app.Packager)
 
 		// Clean up
-		app.Close()
+		err = app.Close()
+		assert.NoError(t, err)
 	}
 }
 
