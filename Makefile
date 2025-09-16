@@ -7,11 +7,43 @@ BUILD_TIME ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 GIT_COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 LDFLAGS = -X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.GitCommit=$(GIT_COMMIT)
 
-.PHONY: help dev dev-backend dev-frontend build build-docker test lint clean version release
+# Initialization marker
+INIT_MARKER := .initialized
+
+.PHONY: help init check-init install-golangci-lint dev dev-backend dev-frontend build build-docker test lint clean version release
 
 help: ## Show this help message
 	@echo "Burndler Development Commands:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+# ===== Initialization =====
+
+init: ## Initialize development environment (install all required tools)
+	@echo "🔧 Initializing Burndler development environment..."
+	@make deps-backend
+	@make deps-frontend
+	@make install-golangci-lint
+	@touch $(INIT_MARKER)
+	@echo "✅ Development environment initialized successfully!"
+	@echo "You can now run 'make dev', 'make test', or 'make build'"
+
+check-init: ## Check if development environment is initialized
+	@if [ ! -f $(INIT_MARKER) ]; then \
+		echo "⚠️  Warning: Development environment not initialized!"; \
+		echo "Please run 'make init' first to install required tools."; \
+		echo ""; \
+		exit 1; \
+	fi
+
+install-golangci-lint: ## Install golangci-lint tool
+	@echo "📦 Installing golangci-lint..."
+	@if command -v golangci-lint >/dev/null 2>&1; then \
+		echo "✓ golangci-lint already installed"; \
+	else \
+		echo "Installing golangci-lint..."; \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin latest; \
+		echo "✓ golangci-lint installed"; \
+	fi
 
 # ===== Development =====
 
@@ -37,7 +69,7 @@ dev-clean: ## Stop and remove all dev containers and volumes
 
 # ===== Build =====
 
-build: build-backend-with-static build-tools ## Build all components
+build: check-init build-backend-with-static build-tools ## Build all components
 
 build-backend: ## Build Go binary
 	@echo "Building backend binary with version $(VERSION)..."
@@ -75,7 +107,7 @@ build-tools: ## Build CLI tools
 
 # ===== Testing =====
 
-test: test-unit test-integration ## Run all tests
+test: check-init test-unit test-integration ## Run all tests
 
 test-unit: ## Run unit tests
 	@echo "Running unit tests..."
@@ -101,9 +133,14 @@ lint: lint-go lint-js lint-compose ## Run all linters
 
 lint-go: ## Run golangci-lint
 	@echo "Linting Go code..."
-	@which golangci-lint > /dev/null || (echo "Installing golangci-lint..." && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest)
+	@make install-golangci-lint
 	cd backend && golangci-lint run
-	cd tools && golangci-lint run
+	@if find tools -name "*.go" -type f | grep -q .; then \
+		echo "Linting tools directory..."; \
+		cd tools && golangci-lint run; \
+	else \
+		echo "Skipping tools directory (no Go files found)"; \
+	fi
 
 lint-js: ## Run ESLint and Prettier
 	@echo "Linting JavaScript/TypeScript..."
