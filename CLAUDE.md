@@ -75,3 +75,6 @@ If a request conflicts with these architectural rules:
 1. **Warn** about the conflict with specific rule reference
 2. **Propose** compliant alternative approach
 3. **Abort** if user insists on non-compliant change
+
+## Programming Instructions
+Always adhere to @.claude/docs/TDD.md when writing or modifying source code.
