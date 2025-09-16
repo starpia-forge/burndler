@@ -15,8 +15,8 @@ Burndler is a Docker Compose orchestration tool that merges, lints, and packages
 - **architect**: Manages ADRs and repository conventions
 
 ### Technology Stack
-- **Backend**: Go 1.22 + Gin framework, GORM ORM, PostgreSQL database
-- **Frontend**: React + TypeScript + Tailwind CSS
+- **Backend**: Go 1.24 + Gin framework, GORM ORM, PostgreSQL database
+- **Frontend**: Node.js 20 + React + TypeScript + Tailwind CSS
 - **Storage**: S3-compatible (production) or Local FS (dev/offline), interface-switchable via environment
 - **Deployment**: Docker Compose with prebuilt images only
 
