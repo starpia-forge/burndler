@@ -1,0 +1,2 @@
+# This file ensures the assets directory exists for embed.go compilation in CI
+# The directory is needed for the //go:embed all:dist directive to work correctly
