@@ -9,7 +9,8 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(make test-unit:*)",
-      "Bash(npm install)"
+      "Bash(npm install)",
+      "Bash(npm test:*)"
     ],
     "deny": [],
     "ask": []
