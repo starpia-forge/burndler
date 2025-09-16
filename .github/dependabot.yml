@@ -1,0 +1,127 @@
+version: 2
+updates:
+  # Go modules (backend)
+  - package-ecosystem: "gomod"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "burndler-team"
+    assignees:
+      - "burndler-team"
+    commit-message:
+      prefix: "deps(go)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "go"
+      - "backend"
+
+  # Tools Go modules
+  - package-ecosystem: "gomod"
+    directory: "/tools"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:30"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(tools)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "go"
+      - "tools"
+
+  # Integration tests Go modules
+  - package-ecosystem: "gomod"
+    directory: "/test/integration"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(test)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "go"
+      - "test"
+
+  # NPM packages (frontend)
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "burndler-team"
+    assignees:
+      - "burndler-team"
+    commit-message:
+      prefix: "deps(npm)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "npm"
+      - "frontend"
+    # Group security updates
+    groups:
+      security-updates:
+        dependency-type: "all"
+        update-types:
+          - "patch"
+        patterns:
+          - "*"
+
+  # Docker images in compose files
+  - package-ecosystem: "docker"
+    directory: "/compose"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(docker)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # Production docker compose
+  - package-ecosystem: "docker"
+    directory: "/deploy"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:30"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(deploy)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "production"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(actions)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
