@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - develop # for testing releases
 
 env:
   GO_VERSION: '1.24'
