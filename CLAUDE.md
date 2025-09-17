@@ -4,15 +4,56 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Architecture
 
-Burndler is a Docker Compose orchestration tool that merges, lints, and packages multi-module Docker applications for offline deployment. It consists of specialized agents that handle different aspects of the deployment pipeline.
+Burndler is a module-based Docker Compose orchestration platform that enables users to create, version, and combine reusable deployment modules into projects for offline deployment. It provides a complete module registry and project management system for containerized applications.
 
-### Core Agents
-- **compose-merger**: Merges multiple docker-compose.yml files with namespace prefixing (`{namespace}__{name}`) and variable substitution
+## Core Concepts
+
+### Module
+A **module** is a reusable deployment unit consisting of:
+- A `docker-compose.yaml` file defining services
+- Associated deployment resources (configs, scripts, templates)
+- Version management capabilities
+- Published to a centralized module registry
+
+### Module Version
+Each module can have multiple **versions** (e.g., v0.1.0, v0.1.1):
+- Semantic versioning support
+- Immutable once published
+- Contains versioned compose content and resources
+- Enables dependency management and compatibility
+
+### Project
+A **project** is a combination of multiple modules:
+- Selects specific module versions to include
+- Provides project-level variable overrides
+- Defines module composition and ordering
+- Builds into complete deployment packages
+
+### Installer
+The final **installer** package enables complete offline deployment:
+- Merged docker-compose.yaml from all project modules
+- All required Docker images as .tar files
+- Module resources and configuration files
+- Installation and verification scripts
+- Complete offline deployment capability
+
+## Module and Project Workflow
+
+1. **Module Creation**: Users define new modules or import existing ones
+2. **Module Versioning**: Modules are versioned and published to registry
+3. **Project Composition**: Users select and combine module versions into projects
+4. **Project Building**: System merges modules, resolves images, creates installer
+5. **Offline Deployment**: Installer contains everything needed for air-gapped deployment
+
+### Core Services
+- **module-service**: Manages module registry, versioning, and CRUD operations
+- **project-service**: Handles project creation, module composition, and configuration
+- **image-service**: Resolves Docker images, pulls from registries, packages as .tar files
+- **compose-merger**: Merges module docker-compose.yml files with namespace prefixing (`{namespace}__{name}`)
 - **compose-linter**: Validates merged compose files against security and configuration policies
-- **image-packager**: Resolves image tags to digests, pulls and packages into `.tar` files for offline use
+- **build-service**: Orchestrates project builds from modules to complete installers
 - **installer-packager**: Creates offline installer packages with `install.sh`/`verify.sh` scripts
 - **rbac-security**: Implements JWT middleware with Developer(RW)/Engineer(R) role enforcement
-- **architect**: Manages ADRs and repository conventions
 
 ### Technology Stack
 - **Backend**: Go 1.24 + Gin framework, GORM ORM, PostgreSQL database
@@ -22,10 +63,13 @@ Burndler is a Docker Compose orchestration tool that merges, lints, and packages
 
 ## Development Commands
 
-Since this appears to be early-stage project, check for:
-- `go run main.go` or equivalent for backend development
-- `npm run dev` or `yarn dev` for frontend development
-- `docker-compose up -d` for local environment
+Standard development workflow:
+- `make dev` - Start full development environment (backend + frontend + postgres)
+- `make dev-backend` - Start backend only (Go + PostgreSQL)
+- `make dev-frontend` - Start frontend only (React dev server)
+- `make test-unit` - Run unit tests (no database required)
+- `make test-integration` - Run integration tests (requires database)
+- `make build` - Build all components for production
 
 ## Architectural Rules & Constraints
 
@@ -34,6 +78,23 @@ Since this appears to be early-stage project, check for:
 - **Image references**: Prefer `image@sha256:...` format for reproducibility
 - **Namespacing**: All services/networks/volumes prefixed as `{namespace}__{name}`
 - **Variable substitution**: Project-level variables override module defaults
+
+## Database Entities
+
+### Core Models
+- **Module**: Registry of reusable compose modules with metadata
+- **ModuleVersion**: Versioned releases of modules (immutable once published)
+- **Project**: Collection of modules for deployment with configuration
+- **ProjectModule**: Many-to-many relationship with version pinning and overrides
+- **Build**: Project build instances creating installer packages
+- **User**: Authentication and authorization for module/project access
+- **Setup**: System initialization and configuration state
+
+### Entity Relationships
+```
+User 1:N Project 1:N ProjectModule N:1 ModuleVersion N:1 Module
+User 1:N Build N:1 Project
+```
 
 ### Security & RBAC
 - **Roles**: Developer (full access), Engineer (read-only)
@@ -60,15 +121,21 @@ installer.tar.gz/
 ```
 
 ## Testing Priorities
-1. **Compose merge functionality** - namespace handling, variable substitution
-2. **Lint policy enforcement** - security rules, reference validation
-3. **Packaging pipeline** - offline installer generation and verification
-4. **RBAC implementation** - JWT middleware and role enforcement
+1. **Module management** - CRUD operations, versioning, and publication
+2. **Project composition** - module selection, variable overrides, dependency resolution
+3. **Build pipeline** - project-to-installer transformation with image packaging
+4. **Compose merge functionality** - namespace handling, variable substitution
+5. **Lint policy enforcement** - security rules, reference validation
+6. **Docker image packaging** - registry resolution, image pulling, tar creation
+7. **RBAC implementation** - JWT middleware and role enforcement
 
 ## ADR References
-- **ADR-001**: Compose merge strategy with namespacing and conflict resolution
-- **ADR-002**: Lint policy covering security, variables, and references
-- **ADR-003**: Packaging format for reproducible offline installers
+- **ADR-001**: Module registry and versioning strategy
+- **ADR-002**: Project composition and dependency management
+- **ADR-003**: Compose merge strategy with namespacing and conflict resolution
+- **ADR-004**: Lint policy covering security, variables, and references
+- **ADR-005**: Docker image packaging and offline installer format
+- **ADR-006**: Storage architecture for modules, projects, and builds
 
 ## Conflict Resolution
 If a request conflicts with these architectural rules:
@@ -97,6 +164,50 @@ make lint-frontend
 2. ✅ Frontend: `make format-frontend && make lint-frontend` passes (no formatting issues)
 3. ✅ Include any auto-fixed changes in the commit
 4. ✅ If formatting modified files, mention in a commit message
+
+## API Structure
+
+### Module Management
+```
+GET    /api/v1/modules                    # List modules with pagination
+POST   /api/v1/modules                    # Create module (Developer only)
+GET    /api/v1/modules/{id}               # Get module details
+PUT    /api/v1/modules/{id}               # Update module (Developer only)
+DELETE /api/v1/modules/{id}               # Delete module (Developer only)
+
+GET    /api/v1/modules/{id}/versions      # List module versions
+POST   /api/v1/modules/{id}/versions      # Create version (Developer only)
+GET    /api/v1/modules/{id}/versions/{version} # Get specific version
+PUT    /api/v1/modules/{id}/versions/{version} # Update version (Developer only)
+POST   /api/v1/modules/{id}/versions/{version}/publish # Publish version
+```
+
+### Project Management
+```
+GET    /api/v1/projects                   # List user projects
+POST   /api/v1/projects                   # Create project
+GET    /api/v1/projects/{id}              # Get project details
+PUT    /api/v1/projects/{id}              # Update project
+DELETE /api/v1/projects/{id}              # Delete project
+
+GET    /api/v1/projects/{id}/modules      # List project modules
+POST   /api/v1/projects/{id}/modules      # Add module to project
+PUT    /api/v1/projects/{id}/modules/{module_id} # Update module config
+DELETE /api/v1/projects/{id}/modules/{module_id} # Remove module
+
+POST   /api/v1/projects/{id}/validate     # Validate project composition
+POST   /api/v1/projects/{id}/build        # Build installer package
+```
+
+### Enhanced Build Management
+```
+GET    /api/v1/builds                     # List builds with filters
+POST   /api/v1/builds                     # Create build (direct or project-based)
+GET    /api/v1/builds/{id}                # Get build status
+DELETE /api/v1/builds/{id}                # Cancel/delete build
+GET    /api/v1/builds/{id}/download       # Download installer package
+GET    /api/v1/builds/{id}/logs           # Get build logs
+```
 
 ## Programming Instructions
 Always adhere to @.claude/docs/TDD.md when writing or modifying source code.
