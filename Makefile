@@ -69,7 +69,7 @@ dev-clean: ## Stop and remove all dev containers and volumes
 
 # ===== Build =====
 
-build: check-init build-backend-with-static build-tools ## Build all components
+build: check-init build-backend-with-static ## Build all components
 
 build-backend: ## Build Go binary
 	@echo "Building backend binary with version $(VERSION)..."
@@ -99,11 +99,6 @@ build-docker: ## Build Docker image with embedded frontend
 		.
 	@echo "Docker images built: burndler:latest and burndler:$(VERSION)"
 
-build-tools: ## Build CLI tools
-	@echo "Building CLI tools v$(VERSION)..."
-	cd tools/merge && go build -ldflags="-X main.Version=$(VERSION)" -o ../../dist/burndler-merge .
-	cd tools/lint && go build -ldflags="-X main.Version=$(VERSION)" -o ../../dist/burndler-lint .
-	cd tools/package && go build -ldflags="-X main.Version=$(VERSION)" -o ../../dist/burndler-package .
 
 # ===== Testing =====
 
@@ -136,10 +131,6 @@ format-backend: ## Fix Go code issues with golangci-lint
 	@echo "🔧 Fixing Go code issues..."
 	@make install-golangci-lint
 	cd backend && golangci-lint run --fix
-	@if find tools -name "*.go" -type f | grep -q .; then \
-		echo "Fixing tools directory..."; \
-		cd tools && golangci-lint run --fix; \
-	fi
 	@echo "✅ Go code checked and fixed"
 
 format-frontend: ## Format frontend code with Prettier
@@ -160,12 +151,6 @@ lint-backend: ## Run golangci-lint
 	@echo "Linting Go code..."
 	@make install-golangci-lint
 	cd backend && golangci-lint run
-	@if find tools -name "*.go" -type f | grep -q .; then \
-		echo "Linting tools directory..."; \
-		cd tools && golangci-lint run; \
-	else \
-		echo "Skipping tools directory (no Go files found)"; \
-	fi
 
 lint-frontend: ## Run ESLint and Prettier
 	@echo "Linting JavaScript/TypeScript..."
@@ -182,13 +167,6 @@ lint-compose: ## Validate compose files (no build:, etc.)
 
 # ===== Operations =====
 
-merge: ## Test compose merge functionality
-	@echo "Testing compose merge..."
-	go run tools/merge/main.go --namespace test --input test/fixtures/compose/module1.yaml --input test/fixtures/compose/module2.yaml
-
-package: ## Create offline installer package
-	@echo "Creating offline installer..."
-	go run tools/package/main.go --compose compose/dev.compose.yaml --output dist/installers/
 
 init-backend: ## Initialize Go module (run once)
 	cd backend && go mod init github.com/burndler/burndler

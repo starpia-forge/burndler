@@ -85,13 +85,6 @@ jobs:
       - name: Lint Go code
         run: |
           cd backend && $(go env GOPATH)/bin/golangci-lint run
-          # Only lint tools directory if it contains Go files
-          if find tools -name "*.go" -type f | grep -q .; then
-            echo "Linting tools directory..."
-            cd tools && $(go env GOPATH)/bin/golangci-lint run
-          else
-            echo "Skipping tools directory (no Go files found)"
-          fi
 
       - name: Lint TypeScript/React
         run: |
@@ -225,12 +218,6 @@ jobs:
           # Build Go binary
           cd backend && go build -o ../dist/burndler cmd/api/main.go
 
-      - name: Build CLI tools
-        run: |
-          mkdir -p dist
-          cd tools/merge && go build -o ../../dist/burndler-merge .
-          cd ../lint && go build -o ../../dist/burndler-lint .
-          cd ../package && go build -o ../../dist/burndler-package .
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -238,7 +225,6 @@ jobs:
           name: burndler-binaries
           path: |
             dist/burndler
-            dist/burndler-*
           retention-days: 30
 
   docker:
