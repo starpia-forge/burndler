@@ -197,6 +197,10 @@ jobs:
         run: |
           cd frontend && npm ci
 
+      - name: Initialize build environment
+        run: |
+          make init
+
       - name: Build with make
         run: |
           make build
