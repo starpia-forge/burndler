@@ -77,21 +77,8 @@ jobs:
           # Build main binary with version info using make
           make build-backend-with-static
 
-          # Build CLI tools (currently no make targets for these)
-          cd tools/merge && go build \
-            -ldflags="-X main.Version=${VERSION}" \
-            -o ../../dist/burndler-merge .
-
-          cd ../lint && go build \
-            -ldflags="-X main.Version=${VERSION}" \
-            -o ../../dist/burndler-lint .
-
-          cd ../package && go build \
-            -ldflags="-X main.Version=${VERSION}" \
-            -o ../../dist/burndler-package .
-
-          # Make binaries executable
-          chmod +x dist/*
+          # Make binary executable
+          chmod +x dist/burndler
 
       - name: Upload release artifacts
         if: steps.semantic.outputs.new_release_published == 'true'
@@ -100,7 +87,6 @@ jobs:
           name: release-binaries-${{ steps.semantic.outputs.new_release_version }}
           path: |
             dist/burndler
-            dist/burndler-*
           retention-days: 90
 
   docker-release:
@@ -177,29 +163,28 @@ jobs:
         env:
           VERSION: ${{ needs.release.outputs.version }}
         run: |
-          # Create installer package
+          # Create installer package directory
           mkdir -p dist/installers
 
-          # Use our package tool to create the installer
-          ./dist/burndler-package \
-            --compose deploy/docker-compose.prod.yaml \
-            --version ${VERSION} \
-            --output dist/installers/burndler-${VERSION}-installer.tar.gz
+          # Note: Offline installer packaging feature not yet implemented
+          # TODO: Implement installer packaging logic when needed
+          echo "Offline installer packaging will be implemented in future release"
 
-      - name: Upload installer package
-        uses: actions/upload-artifact@v4
-        with:
-          name: installer-package-${{ needs.release.outputs.version }}
-          path: dist/installers/*.tar.gz
-          retention-days: 365
+      # Note: Installer package upload disabled until packaging is implemented
+      # - name: Upload installer package
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: installer-package-${{ needs.release.outputs.version }}
+      #     path: dist/installers/*.tar.gz
+      #     retention-days: 365
 
-      - name: Attach installer to GitHub release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload ${{ needs.release.outputs.tag }} \
-            dist/installers/burndler-${{ needs.release.outputs.version }}-installer.tar.gz \
-            --clobber
+      # - name: Attach installer to GitHub release
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     gh release upload ${{ needs.release.outputs.tag }} \
+      #       dist/installers/burndler-${{ needs.release.outputs.version }}-installer.tar.gz \
+      #       --clobber
 
   notify:
     name: Release Notification
