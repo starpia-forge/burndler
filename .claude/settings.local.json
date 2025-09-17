@@ -20,7 +20,7 @@
       "Bash(make lint-backend:*)",
       "Bash(make lint-frontend:*)",
       "Bash(make lint:*)",
-      "Read(//mnt/d/workspace/github/**)"
+      "Bash(make format-backend:*)"
     ],
     "deny": [],
     "ask": []
