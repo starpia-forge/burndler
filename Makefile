@@ -111,11 +111,12 @@ test: check-init test-unit test-integration ## Run all tests
 
 test-unit: ## Run unit tests
 	@echo "Running unit tests..."
-	cd backend && go test -v ./...
+	cd backend && go test -v -short ./...
 	cd frontend && npm test
 
-test-integration: ## Run integration tests
+test-integration: ## Run integration tests (requires database)
 	@echo "Running integration tests..."
+	cd backend && go test -v ./...
 	cd test/integration && go test ./...
 
 test-e2e: ## Run end-to-end tests with Playwright

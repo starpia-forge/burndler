@@ -156,16 +156,8 @@ jobs:
           cd ../frontend && npm ci
 
       - name: Run Go unit tests
-        env:
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_NAME: burndler_test
-          DB_USER: burndler
-          DB_PASSWORD: test_password
-          DB_SSL_MODE: disable
-          JWT_SECRET: test-secret-for-ci
         run: |
-          cd backend && go test -v ./...
+          cd backend && go test -v -short ./...
 
       - name: Run Go integration tests
         env:
