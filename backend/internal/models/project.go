@@ -13,8 +13,8 @@ type Project struct {
 	Name            string         `gorm:"not null" json:"name"`
 	Description     string         `json:"description"`
 	UserID          uint           `gorm:"not null" json:"user_id"`
-	Variables       datatypes.JSON `gorm:"type:jsonb" json:"variables"`
-	EnvironmentVars datatypes.JSON `gorm:"type:jsonb" json:"environment_vars"`
+	Variables       datatypes.JSON `gorm:"type:text" json:"variables"`
+	EnvironmentVars datatypes.JSON `gorm:"type:text" json:"environment_vars"`
 	Active          bool           `gorm:"default:true" json:"active"`
 	CreatedAt       time.Time      `json:"created_at"`
 	UpdatedAt       time.Time      `json:"updated_at"`

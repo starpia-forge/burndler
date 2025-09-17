@@ -13,9 +13,9 @@ type ModuleVersion struct {
 	ModuleID        uint           `gorm:"not null;index" json:"module_id"`
 	Version         string         `gorm:"not null" json:"version"`
 	ComposeContent  string         `gorm:"type:text;not null" json:"compose_content"`
-	Variables       datatypes.JSON `gorm:"type:jsonb" json:"variables"`
-	ResourcePaths   datatypes.JSON `gorm:"type:jsonb" json:"resource_paths"`
-	Dependencies    datatypes.JSON `gorm:"type:jsonb" json:"dependencies"`
+	Variables       datatypes.JSON `gorm:"type:text" json:"variables"`
+	ResourcePaths   datatypes.JSON `gorm:"type:text" json:"resource_paths"`
+	Dependencies    datatypes.JSON `gorm:"type:text" json:"dependencies"`
 	Published       bool           `gorm:"default:false" json:"published"`
 	PublishedAt     *time.Time     `json:"published_at"`
 	CreatedAt       time.Time      `json:"created_at"`
@@ -33,9 +33,17 @@ func (ModuleVersion) TableName() string {
 
 // BeforeUpdate ensures published versions cannot be modified
 func (mv *ModuleVersion) BeforeUpdate(tx *gorm.DB) error {
-	if mv.Published {
+	// Check if this record was already published before this update
+	var original ModuleVersion
+	if err := tx.Where("id = ?", mv.ID).First(&original).Error; err != nil {
+		return nil // If we can't find the original, allow the update
+	}
+
+	// If the original was already published, prevent modification
+	if original.Published {
 		return gorm.ErrInvalidTransaction
 	}
+
 	return nil
 }
 

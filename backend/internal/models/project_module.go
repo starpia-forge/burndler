@@ -15,7 +15,7 @@ type ProjectModule struct {
 	ModuleVersionID uint           `gorm:"not null;index" json:"module_version_id"`
 	Order           int            `gorm:"default:0" json:"order"`
 	Enabled         bool           `gorm:"default:true" json:"enabled"`
-	OverrideVars    datatypes.JSON `gorm:"type:jsonb" json:"override_vars"`
+	OverrideVars    datatypes.JSON `gorm:"type:text" json:"override_vars"`
 	CreatedAt       time.Time      `json:"created_at"`
 	UpdatedAt       time.Time      `json:"updated_at"`
 
