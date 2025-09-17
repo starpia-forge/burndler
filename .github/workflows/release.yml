@@ -59,15 +59,7 @@ jobs:
 
       - name: Build application for release
         run: |
-          # Build frontend
-          cd frontend && npm run build
-
-          # Prepare embedded static files
-          rm -rf backend/internal/static/dist
-          cp -r frontend/dist backend/internal/static/dist
-
-          # Create dist directory
-          mkdir -p dist
+          make build
 
       - name: Run semantic release
         id: semantic
@@ -79,15 +71,14 @@ jobs:
         if: steps.semantic.outputs.new_release_published == 'true'
         env:
           VERSION: ${{ steps.semantic.outputs.new_release_version }}
+          BUILD_TIME: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          GIT_COMMIT: ${{ github.sha }}
         run: |
-          # Build main binary with version info
-          cd backend && go build \
-            -ldflags="-X main.Version=${VERSION} -X main.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) -X main.GitCommit=${GITHUB_SHA}" \
-            -o ../dist/burndler \
-            cmd/api/main.go
+          # Build main binary with version info using make
+          make build-backend-with-static
 
-          # Build CLI tools
-          cd ../tools/merge && go build \
+          # Build CLI tools (currently no make targets for these)
+          cd tools/merge && go build \
             -ldflags="-X main.Version=${VERSION}" \
             -o ../../dist/burndler-merge .
 

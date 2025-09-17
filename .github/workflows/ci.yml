@@ -78,21 +78,13 @@ jobs:
         run: |
           cd frontend && npm ci
 
-      - name: Install golangci-lint
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin latest
-
       - name: Lint Go code
         run: |
-          cd backend && $(go env GOPATH)/bin/golangci-lint run
+          make lint-backend
 
       - name: Lint TypeScript/React
         run: |
-          cd frontend && npm run lint
-
-      - name: Check code formatting
-        run: |
-          cd frontend && npm run format:check
+          make lint-frontend
 
   test:
     name: Tests
@@ -150,7 +142,7 @@ jobs:
 
       - name: Run Go unit tests
         run: |
-          cd backend && go test -v -short ./...
+          make test-unit
 
       - name: Run Go integration tests
         env:
@@ -162,7 +154,7 @@ jobs:
           DB_SSL_MODE: disable
           JWT_SECRET: test-secret-for-ci
         run: |
-          cd test/integration && go test -v ./...
+          make test-integration
 
       - name: Run frontend tests
         run: |
@@ -205,18 +197,9 @@ jobs:
         run: |
           cd frontend && npm ci
 
-      - name: Build frontend
+      - name: Build with make
         run: |
-          cd frontend && npm run build
-
-      - name: Build backend with embedded frontend
-        run: |
-          # Copy frontend build to backend for embedding
-          rm -rf backend/internal/static/dist
-          cp -r frontend/dist backend/internal/static/dist
-
-          # Build Go binary
-          cd backend && go build -o ../dist/burndler cmd/api/main.go
+          make build
 
 
       - name: Upload build artifacts
