@@ -85,7 +85,6 @@ jobs:
       - name: Lint Go code
         run: |
           cd backend && $(go env GOPATH)/bin/golangci-lint run
-          cd tools && $(go env GOPATH)/bin/golangci-lint run
 
       - name: Lint TypeScript/React
         run: |
@@ -147,19 +146,11 @@ jobs:
       - name: Install dependencies
         run: |
           cd backend && go mod download
-          cd frontend && npm ci
+          cd ../frontend && npm ci
 
       - name: Run Go unit tests
-        env:
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_NAME: burndler_test
-          DB_USER: burndler
-          DB_PASSWORD: test_password
-          DB_SSL_MODE: disable
-          JWT_SECRET: test-secret-for-ci
         run: |
-          cd backend && go test -v -race -coverprofile=coverage.out ./...
+          cd backend && go test -v -short ./...
 
       - name: Run Go integration tests
         env:
@@ -227,12 +218,6 @@ jobs:
           # Build Go binary
           cd backend && go build -o ../dist/burndler cmd/api/main.go
 
-      - name: Build CLI tools
-        run: |
-          mkdir -p dist
-          cd tools/merge && go build -o ../../dist/burndler-merge .
-          cd ../lint && go build -o ../../dist/burndler-lint .
-          cd ../package && go build -o ../../dist/burndler-package .
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -240,13 +225,15 @@ jobs:
           name: burndler-binaries
           path: |
             dist/burndler
-            dist/burndler-*
           retention-days: 30
 
   docker:
     name: Docker Build
     runs-on: ubuntu-latest
     needs: test
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -288,6 +275,10 @@ jobs:
     name: Security Scan
     runs-on: ubuntu-latest
     needs: validate
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

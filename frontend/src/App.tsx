@@ -1,15 +1,15 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import DashboardLayout from './components/DashboardLayout'
-import Dashboard from './pages/Dashboard'
-import ComposeMerger from './components/ComposeMerger'
-import PackageBuilder from './components/PackageBuilder'
-import LoginPage from './components/LoginPage'
-import SetupWizard from './pages/SetupWizard'
-import ProtectedRoute from './components/ProtectedRoute'
-import SetupGuard from './components/SetupGuard'
-import { AuthProvider } from './hooks/useAuth'
-import { SetupProvider } from './hooks/useSetup'
-import { ThemeProvider } from './hooks/useTheme'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import DashboardLayout from './components/DashboardLayout';
+import Dashboard from './pages/Dashboard';
+import ComposeMerger from './components/ComposeMerger';
+import PackageBuilder from './components/PackageBuilder';
+import LoginPage from './components/LoginPage';
+import SetupWizard from './pages/SetupWizard';
+import ProtectedRoute from './components/ProtectedRoute';
+import SetupGuard from './components/SetupGuard';
+import { AuthProvider } from './hooks/useAuth';
+import { SetupProvider } from './hooks/useSetup';
+import { ThemeProvider } from './hooks/useTheme';
 
 function App() {
   return (
@@ -89,7 +89,9 @@ function App() {
                       <DashboardLayout>
                         <div className="p-6 bg-card rounded-lg shadow border border-border">
                           <h2 className="text-2xl font-bold mb-4 text-foreground">Lint Reports</h2>
-                          <p className="text-muted-foreground">Lint reports feature coming soon...</p>
+                          <p className="text-muted-foreground">
+                            Lint reports feature coming soon...
+                          </p>
                         </div>
                       </DashboardLayout>
                     </ProtectedRoute>
@@ -104,7 +106,9 @@ function App() {
                       <DashboardLayout>
                         <div className="p-6 bg-card rounded-lg shadow border border-border">
                           <h2 className="text-2xl font-bold mb-4 text-foreground">Build History</h2>
-                          <p className="text-muted-foreground">Build history feature coming soon...</p>
+                          <p className="text-muted-foreground">
+                            Build history feature coming soon...
+                          </p>
                         </div>
                       </DashboardLayout>
                     </ProtectedRoute>
@@ -119,7 +123,9 @@ function App() {
                       <DashboardLayout>
                         <div className="p-6 bg-card rounded-lg shadow border border-border">
                           <h2 className="text-2xl font-bold mb-4 text-foreground">CLI Tools</h2>
-                          <p className="text-muted-foreground">CLI tools documentation coming soon...</p>
+                          <p className="text-muted-foreground">
+                            CLI tools documentation coming soon...
+                          </p>
                         </div>
                       </DashboardLayout>
                     </ProtectedRoute>
@@ -134,7 +140,9 @@ function App() {
                       <DashboardLayout>
                         <div className="p-6 bg-card rounded-lg shadow border border-border">
                           <h2 className="text-2xl font-bold mb-4 text-foreground">RBAC Manager</h2>
-                          <p className="text-muted-foreground">Role-based access control management coming soon...</p>
+                          <p className="text-muted-foreground">
+                            Role-based access control management coming soon...
+                          </p>
                         </div>
                       </DashboardLayout>
                     </ProtectedRoute>
@@ -161,7 +169,7 @@ function App() {
         </AuthProvider>
       </SetupProvider>
     </ThemeProvider>
-  )
+  );
 }
 
-export default App
+export default App;

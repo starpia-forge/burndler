@@ -35,6 +35,25 @@ type LintIssue struct {
 	Line    int    `json:"line,omitempty"`
 }
 
+// ValidateCompose validates a compose file content
+func (l *Linter) ValidateCompose(composeContent string) error {
+	req := &LintRequest{
+		Compose:    composeContent,
+		StrictMode: true,
+	}
+
+	result, err := l.Lint(req)
+	if err != nil {
+		return err
+	}
+
+	if !result.Valid {
+		return fmt.Errorf("compose validation failed with %d errors", len(result.Errors))
+	}
+
+	return nil
+}
+
 // Lint validates a compose file against policy
 func (l *Linter) Lint(req *LintRequest) (*LintResult, error) {
 	result := &LintResult{

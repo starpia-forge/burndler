@@ -103,7 +103,11 @@ func TestLocalFS_Download(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Download failed: %v", err)
 	}
-	defer downloadReader.Close()
+	defer func() {
+		if closeErr := downloadReader.Close(); closeErr != nil {
+			t.Logf("Warning: failed to close download reader: %v", closeErr)
+		}
+	}()
 
 	downloaded, err := io.ReadAll(downloadReader)
 	if err != nil {
@@ -361,8 +365,9 @@ func TestLocalFS_ErrorCases(t *testing.T) {
 	}
 
 	// Test delete non-existent file (should not error in some implementations)
-	err = fs.Delete(ctx, "nonexistent.txt")
+	deleteErr := fs.Delete(ctx, "nonexistent.txt")
 	// This may or may not error depending on implementation
+	_ = deleteErr // Explicitly ignore the error as noted in comment
 
 	// Test GetURL for non-existent file
 	_, err = fs.GetURL(ctx, "nonexistent.txt", 1*time.Hour)

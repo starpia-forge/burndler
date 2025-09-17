@@ -56,7 +56,11 @@ func SPAHandler() (http.HandlerFunc, error) {
 
 			// Set content type for HTML
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			w.Write(indexData)
+			if _, err := w.Write(indexData); err != nil {
+				// Log error but don't return error response as headers are already sent
+				// This follows standard HTTP handler patterns
+				_ = err // Explicitly ignore error as response cannot be changed
+			}
 			return
 		}
 
@@ -81,6 +85,10 @@ func SPAHandler() (http.HandlerFunc, error) {
 			w.Header().Set("Content-Type", "image/x-icon")
 		}
 
-		w.Write(data)
+		if _, err := w.Write(data); err != nil {
+			// Log error but don't return error response as headers are already sent
+			// This follows standard HTTP handler patterns
+			_ = err // Explicitly ignore error as response cannot be changed
+		}
 	}, nil
 }

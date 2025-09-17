@@ -6,12 +6,12 @@ import (
 	"io"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go/aws"                  //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
+	"github.com/aws/aws-sdk-go/aws/awserr"          //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
+	"github.com/aws/aws-sdk-go/aws/credentials"     //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
+	"github.com/aws/aws-sdk-go/aws/session"         //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
+	"github.com/aws/aws-sdk-go/service/s3"          //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
+	"github.com/aws/aws-sdk-go/service/s3/s3manager" //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
 	"github.com/burndler/burndler/internal/config"
 )
 

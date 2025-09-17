@@ -1,18 +1,18 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
   constructor(cb: any) {
-    this.cb = cb
+    this.cb = cb;
   }
-  cb: any
+  cb: any;
   observe() {}
   unobserve() {}
   disconnect() {}
-}
+};
 
 // Mock scrollIntoView
-Element.prototype.scrollIntoView = () => {}
+Element.prototype.scrollIntoView = () => {};
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -27,4 +27,4 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: () => {},
     dispatchEvent: () => {},
   }),
-})
+});

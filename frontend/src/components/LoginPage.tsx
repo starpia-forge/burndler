@@ -1,87 +1,87 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
-import ThemeToggle from './ThemeToggle'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import ThemeToggle from './ThemeToggle';
 
 interface FormData {
-  email: string
-  password: string
+  email: string;
+  password: string;
 }
 
 interface FormErrors {
-  email?: string
-  password?: string
-  submit?: string
+  email?: string;
+  password?: string;
+  submit?: string;
 }
 
 const LoginPage = () => {
-  const navigate = useNavigate()
-  const { login } = useAuth()
-  const [formData, setFormData] = useState<FormData>({ email: '', password: '' })
-  const [errors, setErrors] = useState<FormErrors>({})
-  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [formData, setFormData] = useState<FormData>({ email: '', password: '' });
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateEmail = (email: string): string | undefined => {
     if (!email.trim()) {
-      return 'Email is required'
+      return 'Email is required';
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return 'Please enter a valid email'
+      return 'Please enter a valid email';
     }
-    return undefined
-  }
+    return undefined;
+  };
 
   const validatePassword = (password: string): string | undefined => {
     if (!password) {
-      return 'Password is required'
+      return 'Password is required';
     }
     if (password.length < 6) {
-      return 'Password must be at least 6 characters'
+      return 'Password must be at least 6 characters';
     }
-    return undefined
-  }
+    return undefined;
+  };
 
   const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }));
 
     // Clear field-specific error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined, submit: undefined }))
+      setErrors((prev) => ({ ...prev, [field]: undefined, submit: undefined }));
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // Validate form
-    const emailError = validateEmail(formData.email)
-    const passwordError = validatePassword(formData.password)
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
 
     if (emailError || passwordError) {
       setErrors({
         email: emailError,
-        password: passwordError
-      })
-      return
+        password: passwordError,
+      });
+      return;
     }
 
-    setIsLoading(true)
-    setErrors({})
+    setIsLoading(true);
+    setErrors({});
 
     try {
-      await login(formData.email, formData.password)
+      await login(formData.email, formData.password);
 
       // Navigate to dashboard on successful login
-      navigate('/dashboard')
+      navigate('/dashboard');
     } catch (error) {
       setErrors({
-        submit: error instanceof Error ? error.message : 'An error occurred during login'
-      })
+        submit: error instanceof Error ? error.message : 'An error occurred during login',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div
@@ -99,9 +99,7 @@ const LoginPage = () => {
       >
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground">Login</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to your account
-          </p>
+          <p className="mt-2 text-sm text-muted-foreground">Sign in to your account</p>
         </div>
 
         <form
@@ -185,7 +183,7 @@ const LoginPage = () => {
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default LoginPage
+export default LoginPage;

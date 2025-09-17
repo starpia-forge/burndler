@@ -1,74 +1,74 @@
-import { useState } from 'react'
-import { useSetup } from '../../hooks/useSetup'
-import { UserPlusIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
+import { useState } from 'react';
+import { useSetup } from '../../hooks/useSetup';
+import { UserPlusIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 interface AdminSetupProps {
-  hasAdmin: boolean
-  onAdminCreated: () => void
+  hasAdmin: boolean;
+  onAdminCreated: () => void;
 }
 
 export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps) {
-  const { createAdmin, loading, error } = useSetup()
+  const { createAdmin, loading, error } = useSetup();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [formError, setFormError] = useState('')
+    confirmPassword: '',
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formError, setFormError] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
-    })
-    setFormError('')
-  }
+      [e.target.name]: e.target.value,
+    });
+    setFormError('');
+  };
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      setFormError('Name is required')
-      return false
+      setFormError('Name is required');
+      return false;
     }
     if (!formData.email.trim()) {
-      setFormError('Email is required')
-      return false
+      setFormError('Email is required');
+      return false;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setFormError('Please enter a valid email address')
-      return false
+      setFormError('Please enter a valid email address');
+      return false;
     }
     if (formData.password.length < 8) {
-      setFormError('Password must be at least 8 characters long')
-      return false
+      setFormError('Password must be at least 8 characters long');
+      return false;
     }
     if (formData.password !== formData.confirmPassword) {
-      setFormError('Passwords do not match')
-      return false
+      setFormError('Passwords do not match');
+      return false;
     }
-    return true
-  }
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      return;
     }
 
     try {
       await createAdmin({
         name: formData.name,
         email: formData.email,
-        password: formData.password
-      })
-      onAdminCreated()
+        password: formData.password,
+      });
+      onAdminCreated();
     } catch (err) {
       // Error is already handled by useSetup hook
     }
-  }
+  };
 
   if (hasAdmin) {
     return (
@@ -85,7 +85,7 @@ export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps
           Continue to System Configuration
         </button>
       </div>
-    )
+    );
   }
 
   return (
@@ -100,9 +100,7 @@ export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps
 
       {(error || formError) && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <div className="text-sm text-red-700">
-            {error || formError}
-          </div>
+          <div className="text-sm text-red-700">{error || formError}</div>
         </div>
       )}
 
@@ -218,5 +216,5 @@ export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps
         </button>
       </form>
     </div>
-  )
+  );
 }

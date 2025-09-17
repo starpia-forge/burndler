@@ -134,3 +134,71 @@ func TestBuild_TableName(t *testing.T) {
 		t.Errorf("TableName() = %v, want %v", got, expected)
 	}
 }
+
+// Test IsProjectBuild method
+func TestBuild_IsProjectBuild(t *testing.T) {
+	tests := []struct {
+		name      string
+		projectID *uint
+		expected  bool
+	}{
+		{"project build", ptrUint(1), true},
+		{"direct build", nil, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			build := &Build{ProjectID: tt.projectID}
+			if got := build.IsProjectBuild(); got != tt.expected {
+				t.Errorf("IsProjectBuild() = %v, want %v", got, tt.expected)
+			}
+		})
+	}
+}
+
+// Test IsDirectBuild method
+func TestBuild_IsDirectBuild(t *testing.T) {
+	tests := []struct {
+		name      string
+		projectID *uint
+		expected  bool
+	}{
+		{"direct build", nil, true},
+		{"project build", ptrUint(1), false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			build := &Build{ProjectID: tt.projectID}
+			if got := build.IsDirectBuild(); got != tt.expected {
+				t.Errorf("IsDirectBuild() = %v, want %v", got, tt.expected)
+			}
+		})
+	}
+}
+
+// Test GetBuildType method
+func TestBuild_GetBuildType(t *testing.T) {
+	tests := []struct {
+		name      string
+		projectID *uint
+		expected  string
+	}{
+		{"project build type", ptrUint(1), "project"},
+		{"direct build type", nil, "direct"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			build := &Build{ProjectID: tt.projectID}
+			if got := build.GetBuildType(); got != tt.expected {
+				t.Errorf("GetBuildType() = %v, want %v", got, tt.expected)
+			}
+		})
+	}
+}
+
+// Helper function to create a pointer to uint
+func ptrUint(i uint) *uint {
+	return &i
+}

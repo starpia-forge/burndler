@@ -7,11 +7,43 @@ BUILD_TIME ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 GIT_COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 LDFLAGS = -X main.Version=$(VERSION) -X main.BuildTime=$(BUILD_TIME) -X main.GitCommit=$(GIT_COMMIT)
 
-.PHONY: help dev dev-backend dev-frontend build build-docker test lint clean version release
+# Initialization marker
+INIT_MARKER := .initialized
+
+.PHONY: help init check-init install-golangci-lint dev dev-backend dev-frontend build build-docker test lint clean version release
 
 help: ## Show this help message
 	@echo "Burndler Development Commands:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+# ===== Initialization =====
+
+init: ## Initialize development environment (install all required tools)
+	@echo "🔧 Initializing Burndler development environment..."
+	@make deps-backend
+	@make deps-frontend
+	@make install-golangci-lint
+	@touch $(INIT_MARKER)
+	@echo "✅ Development environment initialized successfully!"
+	@echo "You can now run 'make dev', 'make test', or 'make build'"
+
+check-init: ## Check if development environment is initialized
+	@if [ ! -f $(INIT_MARKER) ]; then \
+		echo "⚠️  Warning: Development environment not initialized!"; \
+		echo "Please run 'make init' first to install required tools."; \
+		echo ""; \
+		exit 1; \
+	fi
+
+install-golangci-lint: ## Install golangci-lint tool
+	@echo "📦 Installing golangci-lint..."
+	@if command -v golangci-lint >/dev/null 2>&1; then \
+		echo "✓ golangci-lint already installed"; \
+	else \
+		echo "Installing golangci-lint..."; \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin latest; \
+		echo "✓ golangci-lint installed"; \
+	fi
 
 # ===== Development =====
 
@@ -37,7 +69,7 @@ dev-clean: ## Stop and remove all dev containers and volumes
 
 # ===== Build =====
 
-build: build-backend-with-static build-tools ## Build all components
+build: check-init build-backend-with-static ## Build all components
 
 build-backend: ## Build Go binary
 	@echo "Building backend binary with version $(VERSION)..."
@@ -67,23 +99,19 @@ build-docker: ## Build Docker image with embedded frontend
 		.
 	@echo "Docker images built: burndler:latest and burndler:$(VERSION)"
 
-build-tools: ## Build CLI tools
-	@echo "Building CLI tools v$(VERSION)..."
-	cd tools/merge && go build -ldflags="-X main.Version=$(VERSION)" -o ../../dist/burndler-merge .
-	cd tools/lint && go build -ldflags="-X main.Version=$(VERSION)" -o ../../dist/burndler-lint .
-	cd tools/package && go build -ldflags="-X main.Version=$(VERSION)" -o ../../dist/burndler-package .
 
 # ===== Testing =====
 
-test: test-unit test-integration ## Run all tests
+test: check-init test-unit test-integration ## Run all tests
 
 test-unit: ## Run unit tests
 	@echo "Running unit tests..."
-	cd backend && go test ./...
+	cd backend && go test -v -short ./...
 	cd frontend && npm test
 
-test-integration: ## Run integration tests
+test-integration: ## Run integration tests (requires database)
 	@echo "Running integration tests..."
+	cd backend && go test -v ./...
 	cd test/integration && go test ./...
 
 test-e2e: ## Run end-to-end tests with Playwright
@@ -97,15 +125,34 @@ test-coverage: ## Generate test coverage report
 
 # ===== Quality =====
 
-lint: lint-go lint-js lint-compose ## Run all linters
+format: format-backend format-frontend ## Format all code to match CI requirements
 
-lint-go: ## Run golangci-lint
+format-backend: ## Fix Go code issues with golangci-lint
+	@echo "🔧 Fixing Go code issues..."
+	@make install-golangci-lint
+	cd backend && golangci-lint run --fix
+	@echo "✅ Go code checked and fixed"
+
+format-frontend: ## Format frontend code with Prettier
+	@echo "🎨 Formatting frontend code..."
+	cd frontend && npm run format
+	@echo "✅ Frontend code formatted"
+
+pre-commit: format-backend format-frontend ## Run all pre-commit formatting
+	@echo "🔍 Verifying CI compliance..."
+	@make install-golangci-lint
+	@make lint-backend
+	@make lint-frontend
+	@echo "✅ Ready to commit! All CI checks will pass"
+
+lint: lint-backend lint-frontend lint-compose ## Run all linters
+
+lint-backend: ## Run golangci-lint
 	@echo "Linting Go code..."
-	@which golangci-lint > /dev/null || (echo "Installing golangci-lint..." && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest)
+	@make install-golangci-lint
 	cd backend && golangci-lint run
-	cd tools && golangci-lint run
 
-lint-js: ## Run ESLint and Prettier
+lint-frontend: ## Run ESLint and Prettier
 	@echo "Linting JavaScript/TypeScript..."
 	cd frontend && npm run lint
 	cd frontend && npm run format:check
@@ -120,13 +167,6 @@ lint-compose: ## Validate compose files (no build:, etc.)
 
 # ===== Operations =====
 
-merge: ## Test compose merge functionality
-	@echo "Testing compose merge..."
-	go run tools/merge/main.go --namespace test --input test/fixtures/compose/module1.yaml --input test/fixtures/compose/module2.yaml
-
-package: ## Create offline installer package
-	@echo "Creating offline installer..."
-	go run tools/package/main.go --compose compose/dev.compose.yaml --output dist/installers/
 
 init-backend: ## Initialize Go module (run once)
 	cd backend && go mod init github.com/burndler/burndler

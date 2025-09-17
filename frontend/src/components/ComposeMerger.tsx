@@ -1,59 +1,57 @@
-import { useState } from 'react'
-import { Module, MergeResult, LintResult } from '../types'
-import api from '../services/api'
+import { useState } from 'react';
+import { Module, MergeResult, LintResult } from '../types';
+import api from '../services/api';
 
 export default function ComposeMerger() {
-  const [modules, setModules] = useState<Module[]>([
-    { name: 'module1', compose: '' },
-  ])
-  const [projectVariables, setProjectVariables] = useState<Record<string, string>>({})
-  const [mergeResult, setMergeResult] = useState<MergeResult | null>(null)
-  const [lintResult, setLintResult] = useState<LintResult | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [modules, setModules] = useState<Module[]>([{ name: 'module1', compose: '' }]);
+  const [projectVariables, setProjectVariables] = useState<Record<string, string>>({});
+  const [mergeResult, setMergeResult] = useState<MergeResult | null>(null);
+  const [lintResult, setLintResult] = useState<LintResult | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const addModule = () => {
-    setModules([...modules, { name: `module${modules.length + 1}`, compose: '' }])
-  }
+    setModules([...modules, { name: `module${modules.length + 1}`, compose: '' }]);
+  };
 
   const removeModule = (index: number) => {
-    setModules(modules.filter((_, i) => i !== index))
-  }
+    setModules(modules.filter((_, i) => i !== index));
+  };
 
   const updateModule = (index: number, field: keyof Module, value: string) => {
-    const updated = [...modules]
-    updated[index] = { ...updated[index], [field]: value }
-    setModules(updated)
-  }
+    const updated = [...modules];
+    updated[index] = { ...updated[index], [field]: value };
+    setModules(updated);
+  };
 
   const handleMerge = async () => {
-    setIsLoading(true)
-    setError(null)
-    setMergeResult(null)
-    setLintResult(null)
+    setIsLoading(true);
+    setError(null);
+    setMergeResult(null);
+    setLintResult(null);
 
     try {
       // Merge compose files
       const result = await api.mergeCompose({
         modules,
         projectVariables,
-      })
-      setMergeResult(result)
+      });
+      setMergeResult(result);
 
       // Lint the merged result
       if (result.mergedCompose) {
         const lintRes = await api.lintCompose({
           compose: result.mergedCompose,
           strictMode: true,
-        })
-        setLintResult(lintRes)
+        });
+        setLintResult(lintRes);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to merge compose files')
+      setError(err.response?.data?.message || 'Failed to merge compose files');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -108,22 +106,20 @@ export default function ComposeMerger() {
 
       {/* Project Variables */}
       <div className="bg-white p-4 rounded-lg shadow">
-        <h3 className="text-lg font-medium text-gray-900 mb-3">
-          Project Variables (Optional)
-        </h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-3">Project Variables (Optional)</h3>
         <textarea
           value={Object.entries(projectVariables)
             .map(([k, v]) => `${k}=${v}`)
             .join('\n')}
           onChange={(e) => {
-            const vars: Record<string, string> = {}
+            const vars: Record<string, string> = {};
             e.target.value.split('\n').forEach((line) => {
-              const [key, value] = line.split('=')
+              const [key, value] = line.split('=');
               if (key && value) {
-                vars[key.trim()] = value.trim()
+                vars[key.trim()] = value.trim();
               }
-            })
-            setProjectVariables(vars)
+            });
+            setProjectVariables(vars);
           }}
           placeholder="KEY=value (one per line)"
           rows={5}
@@ -232,5 +228,5 @@ export default function ComposeMerger() {
         </div>
       )}
     </div>
-  )
+  );
 }

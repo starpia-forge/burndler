@@ -67,7 +67,13 @@ func (l *LocalFSStorage) Upload(ctx context.Context, key string, reader io.Reade
 	if err != nil {
 		return "", fmt.Errorf("failed to create file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil {
+			// Log error but don't override main error
+			// In a real application, you might want to use a logger here
+			_ = closeErr // Explicitly ignore close error as main error takes precedence
+		}
+	}()
 
 	// Copy content
 	written, err := io.Copy(file, reader)
@@ -172,7 +178,7 @@ func (l *LocalFSStorage) List(ctx context.Context, prefix string) ([]FileInfo, e
 	// Also walk subdirectories if prefix is a directory
 	prefixDir := l.getFullPath(prefix)
 	if stat, err := os.Stat(prefixDir); err == nil && stat.IsDir() {
-		err = filepath.Walk(prefixDir, func(path string, info os.FileInfo, err error) error {
+		walkErr := filepath.Walk(prefixDir, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return nil // Skip errors
 			}
@@ -203,6 +209,9 @@ func (l *LocalFSStorage) List(ctx context.Context, prefix string) ([]FileInfo, e
 
 			return nil
 		})
+		if walkErr != nil {
+			return files, fmt.Errorf("error walking directory: %w", walkErr)
+		}
 	}
 
 	return files, nil

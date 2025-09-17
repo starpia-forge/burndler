@@ -1,49 +1,49 @@
-import { useState, useRef, useEffect } from 'react'
-import { useTheme } from '../hooks/useTheme'
+import { useState, useRef, useEffect } from 'react';
+import { useTheme } from '../hooks/useTheme';
 
 const ThemeToggle = () => {
-  const { setThemeMode, isLightMode, isDarkMode, isSystemMode } = useTheme()
-  const [isOpen, setIsOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  const { setThemeMode, isLightMode, isDarkMode, isSystemMode } = useTheme();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
+        setIsOpen(false);
       }
-    }
+    };
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Handle keyboard events
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') {
-      setIsOpen(false)
+      setIsOpen(false);
     } else if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      setIsOpen(!isOpen)
+      event.preventDefault();
+      setIsOpen(!isOpen);
     }
-  }
+  };
 
   const handleOptionClick = (mode: 'light' | 'dark' | 'system') => {
-    setThemeMode(mode)
-    setIsOpen(false)
-  }
+    setThemeMode(mode);
+    setIsOpen(false);
+  };
 
   // Get current icon based on theme mode
   const getCurrentIcon = () => {
     if (isLightMode) {
-      return <SunIcon />
+      return <SunIcon />;
     } else if (isDarkMode) {
-      return <MoonIcon />
+      return <MoonIcon />;
     } else if (isSystemMode) {
-      return <ComputerIcon />
+      return <ComputerIcon />;
     }
-    return <SunIcon />
-  }
+    return <SunIcon />;
+  };
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -96,8 +96,8 @@ const ThemeToggle = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
 // Icon components with test IDs for testing
 const SunIcon = () => (
@@ -123,7 +123,7 @@ const SunIcon = () => (
     <path d="m6.34 17.66-1.41-1.41" />
     <path d="m19.07 4.93-1.41-1.41" />
   </svg>
-)
+);
 
 const MoonIcon = () => (
   <svg
@@ -140,7 +140,7 @@ const MoonIcon = () => (
   >
     <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
   </svg>
-)
+);
 
 const ComputerIcon = () => (
   <svg
@@ -160,6 +160,6 @@ const ComputerIcon = () => (
     <path d="M6 18h2" />
     <path d="M12 18h6" />
   </svg>
-)
+);
 
-export default ThemeToggle
+export default ThemeToggle;

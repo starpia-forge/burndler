@@ -1,16 +1,16 @@
-import { ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { ReactNode } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 interface LayoutProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const { user, isAuthenticated, isDeveloper, logout } = useAuth()
-  const location = useLocation()
+  const { user, isAuthenticated, isDeveloper, logout } = useAuth();
+  const location = useLocation();
 
-  const isActive = (path: string) => location.pathname === path
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -51,25 +51,20 @@ export default function Layout({ children }: LayoutProps) {
                 <>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-700">{user?.email}</span>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      isDeveloper
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-blue-100 text-blue-800'
-                    }`}>
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${
+                        isDeveloper ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                      }`}
+                    >
                       {user?.role}
                     </span>
                   </div>
-                  <button
-                    onClick={logout}
-                    className="text-sm text-gray-500 hover:text-gray-700"
-                  >
+                  <button onClick={logout} className="text-sm text-gray-500 hover:text-gray-700">
                     Logout
                   </button>
                 </>
               ) : (
-                <div className="text-sm text-gray-500">
-                  Demo Mode (Not Authenticated)
-                </div>
+                <div className="text-sm text-gray-500">Demo Mode (Not Authenticated)</div>
               )}
             </div>
           </div>
@@ -77,9 +72,7 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
 
       {/* Footer */}
       <footer className="bg-white border-t mt-auto">
@@ -90,5 +83,5 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </footer>
     </div>
-  )
+  );
 }
