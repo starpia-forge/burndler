@@ -7,6 +7,9 @@ import (
 )
 
 func TestLoad(t *testing.T) {
+	// Clear environment variables to test actual defaults
+	_ = os.Unsetenv("DB_NAME")
+
 	// Test default values
 	cfg := Load()
 
