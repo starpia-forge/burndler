@@ -19,7 +19,8 @@
       "Bash(make pre-commit:*)",
       "Bash(make lint-backend:*)",
       "Bash(make lint-frontend:*)",
-      "Bash(make lint:*)"
+      "Bash(make lint:*)",
+      "Read(//mnt/d/workspace/github/**)"
     ],
     "deny": [],
     "ask": []

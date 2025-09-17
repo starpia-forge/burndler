@@ -60,7 +60,10 @@ func (pm *ProjectModule) GetEffectiveVariables() map[string]interface{} {
 	// Start with module version variables
 	if pm.ModuleVersion.Variables != nil {
 		var moduleVars map[string]interface{}
-		json.Unmarshal(pm.ModuleVersion.Variables, &moduleVars)
+		if err := json.Unmarshal(pm.ModuleVersion.Variables, &moduleVars); err != nil {
+			// Log error but continue with empty moduleVars
+			moduleVars = make(map[string]interface{})
+		}
 		for k, v := range moduleVars {
 			variables[k] = v
 		}
@@ -69,7 +72,10 @@ func (pm *ProjectModule) GetEffectiveVariables() map[string]interface{} {
 	// Override with project-specific variables
 	if pm.OverrideVars != nil {
 		var overrideVars map[string]interface{}
-		json.Unmarshal(pm.OverrideVars, &overrideVars)
+		if err := json.Unmarshal(pm.OverrideVars, &overrideVars); err != nil {
+			// Log error but continue with empty overrideVars
+			overrideVars = make(map[string]interface{})
+		}
 		for k, v := range overrideVars {
 			variables[k] = v
 		}

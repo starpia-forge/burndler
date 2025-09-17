@@ -184,7 +184,11 @@ func TestNewWithConfig_Unit(t *testing.T) {
 	// Create mock database
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			t.Logf("Failed to close mock database: %v", err)
+		}
+	}()
 
 	// Mock successful connection and migrations
 	mock.ExpectQuery("SELECT VERSION()").WillReturnRows(sqlmock.NewRows([]string{"version"}).AddRow("PostgreSQL 16.0"))
