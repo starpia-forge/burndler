@@ -58,6 +58,10 @@ jobs:
           cd frontend && npm ci
           cd ../backend && go mod download
 
+      - name: Initialize build environment
+        run: |
+          make init
+
       - name: Build application for release
         run: |
           make build
