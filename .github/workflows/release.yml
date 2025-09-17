@@ -1,9 +1,13 @@
 name: Release
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
     branches:
       - main
+      - develop
 
 env:
   GO_VERSION: '1.24'
@@ -19,7 +23,7 @@ jobs:
   release:
     name: Semantic Release
     runs-on: ubuntu-latest
-    if: github.repository == 'starpia-forge/burndler'
+    if: github.repository == 'starpia-forge/burndler' && github.event.workflow_run.conclusion == 'success'
     outputs:
       released: ${{ steps.semantic.outputs.new_release_published }}
       version: ${{ steps.semantic.outputs.new_release_version }}
@@ -56,6 +60,10 @@ jobs:
         run: |
           cd frontend && npm ci
           cd ../backend && go mod download
+
+      - name: Initialize build environment
+        run: |
+          make init
 
       - name: Build application for release
         run: |
