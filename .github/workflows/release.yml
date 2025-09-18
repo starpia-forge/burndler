@@ -146,61 +146,11 @@ jobs:
             BUILD_TIME=${{ github.event.head_commit.timestamp }}
             GIT_COMMIT=${{ github.sha }}
 
-  package-release:
-    name: Create Offline Installer Package
-    runs-on: ubuntu-latest
-    needs: [release, docker-release]
-    if: needs.release.outputs.released == 'true'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Download release binaries
-        uses: actions/download-artifact@v4
-        with:
-          name: release-binaries-${{ needs.release.outputs.version }}
-          path: dist/
-
-      - name: Make binaries executable
-        run: chmod +x dist/*
-
-      - name: Create offline installer package
-        env:
-          VERSION: ${{ needs.release.outputs.version }}
-        run: |
-          # Create installer package directory
-          mkdir -p dist/installers
-
-          # Note: Offline installer packaging feature not yet implemented
-          # TODO: Implement installer packaging logic when needed
-          echo "Offline installer packaging will be implemented in future release"
-
-      # Note: Installer package upload disabled until packaging is implemented
-      # - name: Upload installer package
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: installer-package-${{ needs.release.outputs.version }}
-      #     path: dist/installers/*.tar.gz
-      #     retention-days: 365
-
-      # - name: Attach installer to GitHub release
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     gh release upload ${{ needs.release.outputs.tag }} \
-      #       dist/installers/burndler-${{ needs.release.outputs.version }}-installer.tar.gz \
-      #       --clobber
 
   notify:
     name: Release Notification
     runs-on: ubuntu-latest
-    needs: [release, docker-release, package-release]
+    needs: [release, docker-release]
     if: needs.release.outputs.released == 'true'
 
     steps:
@@ -208,5 +158,4 @@ jobs:
         run: |
           echo "🚀 Burndler v${{ needs.release.outputs.version }} has been released!"
           echo "📦 Docker image: ghcr.io/${{ github.repository }}:${{ needs.release.outputs.version }}"
-          echo "💾 Offline installer: burndler-${{ needs.release.outputs.version }}-installer.tar.gz"
           echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.release.outputs.tag }}"
