@@ -70,12 +70,6 @@ module.exports = {
       }
     ],
     [
-      '@semantic-release/npm',
-      {
-        npmPublish: false // We don't publish NPM packages
-      }
-    ],
-    [
       '@semantic-release/exec',
       {
         prepareCmd: 'echo "${nextRelease.version}" > VERSION && make build-docker VERSION=${nextRelease.version}',
@@ -85,26 +79,14 @@ module.exports = {
     [
       '@semantic-release/github',
       {
+        successComment: false,
+        failComment: false,
+        releasedLabels: false,
         assets: [
           {
             path: 'dist/burndler',
             name: 'burndler-${nextRelease.gitTag}-linux-amd64',
             label: 'Burndler Binary (Linux AMD64)'
-          },
-          {
-            path: 'dist/burndler-merge',
-            name: 'burndler-merge-${nextRelease.gitTag}-linux-amd64',
-            label: 'Burndler Merge Tool (Linux AMD64)'
-          },
-          {
-            path: 'dist/burndler-lint',
-            name: 'burndler-lint-${nextRelease.gitTag}-linux-amd64',
-            label: 'Burndler Lint Tool (Linux AMD64)'
-          },
-          {
-            path: 'dist/burndler-package',
-            name: 'burndler-package-${nextRelease.gitTag}-linux-amd64',
-            label: 'Burndler Package Tool (Linux AMD64)'
           }
         ]
       }
