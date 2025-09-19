@@ -112,40 +112,12 @@ dev-down: ## Stop all development services
 	docker-compose -f compose/postgres.compose.yaml --env-file .env.development down
 	@echo "✅ Development services stopped"
 
-dev-clean: ## Stop and remove all dev containers and volumes
-	@echo "🧹 Cleaning development environment..."
-	docker-compose -f compose/postgres.compose.yaml --env-file .env.development down -v
-	@echo "✅ Development environment cleaned"
 
 dev-logs: ## Show development database logs
 	@echo "📋 PostgreSQL logs:"
 	docker-compose -f compose/postgres.compose.yaml --env-file .env.development logs -f postgres
 
-dev-all: dev-db ## Alternative: Start all services with managed processes
-	@echo "🚀 Starting Burndler Development Environment..."
-	@echo "📦 Database is ready!"
-	@echo "🔄 Starting backend and frontend..."
-	@trap 'make dev-stop' INT TERM EXIT; \
-	make dev-backend & BACKEND_PID=$$!; \
-	make dev-frontend & FRONTEND_PID=$$!; \
-	echo ""; \
-	echo "✅ Services starting..."; \
-	echo "   Backend PID: $$BACKEND_PID"; \
-	echo "   Frontend PID: $$FRONTEND_PID"; \
-	echo ""; \
-	echo "  🌐 Backend API:  http://localhost:8080"; \
-	echo "  🌐 Frontend:     http://localhost:3000"; \
-	echo "  🗄️  PostgreSQL:   localhost:5432"; \
-	echo ""; \
-	echo "Press Ctrl+C to stop all services"; \
-	wait
 
-dev-stop: ## Stop all development services gracefully
-	@echo "🛑 Stopping all development services..."
-	@-pkill -f "air -c" 2>/dev/null || true
-	@-pkill -f "npm run dev" 2>/dev/null || true
-	@make dev-down
-	@echo "✅ All services stopped"
 
 dev-status: ## Show development services status
 	@echo "📊 Development Services Status:"
