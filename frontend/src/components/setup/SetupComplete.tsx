@@ -1,29 +1,71 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { CheckCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { useSetup } from '../../hooks/useSetup';
+import { useSetupWizardContext } from '../../contexts/SetupWizardContext';
 
 export default function SetupComplete() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { completeSetup, error: setupError } = useSetup();
+  const { wizardData, clearWizardData } = useSetupWizardContext();
+  const [isCompleting, setIsCompleting] = useState(true);
+  const [isSetupFinished, setIsSetupFinished] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Auto-redirect to dashboard after 5 seconds if user is authenticated
-    if (isAuthenticated) {
+    const finalizeSetup = async () => {
+      if (!wizardData.systemConfig) {
+        setLocalError(
+          'System configuration data is missing. Please go back and complete the configuration step.'
+        );
+        setIsCompleting(false);
+        return;
+      }
+
+      try {
+        await completeSetup({
+          company_name: wizardData.systemConfig.companyName,
+          system_settings: wizardData.systemConfig.systemSettings,
+        });
+
+        // Clear wizard data after successful completion
+        clearWizardData();
+        setIsSetupFinished(true);
+        setIsCompleting(false);
+      } catch (err) {
+        setLocalError('Failed to complete setup. Please try again.');
+        setIsCompleting(false);
+      }
+    };
+
+    finalizeSetup();
+  }, [wizardData.systemConfig, completeSetup, clearWizardData]);
+
+  useEffect(() => {
+    // Auto-redirect to dashboard after 5 seconds if user is authenticated and setup is finished
+    if (isAuthenticated && isSetupFinished) {
       const timer = setTimeout(() => {
         navigate('/');
       }, 5000);
 
       return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isSetupFinished, navigate]);
 
   const handleGoToDashboard = () => {
-    if (isAuthenticated) {
+    if (isAuthenticated && isSetupFinished) {
       navigate('/');
     } else {
       navigate('/login');
     }
+  };
+
+  const handleRetry = () => {
+    setLocalError(null);
+    setIsCompleting(true);
+    // The useEffect will automatically retry
   };
 
   const completedItems = [
@@ -35,6 +77,53 @@ export default function SetupComplete() {
     'Security policies activated',
   ];
 
+  // Show loading state while completing setup
+  if (isCompleting) {
+    return (
+      <div className="p-8 text-center">
+        <div className="mb-8">
+          <div className="animate-spin rounded-full h-20 w-20 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Finalizing Setup...</h2>
+          <p className="text-gray-600">Please wait while we complete your system configuration.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if setup failed
+  if (localError || setupError) {
+    return (
+      <div className="p-8 text-center">
+        <div className="mb-8">
+          <div className="h-20 w-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="h-10 w-10 text-red-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Setup Failed</h2>
+          <p className="text-gray-600 mb-6">{localError || setupError}</p>
+          <button
+            onClick={handleRetry}
+            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+          >
+            Retry Setup
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show success state when setup is complete
   return (
     <div className="p-8 text-center">
       <div className="mb-8">
@@ -74,12 +163,12 @@ export default function SetupComplete() {
             onClick={handleGoToDashboard}
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
           >
-            {isAuthenticated ? 'Go to Dashboard' : 'Go to Login'}
+            {isAuthenticated && isSetupFinished ? 'Go to Dashboard' : 'Go to Login'}
             <ArrowRightIcon className="ml-2 h-5 w-5" />
           </button>
         </div>
 
-        {isAuthenticated && (
+        {isAuthenticated && isSetupFinished && (
           <p className="text-sm text-gray-500">Redirecting automatically in 5 seconds...</p>
         )}
       </div>

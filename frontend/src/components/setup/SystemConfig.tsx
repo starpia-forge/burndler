@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { useSetup } from '../../hooks/useSetup';
 import { CogIcon, BuildingOfficeIcon } from '@heroicons/react/24/outline';
+import { useSetupWizardContext } from '../../contexts/SetupWizardContext';
 
 interface SystemConfigProps {
   onConfigComplete: () => void;
 }
 
 export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
-  const { completeSetup, loading, error } = useSetup();
+  const { setSystemConfig } = useSetupWizardContext();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     companyName: '',
     systemSettings: {
@@ -70,15 +71,19 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
       return;
     }
 
-    try {
-      await completeSetup({
-        company_name: formData.companyName,
-        system_settings: formData.systemSettings,
-      });
+    setLoading(true);
+
+    // Save configuration data to context instead of calling API
+    setSystemConfig({
+      companyName: formData.companyName,
+      systemSettings: formData.systemSettings,
+    });
+
+    // Simulate a brief loading state for better UX
+    setTimeout(() => {
+      setLoading(false);
       onConfigComplete();
-    } catch (err) {
-      // Error is already handled by useSetup hook
-    }
+    }, 500);
   };
 
   return (
@@ -91,9 +96,9 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
         </p>
       </div>
 
-      {(error || formError) && (
+      {formError && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <div className="text-sm text-red-700">{error || formError}</div>
+          <div className="text-sm text-red-700">{formError}</div>
         </div>
       )}
 
@@ -252,7 +257,7 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
             disabled={loading}
             className="bg-blue-600 text-white px-8 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Completing Setup...' : 'Complete Setup'}
+            {loading ? 'Saving Configuration...' : 'Save Configuration'}
           </button>
         </div>
       </form>

@@ -17,6 +17,7 @@ import SystemLanguage from '../components/setup/SystemLanguage';
 import AdminSetup from '../components/setup/AdminSetup';
 import SystemConfig from '../components/setup/SystemConfig';
 import SetupComplete from '../components/setup/SetupComplete';
+import { SetupWizardProvider } from '../contexts/SetupWizardContext';
 
 type SetupStep = 'status' | 'language' | 'admin' | 'config' | 'complete';
 
@@ -210,76 +211,78 @@ export default function SetupWizard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center">
-            <BuildingOfficeIcon className="h-8 w-8 text-blue-600 mr-3" />
-            <h1 className="text-2xl font-bold text-gray-900">Burndler Setup</h1>
+    <SetupWizardProvider>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white shadow">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center">
+              <BuildingOfficeIcon className="h-8 w-8 text-blue-600 mr-3" />
+              <h1 className="text-2xl font-bold text-gray-900">Burndler Setup</h1>
+            </div>
+            <p className="mt-2 text-sm text-gray-600">
+              Welcome to Burndler! Let's get your system configured.
+            </p>
           </div>
-          <p className="mt-2 text-sm text-gray-600">
-            Welcome to Burndler! Let's get your system configured.
-          </p>
         </div>
-      </div>
 
-      {/* Progress Steps */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <nav aria-label="Progress">
-            <ol className="flex items-center">
-              {steps.map((step, stepIdx) => (
-                <li
-                  key={step.name}
-                  className={`relative ${stepIdx !== steps.length - 1 ? 'pr-8 sm:pr-20' : ''}`}
-                >
-                  {stepIdx !== steps.length - 1 && (
-                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+        {/* Progress Steps */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="mb-8">
+            <nav aria-label="Progress">
+              <ol className="flex items-center">
+                {steps.map((step, stepIdx) => (
+                  <li
+                    key={step.name}
+                    className={`relative ${stepIdx !== steps.length - 1 ? 'pr-8 sm:pr-20' : ''}`}
+                  >
+                    {stepIdx !== steps.length - 1 && (
+                      <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                        <div
+                          className={`h-0.5 w-full ${stepIdx < currentStepIndex ? 'bg-blue-600' : 'bg-gray-200'}`}
+                        />
+                      </div>
+                    )}
+                    <div className="relative flex items-center justify-center">
                       <div
-                        className={`h-0.5 w-full ${stepIdx < currentStepIndex ? 'bg-blue-600' : 'bg-gray-200'}`}
-                      />
-                    </div>
-                  )}
-                  <div className="relative flex items-center justify-center">
-                    <div
-                      className={`
-                      h-9 w-9 rounded-full flex items-center justify-center
-                      ${
-                        step.id === currentStep
-                          ? 'bg-blue-600 text-white'
-                          : step.completed || stepIdx < currentStepIndex
+                        className={`
+                        h-9 w-9 rounded-full flex items-center justify-center
+                        ${
+                          step.id === currentStep
                             ? 'bg-blue-600 text-white'
-                            : 'bg-white border-2 border-gray-300 text-gray-500'
-                      }
-                    `}
-                    >
-                      <step.icon className="h-5 w-5" />
+                            : step.completed || stepIdx < currentStepIndex
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-white border-2 border-gray-300 text-gray-500'
+                        }
+                      `}
+                      >
+                        <step.icon className="h-5 w-5" />
+                      </div>
+                      <span
+                        className={`
+                        ml-2 text-sm font-medium
+                        ${
+                          step.id === currentStep
+                            ? 'text-blue-600'
+                            : step.completed || stepIdx < currentStepIndex
+                              ? 'text-gray-900'
+                              : 'text-gray-500'
+                        }
+                      `}
+                      >
+                        {step.name}
+                      </span>
                     </div>
-                    <span
-                      className={`
-                      ml-2 text-sm font-medium
-                      ${
-                        step.id === currentStep
-                          ? 'text-blue-600'
-                          : step.completed || stepIdx < currentStepIndex
-                            ? 'text-gray-900'
-                            : 'text-gray-500'
-                      }
-                    `}
-                    >
-                      {step.name}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </nav>
-        </div>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          </div>
 
-        {/* Step Content */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">{renderStepContent()}</div>
+          {/* Step Content */}
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">{renderStepContent()}</div>
+        </div>
       </div>
-    </div>
+    </SetupWizardProvider>
   );
 }

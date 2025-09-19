@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSetup } from '../../hooks/useSetup';
 import { UserPlusIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { useSetupWizardContext } from '../../contexts/SetupWizardContext';
 
 interface AdminSetupProps {
   hasAdmin: boolean;
@@ -9,6 +10,7 @@ interface AdminSetupProps {
 
 export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps) {
   const { createAdmin, loading, error } = useSetup();
+  const { setAdminData } = useSetupWizardContext();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -64,6 +66,14 @@ export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps
         email: formData.email,
         password: formData.password,
       });
+
+      // Save admin data to context for potential future use
+      setAdminData({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+
       onAdminCreated();
     } catch (err) {
       // Error is already handled by useSetup hook
