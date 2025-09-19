@@ -1,7 +1,7 @@
 # Burndler
 
-[![CI](https://github.com/starpia-forge/burndler/actions/workflows/ci.yml/badge.svg)](https://github.com/starpia-forge/burndler/actions/workflows/ci.yml)
-[![Release](https://github.com/starpia-forge/burndler/actions/workflows/release.yml/badge.svg)](https://github.com/starpia-forge/burndler/actions/workflows/release.yml)
+[![CI](https://github.com/starpia-forge/burndler/actions/workflows/ci.yml/badge.svg)](https://github.com/starpia-forge/burndler/actions/workflows/ci.yaml)
+[![Release](https://github.com/starpia-forge/burndler/actions/workflows/release.yml/badge.svg)](https://github.com/starpia-forge/burndler/actions/workflows/release.yaml)
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/starpia-forge/burndler)](https://github.com/starpia-forge/burndler/releases/latest)
 [![Docker Image](https://img.shields.io/badge/docker-ghcr.io%2Fstarpia--forge%2Fburndler-blue)](https://github.com/starpia-forge/burndler/pkgs/container/burndler)
 
