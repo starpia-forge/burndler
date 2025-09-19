@@ -65,6 +65,7 @@ dev-backend: ## Start backend with Air hot reload (requires PostgreSQL)
 	@cp -n .env.example .env.development 2>/dev/null || true
 	@make ensure-dev-db
 	@echo "✅ Database confirmed running"
+	@mkdir -p tmp
 	@echo "🔥 Starting Air hot reload..."
 	@if command -v air >/dev/null 2>&1; then \
 		cd backend && air -c ../.air.toml; \
@@ -73,6 +74,8 @@ dev-backend: ## Start backend with Air hot reload (requires PostgreSQL)
 		go install github.com/cosmtrek/air@latest; \
 		cd backend && air -c ../.air.toml; \
 	fi
+
+backend: dev-backend ## Alias for dev-backend (start backend with Air hot reload)
 
 dev-frontend: ## Start frontend with Vite dev server
 	@echo "⚡ Starting frontend development with Vite..."

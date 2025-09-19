@@ -6,17 +6,17 @@ tmp_dir = "tmp"
 
 [build]
   # Build command with version injection
-  cmd = "cd backend && go build -ldflags='-X main.Version=dev -X main.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) -X main.GitCommit=$(git rev-parse --short HEAD 2>/dev/null || echo unknown)' -o ../tmp/main cmd/api/main.go"
+  cmd = "go build -ldflags='-X main.Version=dev' -o ../tmp/main ./cmd/api"
   # Binary to execute
-  bin = "tmp/main"
+  bin = "../tmp/main"
   # Full path to binary
-  full_bin = "./tmp/main"
+  full_bin = "../tmp/main"
   # Watch these file extensions
   include_ext = ["go", "tpl", "tmpl", "html", "yaml", "yml", "env"]
   # Exclude these directories
   exclude_dir = ["tmp", "vendor", "testdata", "node_modules", ".git", ".idea", ".vscode", "frontend", "dist", "coverage"]
   # Include these directories
-  include_dir = ["backend"]
+  include_dir = ["."]
   # Exclude these files
   exclude_file = []
   # Exclude files with these regex patterns
