@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CogIcon, BuildingOfficeIcon } from '@heroicons/react/24/outline';
 import { useSetupWizardContext } from '../../contexts/SetupWizardContext';
 
@@ -7,6 +8,7 @@ interface SystemConfigProps {
 }
 
 export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
+  const { t } = useTranslation('setup');
   const { setSystemConfig } = useSetupWizardContext();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -43,22 +45,22 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
 
   const validateForm = () => {
     if (!formData.companyName.trim()) {
-      setFormError('Company name is required');
+      setFormError(t('configStep.errors.companyRequired'));
       return false;
     }
     if (!formData.systemSettings.default_namespace.trim()) {
-      setFormError('Default namespace is required');
+      setFormError(t('configStep.errors.namespaceRequired'));
       return false;
     }
     if (!/^[a-z0-9-]+$/.test(formData.systemSettings.default_namespace)) {
-      setFormError('Namespace can only contain lowercase letters, numbers, and hyphens');
+      setFormError(t('configStep.errors.namespaceInvalid'));
       return false;
     }
     if (
       formData.systemSettings.notification_email &&
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.systemSettings.notification_email)
     ) {
-      setFormError('Please enter a valid notification email address');
+      setFormError(t('configStep.errors.invalidEmail'));
       return false;
     }
     return true;
@@ -90,10 +92,8 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
     <div className="p-8">
       <div className="text-center mb-8">
         <CogIcon className="h-16 w-16 text-blue-600 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">System Configuration</h2>
-        <p className="text-gray-600">
-          Configure your organization and system settings to complete the setup.
-        </p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('configStep.title')}</h2>
+        <p className="text-gray-600">{t('configStep.description')}</p>
       </div>
 
       {formError && (
@@ -107,12 +107,14 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
         <div className="bg-gray-50 rounded-lg p-6">
           <div className="flex items-center mb-4">
             <BuildingOfficeIcon className="h-6 w-6 text-gray-400 mr-2" />
-            <h3 className="text-lg font-medium text-gray-900">Company Information</h3>
+            <h3 className="text-lg font-medium text-gray-900">
+              {t('configStep.companyInformation')}
+            </h3>
           </div>
 
           <div>
             <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-2">
-              Company Name *
+              {t('configStep.companyNameLabel')}
             </label>
             <input
               type="text"
@@ -122,7 +124,7 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
               onChange={handleInputChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Your Company Name"
+              placeholder={t('configStep.companyNamePlaceholder')}
             />
           </div>
         </div>
@@ -131,7 +133,7 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
         <div className="bg-gray-50 rounded-lg p-6">
           <div className="flex items-center mb-4">
             <CogIcon className="h-6 w-6 text-gray-400 mr-2" />
-            <h3 className="text-lg font-medium text-gray-900">System Settings</h3>
+            <h3 className="text-lg font-medium text-gray-900">{t('configStep.systemSettings')}</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -140,7 +142,7 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
                 htmlFor="default_namespace"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Default Namespace *
+                {t('configStep.defaultNamespaceLabel')}
               </label>
               <input
                 type="text"
@@ -150,9 +152,9 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
                 onChange={handleInputChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="burndler"
+                placeholder={t('configStep.defaultNamespacePlaceholder')}
               />
-              <p className="text-xs text-gray-500 mt-1">Used for container and service prefixes</p>
+              <p className="text-xs text-gray-500 mt-1">{t('configStep.defaultNamespaceHelp')}</p>
             </div>
 
             <div>
@@ -160,7 +162,7 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
                 htmlFor="max_concurrent_builds"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Max Concurrent Builds
+                {t('configStep.maxBuildsLabel')}
               </label>
               <select
                 id="max_concurrent_builds"
@@ -175,7 +177,7 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
                 <option value="5">5</option>
                 <option value="10">10</option>
               </select>
-              <p className="text-xs text-gray-500 mt-1">Number of simultaneous package builds</p>
+              <p className="text-xs text-gray-500 mt-1">{t('configStep.maxBuildsHelp')}</p>
             </div>
 
             <div>
@@ -183,7 +185,7 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
                 htmlFor="storage_retention_days"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Storage Retention (Days)
+                {t('configStep.retentionLabel')}
               </label>
               <input
                 type="number"
@@ -195,7 +197,7 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
                 max="365"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
-              <p className="text-xs text-gray-500 mt-1">How long to keep build artifacts</p>
+              <p className="text-xs text-gray-500 mt-1">{t('configStep.retentionHelp')}</p>
             </div>
 
             <div>
@@ -203,7 +205,7 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
                 htmlFor="auto_cleanup_enabled"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Auto Cleanup
+                {t('configStep.autoCleanupLabel')}
               </label>
               <select
                 id="auto_cleanup_enabled"
@@ -212,10 +214,10 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="true">Enabled</option>
-                <option value="false">Disabled</option>
+                <option value="true">{t('configStep.enabled')}</option>
+                <option value="false">{t('configStep.disabled')}</option>
               </select>
-              <p className="text-xs text-gray-500 mt-1">Automatically clean up old builds</p>
+              <p className="text-xs text-gray-500 mt-1">{t('configStep.autoCleanupHelp')}</p>
             </div>
           </div>
 
@@ -224,7 +226,7 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
               htmlFor="notification_email"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Notification Email
+              {t('configStep.notificationEmailLabel')}
             </label>
             <input
               type="email"
@@ -233,20 +235,20 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
               value={formData.systemSettings.notification_email}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="notifications@company.com"
+              placeholder={t('configStep.notificationEmailPlaceholder')}
             />
-            <p className="text-xs text-gray-500 mt-1">Email for system notifications (optional)</p>
+            <p className="text-xs text-gray-500 mt-1">{t('configStep.notificationEmailHelp')}</p>
           </div>
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="text-sm text-blue-700">
-            <p className="font-medium mb-2">Configuration Summary:</p>
+            <p className="font-medium mb-2">{t('configStep.configSummaryTitle')}</p>
             <ul className="list-disc list-inside space-y-1">
-              <li>Company profile will be set up with your organization name</li>
-              <li>System will use the specified namespace for all deployments</li>
-              <li>Build system will be configured with your performance settings</li>
-              <li>Cleanup policies will be applied to manage storage</li>
+              <li>{t('configStep.configSummaryItems.companyProfile')}</li>
+              <li>{t('configStep.configSummaryItems.namespace')}</li>
+              <li>{t('configStep.configSummaryItems.buildSystem')}</li>
+              <li>{t('configStep.configSummaryItems.cleanup')}</li>
             </ul>
           </div>
         </div>
@@ -257,7 +259,7 @@ export default function SystemConfig({ onConfigComplete }: SystemConfigProps) {
             disabled={loading}
             className="bg-blue-600 text-white px-8 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Saving Configuration...' : 'Save Configuration'}
+            {loading ? t('configStep.savingConfiguration') : t('configStep.saveConfiguration')}
           </button>
         </div>
       </form>

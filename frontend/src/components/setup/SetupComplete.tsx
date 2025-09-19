@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CheckCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +7,7 @@ import { useSetup } from '../../hooks/useSetup';
 import { useSetupWizardContext } from '../../contexts/SetupWizardContext';
 
 export default function SetupComplete() {
+  const { t } = useTranslation('setup');
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { completeSetup, error: setupError } = useSetup();
@@ -17,9 +19,7 @@ export default function SetupComplete() {
   useEffect(() => {
     const finalizeSetup = async () => {
       if (!wizardData.systemConfig) {
-        setLocalError(
-          'System configuration data is missing. Please go back and complete the configuration step.'
-        );
+        setLocalError(t('completeStep.errors.missingConfig'));
         setIsCompleting(false);
         return;
       }
@@ -35,13 +35,13 @@ export default function SetupComplete() {
         setIsSetupFinished(true);
         setIsCompleting(false);
       } catch (err) {
-        setLocalError('Failed to complete setup. Please try again.');
+        setLocalError(t('completeStep.errors.setupFailed'));
         setIsCompleting(false);
       }
     };
 
     finalizeSetup();
-  }, [wizardData.systemConfig, completeSetup, clearWizardData]);
+  }, [wizardData.systemConfig, completeSetup, clearWizardData, t]);
 
   useEffect(() => {
     // Auto-redirect to dashboard after 5 seconds if user is authenticated and setup is finished
@@ -69,12 +69,12 @@ export default function SetupComplete() {
   };
 
   const completedItems = [
-    'System database initialized',
-    'Admin account created',
-    'Company profile configured',
-    'System settings applied',
-    'Default namespace configured',
-    'Security policies activated',
+    t('completeStep.success.completedItems.database'),
+    t('completeStep.success.completedItems.admin'),
+    t('completeStep.success.completedItems.company'),
+    t('completeStep.success.completedItems.settings'),
+    t('completeStep.success.completedItems.namespace'),
+    t('completeStep.success.completedItems.security'),
   ];
 
   // Show loading state while completing setup
@@ -83,8 +83,10 @@ export default function SetupComplete() {
       <div className="p-8 text-center">
         <div className="mb-8">
           <div className="animate-spin rounded-full h-20 w-20 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Finalizing Setup...</h2>
-          <p className="text-gray-600">Please wait while we complete your system configuration.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            {t('completeStep.finalizing.title')}
+          </h2>
+          <p className="text-gray-600">{t('completeStep.finalizing.description')}</p>
         </div>
       </div>
     );
@@ -110,13 +112,15 @@ export default function SetupComplete() {
               />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Setup Failed</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            {t('completeStep.failed.title')}
+          </h2>
           <p className="text-gray-600 mb-6">{localError || setupError}</p>
           <button
             onClick={handleRetry}
             className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
           >
-            Retry Setup
+            {t('completeStep.failed.retry')}
           </button>
         </div>
       </div>
@@ -128,15 +132,15 @@ export default function SetupComplete() {
     <div className="p-8 text-center">
       <div className="mb-8">
         <CheckCircleIcon className="h-20 w-20 text-green-500 mx-auto mb-4" />
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Setup Complete!</h2>
-        <p className="text-lg text-gray-600">
-          Your Burndler system has been successfully configured and is ready to use.
-        </p>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('completeStep.success.title')}</h2>
+        <p className="text-lg text-gray-600">{t('completeStep.success.description')}</p>
       </div>
 
       <div className="max-w-md mx-auto mb-8">
         <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-green-900 mb-4">What we've configured:</h3>
+          <h3 className="text-lg font-medium text-green-900 mb-4">
+            {t('completeStep.success.completedTitle')}
+          </h3>
           <ul className="text-sm text-green-700 space-y-2">
             {completedItems.map((item, index) => (
               <li key={index} className="flex items-center">
@@ -151,10 +155,10 @@ export default function SetupComplete() {
       <div className="space-y-4">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-sm text-blue-700">
-            <strong>Next Steps:</strong>{' '}
+            <strong>{t('completeStep.success.nextSteps')}</strong>{' '}
             {isAuthenticated
-              ? 'You can now access your dashboard and start managing your Docker Compose deployments.'
-              : 'Please log in with your admin credentials to access the dashboard.'}
+              ? t('completeStep.success.nextStepsAuth')
+              : t('completeStep.success.nextStepsLogin')}
           </p>
         </div>
 
@@ -163,30 +167,32 @@ export default function SetupComplete() {
             onClick={handleGoToDashboard}
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
           >
-            {isAuthenticated && isSetupFinished ? 'Go to Dashboard' : 'Go to Login'}
+            {isAuthenticated && isSetupFinished
+              ? t('completeStep.success.goToDashboard')
+              : t('completeStep.success.goToLogin')}
             <ArrowRightIcon className="ml-2 h-5 w-5" />
           </button>
         </div>
 
         {isAuthenticated && isSetupFinished && (
-          <p className="text-sm text-gray-500">Redirecting automatically in 5 seconds...</p>
+          <p className="text-sm text-gray-500">{t('completeStep.success.autoRedirect')}</p>
         )}
       </div>
 
       <div className="mt-8 pt-8 border-t border-gray-200">
         <div className="text-sm text-gray-500">
-          <p className="mb-2">Need help getting started?</p>
+          <p className="mb-2">{t('completeStep.success.helpTitle')}</p>
           <div className="flex justify-center space-x-4">
             <a href="#" className="text-blue-600 hover:text-blue-500">
-              Documentation
+              {t('completeStep.success.helpLinks.documentation')}
             </a>
             <span>·</span>
             <a href="#" className="text-blue-600 hover:text-blue-500">
-              API Guide
+              {t('completeStep.success.helpLinks.apiGuide')}
             </a>
             <span>·</span>
             <a href="#" className="text-blue-600 hover:text-blue-500">
-              Support
+              {t('completeStep.success.helpLinks.support')}
             </a>
           </div>
         </div>

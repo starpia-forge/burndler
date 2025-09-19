@@ -25,5 +25,114 @@
     "description": "Select your preferred language for the Burndler interface",
     "selectLanguage": "Select Language",
     "continue": "Continue"
+  },
+  "configStep": {
+    "title": "System Configuration",
+    "description": "Configure your organization and system settings to complete the setup.",
+    "companyInformation": "Company Information",
+    "companyNameLabel": "Company Name *",
+    "companyNamePlaceholder": "Your Company Name",
+    "systemSettings": "System Settings",
+    "defaultNamespaceLabel": "Default Namespace *",
+    "defaultNamespacePlaceholder": "burndler",
+    "defaultNamespaceHelp": "Used for container and service prefixes",
+    "maxBuildsLabel": "Max Concurrent Builds",
+    "maxBuildsHelp": "Number of simultaneous package builds",
+    "retentionLabel": "Storage Retention (Days)",
+    "retentionHelp": "How long to keep build artifacts",
+    "autoCleanupLabel": "Auto Cleanup",
+    "autoCleanupHelp": "Automatically clean up old builds",
+    "notificationEmailLabel": "Notification Email",
+    "notificationEmailPlaceholder": "notifications@company.com",
+    "notificationEmailHelp": "Email for system notifications (optional)",
+    "configSummaryTitle": "Configuration Summary:",
+    "configSummaryItems": {
+      "companyProfile": "Company profile will be set up with your organization name",
+      "namespace": "System will use the specified namespace for all deployments",
+      "buildSystem": "Build system will be configured with your performance settings",
+      "cleanup": "Cleanup policies will be applied to manage storage"
+    },
+    "saveConfiguration": "Save Configuration",
+    "savingConfiguration": "Saving Configuration...",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "errors": {
+      "companyRequired": "Company name is required",
+      "namespaceRequired": "Default namespace is required",
+      "namespaceInvalid": "Namespace can only contain lowercase letters, numbers, and hyphens",
+      "invalidEmail": "Please enter a valid notification email address"
+    }
+  },
+  "adminStep": {
+    "title": "Create Admin Account",
+    "description": "Create the initial administrator account to manage your Burndler system.",
+    "adminReady": {
+      "title": "Admin Account Ready",
+      "description": "An admin account already exists in the system. You can proceed to the next step.",
+      "continue": "Continue to System Configuration"
+    },
+    "fullNameLabel": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "admin@company.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Minimum 8 characters",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Re-enter your password",
+    "privilegesTitle": "Admin Account Privileges:",
+    "privileges": {
+      "access": "Full system access and configuration",
+      "userManagement": "User management capabilities",
+      "monitoring": "System monitoring and maintenance",
+      "security": "Security and access control settings"
+    },
+    "createAccount": "Create Admin Account",
+    "creatingAccount": "Creating Admin Account...",
+    "errors": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "invalidEmail": "Please enter a valid email address",
+      "passwordMinLength": "Password must be at least 8 characters long",
+      "passwordMismatch": "Passwords do not match"
+    }
+  },
+  "completeStep": {
+    "finalizing": {
+      "title": "Finalizing Setup...",
+      "description": "Please wait while we complete your system configuration."
+    },
+    "failed": {
+      "title": "Setup Failed",
+      "retry": "Retry Setup"
+    },
+    "success": {
+      "title": "Setup Complete!",
+      "description": "Your Burndler system has been successfully configured and is ready to use.",
+      "completedTitle": "What we've configured:",
+      "completedItems": {
+        "database": "System database initialized",
+        "admin": "Admin account created",
+        "company": "Company profile configured",
+        "settings": "System settings applied",
+        "namespace": "Default namespace configured",
+        "security": "Security policies activated"
+      },
+      "nextSteps": "Next Steps:",
+      "nextStepsAuth": "You can now access your dashboard and start managing your Docker Compose deployments.",
+      "nextStepsLogin": "Please log in with your admin credentials to access the dashboard.",
+      "goToDashboard": "Go to Dashboard",
+      "goToLogin": "Go to Login",
+      "autoRedirect": "Redirecting automatically in 5 seconds...",
+      "helpTitle": "Need help getting started?",
+      "helpLinks": {
+        "documentation": "Documentation",
+        "apiGuide": "API Guide",
+        "support": "Support"
+      }
+    },
+    "errors": {
+      "missingConfig": "System configuration data is missing. Please go back and complete the configuration step.",
+      "setupFailed": "Failed to complete setup. Please try again."
+    }
   }
 }
