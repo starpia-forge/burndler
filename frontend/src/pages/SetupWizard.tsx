@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useSetup } from '../hooks/useSetup';
 import { useAuth } from '../hooks/useAuth';
 import { Navigate } from 'react-router-dom';
+import { ErrorType } from '../services/setup';
+import { BackendConnectionError } from '../components/BackendConnectionError';
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -17,7 +19,16 @@ import SetupComplete from '../components/setup/SetupComplete';
 type SetupStep = 'status' | 'admin' | 'config' | 'complete';
 
 export default function SetupWizard() {
-  const { setupStatus, loading, error, isSetupCompleted, isSetupRequired } = useSetup();
+  const {
+    setupStatus,
+    loading,
+    error,
+    errorType,
+    isBackendConnected,
+    isBackendDown,
+    isSetupCompleted,
+    isSetupRequired,
+  } = useSetup();
   const { isAuthenticated } = useAuth();
   const [currentStep, setCurrentStep] = useState<SetupStep>('status');
   const [adminCreated, setAdminCreated] = useState(false);
@@ -39,6 +50,26 @@ export default function SetupWizard() {
     return <Navigate to="/" replace />;
   }
 
+  // Show backend connection error if backend is down
+  if (errorType === ErrorType.BACKEND_DOWN || isBackendDown || !isBackendConnected) {
+    return (
+      <BackendConnectionError
+        error={error || undefined}
+        showRetry={true}
+        showDebugInfo={process.env.NODE_ENV === 'development'}
+      >
+        <div className="text-center">
+          <p className="text-sm text-gray-600 mb-2">
+            The setup wizard requires a connection to the backend server.
+          </p>
+          <p className="text-xs text-gray-500">
+            Once the server is running, the setup process will continue automatically.
+          </p>
+        </div>
+      </BackendConnectionError>
+    );
+  }
+
   // If setup is not required, redirect to login
   if (!isSetupRequired && !loading) {
     return <Navigate to="/login" replace />;
@@ -55,15 +86,40 @@ export default function SetupWizard() {
     );
   }
 
+  // Show other types of errors with improved messaging
   if (error) {
+    let errorTitle = 'Setup Error';
+    let errorDetails = error;
+
+    if (errorType === ErrorType.NETWORK_ERROR) {
+      errorTitle = 'Network Error';
+      errorDetails =
+        'Unable to connect to the backend server. Please check your connection and try again.';
+    } else if (errorType === ErrorType.PARSE_ERROR) {
+      errorTitle = 'Communication Error';
+      errorDetails =
+        'Received invalid response from backend server. This may indicate a server configuration issue.';
+    } else if (errorType === ErrorType.API_ERROR) {
+      errorTitle = 'API Error';
+    }
+
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
           <div className="flex items-center text-red-600 mb-4">
             <ExclamationTriangleIcon className="h-8 w-8 mr-3" />
-            <h2 className="text-xl font-semibold">Setup Error</h2>
+            <h2 className="text-xl font-semibold">{errorTitle}</h2>
           </div>
-          <p className="text-gray-700 mb-4">{error}</p>
+          <p className="text-gray-700 mb-4">{errorDetails}</p>
+
+          {process.env.NODE_ENV === 'development' && (
+            <div className="bg-gray-50 border border-gray-200 rounded p-3 mb-4">
+              <p className="text-xs text-gray-600">
+                <strong>Debug Info:</strong> Error Type: {errorType || 'Unknown'}
+              </p>
+            </div>
+          )}
+
           <button
             onClick={() => window.location.reload()}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"

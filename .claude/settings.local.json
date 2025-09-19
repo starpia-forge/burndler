@@ -23,7 +23,8 @@
       "Bash(make format-backend:*)",
       "WebSearch",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:docs.github.com)"
+      "WebFetch(domain:docs.github.com)",
+      "Bash(make format-frontend:*)"
     ],
     "deny": [],
     "ask": []
