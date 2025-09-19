@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1](https://github.com/starpia-forge/burndler/compare/v1.0.0...v1.0.1) (2025-09-19)
+
+### 🐛 Bug Fixes
+
+* **docs:** Correct README badges to use .yaml extension links ([801f055](https://github.com/starpia-forge/burndler/commit/801f05553ad01371c6dd8d15706db2cac20e52ec))
+
+### ♻️ Code Refactoring
+
+* **docs:** Update README to reflect renamed YAML file extensions ([a0bb04e](https://github.com/starpia-forge/burndler/commit/a0bb04e075dcbc055129fbbdee0a50ddb56f2086))
+
 ## 1.0.0 (2025-09-19)
 
 ### 🚀 Features
