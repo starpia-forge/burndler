@@ -74,7 +74,6 @@ updates:
     # Group security updates
     groups:
       security-updates:
-        dependency-type: "all"
         update-types:
           - "patch"
         patterns:
