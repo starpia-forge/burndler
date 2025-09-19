@@ -19,5 +19,11 @@
   "completeSetup": "설정 완료",
   "skipSetup": "설정 건너뛰기",
   "setupDescription": "번들러 인스턴스를 구성하세요",
-  "readyToUse": "번들러 인스턴스를 사용할 준비가 완료되었습니다!"
+  "readyToUse": "번들러 인스턴스를 사용할 준비가 완료되었습니다!",
+  "languageStep": {
+    "title": "시스템 언어",
+    "description": "번들러 인터페이스에서 사용할 언어를 선택하세요",
+    "selectLanguage": "언어 선택",
+    "continue": "계속"
+  }
 }

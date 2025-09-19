@@ -19,5 +19,11 @@
   "completeSetup": "Complete Setup",
   "skipSetup": "Skip Setup",
   "setupDescription": "Configure your Burndler instance",
-  "readyToUse": "Your Burndler instance is ready to use!"
+  "readyToUse": "Your Burndler instance is ready to use!",
+  "languageStep": {
+    "title": "System Language",
+    "description": "Select your preferred language for the Burndler interface",
+    "selectLanguage": "Select Language",
+    "continue": "Continue"
+  }
 }

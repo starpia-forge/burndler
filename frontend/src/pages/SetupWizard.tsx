@@ -10,13 +10,15 @@ import {
   CogIcon,
   UserPlusIcon,
   BuildingOfficeIcon,
+  LanguageIcon,
 } from '@heroicons/react/24/outline';
 import SetupStatus from '../components/setup/SetupStatus';
+import SystemLanguage from '../components/setup/SystemLanguage';
 import AdminSetup from '../components/setup/AdminSetup';
 import SystemConfig from '../components/setup/SystemConfig';
 import SetupComplete from '../components/setup/SetupComplete';
 
-type SetupStep = 'status' | 'admin' | 'config' | 'complete';
+type SetupStep = 'status' | 'language' | 'admin' | 'config' | 'complete';
 
 export default function SetupWizard() {
   const {
@@ -32,18 +34,21 @@ export default function SetupWizard() {
   const { isAuthenticated } = useAuth();
   const [currentStep, setCurrentStep] = useState<SetupStep>('status');
   const [adminCreated, setAdminCreated] = useState(false);
+  const [languageSelected, setLanguageSelected] = useState(false);
 
   useEffect(() => {
     if (!loading && setupStatus) {
       if (setupStatus.is_completed) {
         setCurrentStep('complete');
+      } else if (!languageSelected) {
+        setCurrentStep('language');
       } else if (setupStatus.admin_exists || adminCreated) {
         setCurrentStep('config');
       } else {
         setCurrentStep('admin');
       }
     }
-  }, [setupStatus, loading, adminCreated]);
+  }, [setupStatus, loading, adminCreated, languageSelected]);
 
   // If setup is completed and user is authenticated, redirect to dashboard
   if (isSetupCompleted && isAuthenticated) {
@@ -134,12 +139,18 @@ export default function SetupWizard() {
   const steps = [
     { id: 'status', name: 'System Check', icon: CheckCircleIcon, completed: true },
     {
+      id: 'language',
+      name: 'System Language',
+      icon: LanguageIcon,
+      completed: languageSelected,
+    },
+    { id: 'config', name: 'System Config', icon: CogIcon, completed: false },
+    {
       id: 'admin',
       name: 'Admin Account',
       icon: UserPlusIcon,
       completed: adminCreated || setupStatus?.admin_exists,
     },
-    { id: 'config', name: 'System Config', icon: CogIcon, completed: false },
     { id: 'complete', name: 'Complete', icon: BuildingOfficeIcon, completed: false },
   ];
 
@@ -149,7 +160,25 @@ export default function SetupWizard() {
     switch (currentStep) {
       case 'status':
         return (
-          <SetupStatus setupStatus={setupStatus!} onContinue={() => setCurrentStep('admin')} />
+          <SetupStatus
+            setupStatus={setupStatus!}
+            onContinue={() => {
+              setLanguageSelected(true);
+              setCurrentStep('language');
+            }}
+          />
+        );
+      case 'language':
+        return (
+          <SystemLanguage
+            onContinue={() => {
+              if (setupStatus?.admin_exists || adminCreated) {
+                setCurrentStep('config');
+              } else {
+                setCurrentStep('admin');
+              }
+            }}
+          />
         );
       case 'admin':
         return (
