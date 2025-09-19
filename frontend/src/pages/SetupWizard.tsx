@@ -35,6 +35,7 @@ export default function SetupWizard() {
   const [currentStep, setCurrentStep] = useState<SetupStep>('status');
   const [adminCreated, setAdminCreated] = useState(false);
   const [languageSelected, setLanguageSelected] = useState(false);
+  const [configCompleted, setConfigCompleted] = useState(false);
 
   useEffect(() => {
     if (!loading && setupStatus) {
@@ -42,13 +43,15 @@ export default function SetupWizard() {
         setCurrentStep('complete');
       } else if (!languageSelected) {
         setCurrentStep('language');
-      } else if (setupStatus.admin_exists || adminCreated) {
+      } else if (!configCompleted) {
         setCurrentStep('config');
-      } else {
+      } else if (!(setupStatus.admin_exists || adminCreated)) {
         setCurrentStep('admin');
+      } else {
+        setCurrentStep('complete');
       }
     }
-  }, [setupStatus, loading, adminCreated, languageSelected]);
+  }, [setupStatus, loading, adminCreated, languageSelected, configCompleted]);
 
   // If setup is completed and user is authenticated, redirect to dashboard
   if (isSetupCompleted && isAuthenticated) {
@@ -144,7 +147,7 @@ export default function SetupWizard() {
       icon: LanguageIcon,
       completed: languageSelected,
     },
-    { id: 'config', name: 'System Config', icon: CogIcon, completed: false },
+    { id: 'config', name: 'System Config', icon: CogIcon, completed: configCompleted },
     {
       id: 'admin',
       name: 'Admin Account',
@@ -172,11 +175,7 @@ export default function SetupWizard() {
         return (
           <SystemLanguage
             onContinue={() => {
-              if (setupStatus?.admin_exists || adminCreated) {
-                setCurrentStep('config');
-              } else {
-                setCurrentStep('admin');
-              }
+              setCurrentStep('config');
             }}
           />
         );
@@ -186,12 +185,23 @@ export default function SetupWizard() {
             hasAdmin={setupStatus?.admin_exists ?? false}
             onAdminCreated={() => {
               setAdminCreated(true);
-              setCurrentStep('config');
+              setCurrentStep('complete');
             }}
           />
         );
       case 'config':
-        return <SystemConfig onConfigComplete={() => setCurrentStep('complete')} />;
+        return (
+          <SystemConfig
+            onConfigComplete={() => {
+              setConfigCompleted(true);
+              if (setupStatus?.admin_exists || adminCreated) {
+                setCurrentStep('complete');
+              } else {
+                setCurrentStep('admin');
+              }
+            }}
+          />
+        );
       case 'complete':
         return <SetupComplete />;
       default:
