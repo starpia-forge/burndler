@@ -161,7 +161,7 @@ jobs:
           cd frontend && npm test
 
       - name: Upload Go coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           file: backend/coverage.out
           flags: backend
