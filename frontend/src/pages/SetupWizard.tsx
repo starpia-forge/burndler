@@ -34,25 +34,14 @@ export default function SetupWizard() {
   } = useSetup();
   const { isAuthenticated } = useAuth();
   const [currentStep, setCurrentStep] = useState<SetupStep>('status');
-  const [adminCreated, setAdminCreated] = useState(false);
-  const [languageSelected, setLanguageSelected] = useState(false);
-  const [configCompleted, setConfigCompleted] = useState(false);
 
   useEffect(() => {
     if (!loading && setupStatus) {
       if (setupStatus.is_completed) {
         setCurrentStep('complete');
-      } else if (!languageSelected) {
-        setCurrentStep('language');
-      } else if (!configCompleted) {
-        setCurrentStep('config');
-      } else if (!(setupStatus.admin_exists || adminCreated)) {
-        setCurrentStep('admin');
-      } else {
-        setCurrentStep('complete');
       }
     }
-  }, [setupStatus, loading, adminCreated, languageSelected, configCompleted]);
+  }, [setupStatus, loading]);
 
   // If setup is completed and user is authenticated, redirect to dashboard
   if (isSetupCompleted && isAuthenticated) {
@@ -141,19 +130,29 @@ export default function SetupWizard() {
   }
 
   const steps = [
-    { id: 'status', name: 'System Check', icon: CheckCircleIcon, completed: true },
+    {
+      id: 'status',
+      name: 'System Check',
+      icon: CheckCircleIcon,
+      completed: currentStep !== 'status',
+    },
     {
       id: 'language',
       name: 'System Language',
       icon: LanguageIcon,
-      completed: languageSelected,
+      completed: ['config', 'admin', 'complete'].includes(currentStep),
     },
-    { id: 'config', name: 'System Config', icon: CogIcon, completed: configCompleted },
+    {
+      id: 'config',
+      name: 'System Config',
+      icon: CogIcon,
+      completed: ['admin', 'complete'].includes(currentStep),
+    },
     {
       id: 'admin',
       name: 'Admin Account',
       icon: UserPlusIcon,
-      completed: adminCreated || setupStatus?.admin_exists,
+      completed: currentStep === 'complete',
     },
     { id: 'complete', name: 'Complete', icon: BuildingOfficeIcon, completed: false },
   ];
@@ -167,7 +166,6 @@ export default function SetupWizard() {
           <SetupStatus
             setupStatus={setupStatus!}
             onContinue={() => {
-              setLanguageSelected(true);
               setCurrentStep('language');
             }}
           />
@@ -185,7 +183,6 @@ export default function SetupWizard() {
           <AdminSetup
             hasAdmin={setupStatus?.admin_exists ?? false}
             onAdminCreated={() => {
-              setAdminCreated(true);
               setCurrentStep('complete');
             }}
           />
@@ -194,8 +191,7 @@ export default function SetupWizard() {
         return (
           <SystemConfig
             onConfigComplete={() => {
-              setConfigCompleted(true);
-              if (setupStatus?.admin_exists || adminCreated) {
+              if (setupStatus?.admin_exists) {
                 setCurrentStep('complete');
               } else {
                 setCurrentStep('admin');
