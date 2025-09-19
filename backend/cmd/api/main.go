@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/burndler/burndler/internal/app"
+	"github.com/joho/godotenv"
 )
 
 // Build-time variables injected via ldflags
@@ -19,8 +20,10 @@ var (
 func main() {
 	// Parse command line flags
 	var showVersion bool
+	var envFile string
 	flag.BoolVar(&showVersion, "version", false, "Show version information")
 	flag.BoolVar(&showVersion, "v", false, "Show version information (shorthand)")
+	flag.StringVar(&envFile, "env", "", "Path to environment file (default: .env.development then .env)")
 	flag.Parse()
 
 	// Handle version flag
@@ -30,6 +33,9 @@ func main() {
 		fmt.Printf("Git Commit: %s\n", GitCommit)
 		return
 	}
+
+	// Load environment files in development mode
+	loadEnvFiles(envFile)
 
 	// Check for migrate command
 	if len(os.Args) > 1 && os.Args[1] == "migrate" {
@@ -62,6 +68,9 @@ func main() {
 }
 
 func runMigrations() error {
+	// Load environment files in development mode for migrations
+	loadEnvFiles("")
+
 	// Initialize application for migrations only
 	application, err := app.New()
 	if err != nil {
@@ -75,4 +84,24 @@ func runMigrations() error {
 
 	log.Println("Database migrations completed - application initialized successfully")
 	return nil
+}
+
+// loadEnvFiles loads environment files in development mode
+func loadEnvFiles(envFile string) {
+	if Version == "dev" {
+		if envFile != "" {
+			// Use specified environment file
+			if err := godotenv.Load(envFile); err != nil {
+				log.Printf("Warning: Failed to load specified env file %s: %v", envFile, err)
+			}
+		} else {
+			// Try to load .env.development first, then .env as fallback
+			if err := godotenv.Load(".env.development"); err != nil {
+				// If .env.development doesn't exist, try .env
+				if err := godotenv.Load(".env"); err != nil {
+					log.Printf("Warning: No .env file found: %v", err)
+				}
+			}
+		}
+	}
 }
