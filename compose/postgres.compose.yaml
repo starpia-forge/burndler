@@ -1,12 +1,10 @@
-version: '3.9'
-
 # PostgreSQL-only Compose File for Local Development
 # Used when running backend and frontend locally with hot reload
 
 services:
   postgres:
-    # PostgreSQL 15 with pinned SHA256 for reproducibility
-    image: postgres:15@sha256:2f7365fb5068b2996c00b95ef0b32a56fb8a50b77b4f2c6de9d5ee8c6e11b5e5
+    # PostgreSQL 15 for development (latest stable)
+    image: postgres:15
     container_name: burndler_postgres_dev
     environment:
       POSTGRES_DB: ${DB_NAME:-burndler_dev}

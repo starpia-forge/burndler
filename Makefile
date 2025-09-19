@@ -47,21 +47,18 @@ install-golangci-lint: ## Install golangci-lint tool
 
 # ===== Development =====
 
-dev: ## Start full development environment (backend + frontend + postgres) - Interactive
-	@echo "🚀 Burndler Development Environment Setup"
-	@echo ""
-	@echo "Starting PostgreSQL database..."
-	@make dev-db
-	@echo ""
-	@echo "✅ Database ready! Now start your development servers:"
-	@echo ""
-	@echo "  📍 Terminal 1 (Backend):  make dev-backend"
-	@echo "  📍 Terminal 2 (Frontend): make dev-frontend"
+dev: dev-db ## Start full development environment (backend + frontend in parallel)
+	@echo "🚀 Starting Burndler Development Environment..."
+	@echo "📦 Database is ready!"
+	@echo "🔄 Starting backend and frontend in parallel..."
 	@echo ""
 	@echo "  🌐 Backend API:  http://localhost:8080"
 	@echo "  🌐 Frontend:     http://localhost:3000"
 	@echo "  🗄️  PostgreSQL:   localhost:5432"
 	@echo ""
+	@echo "Press Ctrl+C to stop all services"
+	@echo ""
+	@make -j 2 dev-backend dev-frontend
 
 dev-backend: ## Start backend with Air hot reload (requires PostgreSQL)
 	@echo "🔧 Starting backend development with Air hot reload..."
@@ -123,6 +120,32 @@ dev-clean: ## Stop and remove all dev containers and volumes
 dev-logs: ## Show development database logs
 	@echo "📋 PostgreSQL logs:"
 	docker-compose -f compose/postgres.compose.yaml --env-file .env.development logs -f postgres
+
+dev-all: dev-db ## Alternative: Start all services with managed processes
+	@echo "🚀 Starting Burndler Development Environment..."
+	@echo "📦 Database is ready!"
+	@echo "🔄 Starting backend and frontend..."
+	@trap 'make dev-stop' INT TERM EXIT; \
+	make dev-backend & BACKEND_PID=$$!; \
+	make dev-frontend & FRONTEND_PID=$$!; \
+	echo ""; \
+	echo "✅ Services starting..."; \
+	echo "   Backend PID: $$BACKEND_PID"; \
+	echo "   Frontend PID: $$FRONTEND_PID"; \
+	echo ""; \
+	echo "  🌐 Backend API:  http://localhost:8080"; \
+	echo "  🌐 Frontend:     http://localhost:3000"; \
+	echo "  🗄️  PostgreSQL:   localhost:5432"; \
+	echo ""; \
+	echo "Press Ctrl+C to stop all services"; \
+	wait
+
+dev-stop: ## Stop all development services gracefully
+	@echo "🛑 Stopping all development services..."
+	@-pkill -f "air -c" 2>/dev/null || true
+	@-pkill -f "npm run dev" 2>/dev/null || true
+	@make dev-down
+	@echo "✅ All services stopped"
 
 dev-status: ## Show development services status
 	@echo "📊 Development Services Status:"
