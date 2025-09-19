@@ -76,7 +76,21 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF: ${{ github.ref }}
-        run: npx semantic-release
+        run: |
+          # Run semantic-release
+          npx semantic-release
+
+          # Check if a release was created and set GitHub Actions outputs
+          if [ -f VERSION ]; then
+            VERSION=$(cat VERSION)
+            echo "Release version $VERSION detected"
+            echo "new_release_published=true" >> $GITHUB_OUTPUT
+            echo "new_release_version=$VERSION" >> $GITHUB_OUTPUT
+            echo "new_release_git_tag=v$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "No new release created"
+            echo "new_release_published=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Build release binaries
         if: steps.semantic.outputs.new_release_published == 'true'

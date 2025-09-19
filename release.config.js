@@ -72,8 +72,8 @@ module.exports = {
     [
       '@semantic-release/exec',
       {
-        prepareCmd: 'echo "${nextRelease.version}" > VERSION && make build-docker VERSION=${nextRelease.version}',
-        publishCmd: 'echo "Release ${nextRelease.version} completed"'
+        prepareCmd: 'echo "${nextRelease.version}" > VERSION',
+        successCmd: 'echo "Release ${nextRelease.version} completed successfully"'
       }
     ],
     [
