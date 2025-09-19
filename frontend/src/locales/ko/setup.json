@@ -1,0 +1,23 @@
+{
+  "title": "설정 마법사",
+  "welcome": "번들러에 오신 것을 환영합니다",
+  "getStarted": "시작해보겠습니다",
+  "setupComplete": "설정 완료",
+  "adminSetup": "관리자 설정",
+  "systemConfig": "시스템 구성",
+  "createAdminAccount": "관리자 계정 생성",
+  "companyName": "회사명",
+  "enterCompanyName": "회사명을 입력하세요",
+  "companyRequired": "회사명을 입력해주세요",
+  "adminEmail": "관리자 이메일",
+  "adminPassword": "관리자 비밀번호",
+  "confirmPassword": "비밀번호 확인",
+  "passwordMismatch": "비밀번호가 일치하지 않습니다",
+  "setupProgress": "설정 진행상황",
+  "step": "단계",
+  "of": "/",
+  "completeSetup": "설정 완료",
+  "skipSetup": "설정 건너뛰기",
+  "setupDescription": "번들러 인스턴스를 구성하세요",
+  "readyToUse": "번들러 인스턴스를 사용할 준비가 완료되었습니다!"
+}

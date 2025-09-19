@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 import ThemeToggle from './ThemeToggle';
+import LanguageSelector from './LanguageSelector';
 
 interface FormData {
   email: string;
@@ -17,27 +19,28 @@ interface FormErrors {
 const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t } = useTranslation(['auth', 'common', 'errors']);
   const [formData, setFormData] = useState<FormData>({ email: '', password: '' });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const validateEmail = (email: string): string | undefined => {
     if (!email.trim()) {
-      return 'Email is required';
+      return t('auth:emailRequired');
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return 'Please enter a valid email';
+      return t('auth:invalidEmail');
     }
     return undefined;
   };
 
   const validatePassword = (password: string): string | undefined => {
     if (!password) {
-      return 'Password is required';
+      return t('auth:passwordRequired');
     }
     if (password.length < 6) {
-      return 'Password must be at least 6 characters';
+      return t('auth:passwordMinLength');
     }
     return undefined;
   };
@@ -76,7 +79,7 @@ const LoginPage = () => {
       navigate('/dashboard');
     } catch (error) {
       setErrors({
-        submit: error instanceof Error ? error.message : 'An error occurred during login',
+        submit: error instanceof Error ? error.message : t('auth:loginFailed'),
       });
     } finally {
       setIsLoading(false);
@@ -88,8 +91,9 @@ const LoginPage = () => {
       data-testid="login-container"
       className="min-h-screen flex items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8"
     >
-      {/* Theme toggle in top right corner */}
-      <div className="absolute top-4 right-4">
+      {/* Theme toggle and language selector in top right corner */}
+      <div className="absolute top-4 right-4 flex items-center space-x-3">
+        <LanguageSelector />
         <ThemeToggle />
       </div>
 
@@ -98,8 +102,8 @@ const LoginPage = () => {
         className="w-full max-w-md space-y-8 bg-card border border-border rounded-lg p-8 shadow-sm"
       >
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground">Login</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Sign in to your account</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('auth:signIn')}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t('auth:signInToAccount')}</p>
         </div>
 
         <form
@@ -113,7 +117,7 @@ const LoginPage = () => {
             {/* Email field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-foreground">
-                Email
+                {t('auth:email')}
               </label>
               <input
                 id="email"
@@ -124,7 +128,7 @@ const LoginPage = () => {
                 aria-required="true"
                 aria-describedby={errors.email ? 'email-error' : undefined}
                 className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="Enter your email"
+                placeholder={t('auth:enterEmail')}
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
               />
@@ -138,7 +142,7 @@ const LoginPage = () => {
             {/* Password field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-foreground">
-                Password
+                {t('auth:password')}
               </label>
               <input
                 id="password"
@@ -149,7 +153,7 @@ const LoginPage = () => {
                 aria-required="true"
                 aria-describedby={errors.password ? 'password-error' : undefined}
                 className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="Enter your password"
+                placeholder={t('auth:enterPassword')}
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
               />
@@ -177,7 +181,7 @@ const LoginPage = () => {
               disabled={isLoading}
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary-500 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {isLoading ? t('common:loading') : t('auth:signInButton')}
             </button>
           </div>
         </form>

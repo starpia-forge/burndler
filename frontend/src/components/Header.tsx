@@ -7,11 +7,14 @@ import {
   UserIcon,
 } from '@heroicons/react/24/outline';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 import ThemeToggle from './ThemeToggle';
+import LanguageSelector from './LanguageSelector';
 
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth();
+  const { t } = useTranslation(['common', 'auth']);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-background border-b border-border shadow-sm">
@@ -23,12 +26,13 @@ export default function Header() {
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-lg">B</span>
               </div>
-              <h1 className="ml-3 text-xl font-semibold text-foreground">Burndler</h1>
+              <h1 className="ml-3 text-xl font-semibold text-foreground">{t('common:appName')}</h1>
             </div>
           </div>
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
+            <LanguageSelector />
             <ThemeToggle />
             {isAuthenticated ? (
               <Menu as="div" className="relative">
@@ -38,7 +42,9 @@ export default function Header() {
                       <p className="text-sm font-medium text-foreground">
                         {user?.name || user?.email}
                       </p>
-                      <p className="text-xs text-muted-foreground">{user?.role}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {user?.role && t(`auth:role.${user.role.toLowerCase()}`)}
+                      </p>
                     </div>
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
                       <UserIcon className="w-6 h-6 text-white" />
@@ -68,7 +74,7 @@ export default function Header() {
                                 : 'bg-blue-100 text-blue-800'
                             }`}
                           >
-                            {user?.role}
+                            {user?.role && t(`auth:role.${user.role.toLowerCase()}`)}
                           </span>
                         </p>
                       </div>
@@ -81,7 +87,7 @@ export default function Header() {
                             } group flex w-full items-center rounded-md px-3 py-2 text-sm text-foreground`}
                           >
                             <UserCircleIcon className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-foreground" />
-                            Profile
+                            {t('auth:profile')}
                           </button>
                         )}
                       </Menu.Item>
@@ -94,7 +100,7 @@ export default function Header() {
                             } group flex w-full items-center rounded-md px-3 py-2 text-sm text-foreground`}
                           >
                             <Cog6ToothIcon className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-foreground" />
-                            Settings
+                            {t('auth:settings')}
                           </button>
                         )}
                       </Menu.Item>
@@ -109,7 +115,7 @@ export default function Header() {
                               } group flex w-full items-center rounded-md px-3 py-2 text-sm text-foreground`}
                             >
                               <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-foreground" />
-                              Sign out
+                              {t('auth:signOut')}
                             </button>
                           )}
                         </Menu.Item>
@@ -121,7 +127,7 @@ export default function Header() {
             ) : (
               <button className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-primary-500 text-primary-foreground font-medium hover:bg-primary-600 transition-all">
                 <ArrowRightOnRectangleIcon className="w-5 h-5" />
-                <span>Sign In</span>
+                <span>{t('auth:signIn')}</span>
               </button>
             )}
           </div>

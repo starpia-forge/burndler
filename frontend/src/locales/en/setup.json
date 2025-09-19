@@ -1,0 +1,23 @@
+{
+  "title": "Setup Wizard",
+  "welcome": "Welcome to Burndler",
+  "getStarted": "Let's get started",
+  "setupComplete": "Setup Complete",
+  "adminSetup": "Admin Setup",
+  "systemConfig": "System Configuration",
+  "createAdminAccount": "Create Administrator Account",
+  "companyName": "Company Name",
+  "enterCompanyName": "Enter your company name",
+  "companyRequired": "Company name is required",
+  "adminEmail": "Administrator Email",
+  "adminPassword": "Administrator Password",
+  "confirmPassword": "Confirm Password",
+  "passwordMismatch": "Passwords do not match",
+  "setupProgress": "Setup Progress",
+  "step": "Step",
+  "of": "of",
+  "completeSetup": "Complete Setup",
+  "skipSetup": "Skip Setup",
+  "setupDescription": "Configure your Burndler instance",
+  "readyToUse": "Your Burndler instance is ready to use!"
+}

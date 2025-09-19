@@ -1,0 +1,28 @@
+{
+  "general": {
+    "somethingWentWrong": "Something went wrong",
+    "tryAgain": "Please try again",
+    "contactSupport": "Contact support if the problem persists"
+  },
+  "network": {
+    "connectionError": "Connection Error",
+    "backendUnavailable": "Backend service is unavailable",
+    "checkConnection": "Please check your connection and try again",
+    "timeout": "Request timed out",
+    "serverError": "Server error occurred"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidFormat": "Invalid format",
+    "tooShort": "Too short",
+    "tooLong": "Too long",
+    "invalidEmail": "Invalid email address",
+    "passwordTooWeak": "Password is too weak"
+  },
+  "auth": {
+    "unauthorized": "Unauthorized access",
+    "sessionExpired": "Your session has expired",
+    "loginRequired": "Please log in to continue",
+    "insufficientPermissions": "Insufficient permissions"
+  }
+}
