@@ -20,7 +20,10 @@
       "Bash(make lint-backend:*)",
       "Bash(make lint-frontend:*)",
       "Bash(make lint:*)",
-      "Bash(make format-backend:*)"
+      "Bash(make format-backend:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.github.com)"
     ],
     "deny": [],
     "ask": []
