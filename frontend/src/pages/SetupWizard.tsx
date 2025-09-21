@@ -208,15 +208,15 @@ export default function SetupWizard() {
 
   return (
     <SetupWizardProvider>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         {/* Header */}
-        <div className="bg-white shadow">
+        <div className="bg-card shadow border-b border-border">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center">
               <BuildingOfficeIcon className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-2xl font-bold text-gray-900">Burndler Setup</h1>
+              <h1 className="text-2xl font-bold text-foreground">Burndler Setup</h1>
             </div>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-muted-foreground">
               Welcome to Burndler! Let's get your system configured.
             </p>
           </div>
@@ -235,7 +235,7 @@ export default function SetupWizard() {
                     {stepIdx !== steps.length - 1 && (
                       <div className="absolute inset-0 flex items-center" aria-hidden="true">
                         <div
-                          className={`h-0.5 w-full ${stepIdx < currentStepIndex ? 'bg-blue-600' : 'bg-gray-200'}`}
+                          className={`h-0.5 w-full ${stepIdx < currentStepIndex ? 'bg-primary-600' : 'bg-border'}`}
                         />
                       </div>
                     )}
@@ -245,10 +245,10 @@ export default function SetupWizard() {
                         h-9 w-9 rounded-full flex items-center justify-center
                         ${
                           step.id === currentStep
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-primary-600 text-white'
                             : step.completed || stepIdx < currentStepIndex
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-white border-2 border-gray-300 text-gray-500'
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-card border-2 border-border text-muted-foreground'
                         }
                       `}
                       >
@@ -259,10 +259,10 @@ export default function SetupWizard() {
                         ml-2 text-sm font-medium
                         ${
                           step.id === currentStep
-                            ? 'text-blue-600'
+                            ? 'text-primary-600'
                             : step.completed || stepIdx < currentStepIndex
-                              ? 'text-gray-900'
-                              : 'text-gray-500'
+                              ? 'text-foreground'
+                              : 'text-muted-foreground'
                         }
                       `}
                       >
@@ -276,7 +276,9 @@ export default function SetupWizard() {
           </div>
 
           {/* Step Content */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">{renderStepContent()}</div>
+          <div className="bg-card rounded-lg shadow-lg border border-border overflow-hidden">
+            {renderStepContent()}
+          </div>
         </div>
       </div>
     </SetupWizardProvider>

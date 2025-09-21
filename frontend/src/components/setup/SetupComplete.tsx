@@ -83,10 +83,10 @@ export default function SetupComplete() {
       <div className="p-8 text-center">
         <div className="mb-8">
           <div className="animate-spin rounded-full h-20 w-20 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             {t('completeStep.finalizing.title')}
           </h2>
-          <p className="text-gray-600">{t('completeStep.finalizing.description')}</p>
+          <p className="text-muted-foreground">{t('completeStep.finalizing.description')}</p>
         </div>
       </div>
     );
@@ -112,13 +112,13 @@ export default function SetupComplete() {
               />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             {t('completeStep.failed.title')}
           </h2>
-          <p className="text-gray-600 mb-6">{localError || setupError}</p>
+          <p className="text-muted-foreground mb-6">{localError || setupError}</p>
           <button
             onClick={handleRetry}
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            className="bg-primary-600 text-white px-6 py-2 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
           >
             {t('completeStep.failed.retry')}
           </button>
@@ -131,20 +131,22 @@ export default function SetupComplete() {
   return (
     <div className="p-8 text-center">
       <div className="mb-8">
-        <CheckCircleIcon className="h-20 w-20 text-green-500 mx-auto mb-4" />
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('completeStep.success.title')}</h2>
-        <p className="text-lg text-gray-600">{t('completeStep.success.description')}</p>
+        <CheckCircleIcon className="h-20 w-20 text-success mx-auto mb-4" />
+        <h2 className="text-3xl font-bold text-foreground mb-2">
+          {t('completeStep.success.title')}
+        </h2>
+        <p className="text-lg text-muted-foreground">{t('completeStep.success.description')}</p>
       </div>
 
       <div className="max-w-md mx-auto mb-8">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-green-900 mb-4">
+        <div className="bg-success/10 border border-success/20 rounded-lg p-6">
+          <h3 className="text-lg font-medium text-success-foreground mb-4">
             {t('completeStep.success.completedTitle')}
           </h3>
-          <ul className="text-sm text-green-700 space-y-2">
+          <ul className="text-sm text-success-foreground space-y-2">
             {completedItems.map((item, index) => (
               <li key={index} className="flex items-center">
-                <CheckCircleIcon className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                <CheckCircleIcon className="h-4 w-4 text-success mr-2 flex-shrink-0" />
                 {item}
               </li>
             ))}
@@ -153,8 +155,8 @@ export default function SetupComplete() {
       </div>
 
       <div className="space-y-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-700">
+        <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+          <p className="text-sm text-primary-700">
             <strong>{t('completeStep.success.nextSteps')}</strong>{' '}
             {isAuthenticated
               ? t('completeStep.success.nextStepsAuth')
@@ -165,7 +167,7 @@ export default function SetupComplete() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={handleGoToDashboard}
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
           >
             {isAuthenticated && isSetupFinished
               ? t('completeStep.success.goToDashboard')
@@ -175,23 +177,23 @@ export default function SetupComplete() {
         </div>
 
         {isAuthenticated && isSetupFinished && (
-          <p className="text-sm text-gray-500">{t('completeStep.success.autoRedirect')}</p>
+          <p className="text-sm text-muted-foreground">{t('completeStep.success.autoRedirect')}</p>
         )}
       </div>
 
-      <div className="mt-8 pt-8 border-t border-gray-200">
-        <div className="text-sm text-gray-500">
-          <p className="mb-2">{t('completeStep.success.helpTitle')}</p>
+      <div className="mt-8 pt-8 border-t border-border">
+        <div className="text-sm text-muted-foreground">
+          <p className="mb-2 text-foreground">{t('completeStep.success.helpTitle')}</p>
           <div className="flex justify-center space-x-4">
-            <a href="#" className="text-blue-600 hover:text-blue-500">
+            <a href="#" className="text-primary-600 hover:text-primary-500">
               {t('completeStep.success.helpLinks.documentation')}
             </a>
             <span>·</span>
-            <a href="#" className="text-blue-600 hover:text-blue-500">
+            <a href="#" className="text-primary-600 hover:text-primary-500">
               {t('completeStep.success.helpLinks.apiGuide')}
             </a>
             <span>·</span>
-            <a href="#" className="text-blue-600 hover:text-blue-500">
+            <a href="#" className="text-primary-600 hover:text-primary-500">
               {t('completeStep.success.helpLinks.support')}
             </a>
           </div>
