@@ -118,6 +118,10 @@ func TestCLI_Run_ShowVersion(t *testing.T) {
 }
 
 func TestCLI_Run_Migration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
 	buildInfo := BuildInfo{
 		Version:   "dev",
 		BuildTime: "2024-01-01T00:00:00Z",
@@ -141,6 +145,10 @@ func TestCLI_Run_Migration(t *testing.T) {
 }
 
 func TestCLI_Run_NormalStartup(t *testing.T) {
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
 	buildInfo := BuildInfo{
 		Version:   "dev",
 		BuildTime: "2024-01-01T00:00:00Z",
