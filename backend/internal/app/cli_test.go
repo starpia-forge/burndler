@@ -1,6 +1,7 @@
 package app
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -125,11 +126,18 @@ func TestCLI_Run_Migration(t *testing.T) {
 
 	cli := NewCLI(buildInfo)
 
-	// Migration will fail due to database connection but that's expected
 	err := cli.Run([]string{"app", "migrate"})
-	// Database connection error is expected in this test environment
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to initialize application")
+
+	if os.Getenv("CI") == "true" {
+		// In CI environment, database is available so migration should succeed
+		assert.NoError(t, err)
+	} else {
+		// In local environment without database, expect failure
+		assert.Error(t, err)
+		if err != nil {
+			assert.Contains(t, err.Error(), "failed to initialize application")
+		}
+	}
 }
 
 func TestCLI_Run_NormalStartup(t *testing.T) {
@@ -141,9 +149,16 @@ func TestCLI_Run_NormalStartup(t *testing.T) {
 
 	cli := NewCLI(buildInfo)
 
-	// Normal startup will fail due to database connection but that's expected
 	err := cli.Run([]string{"app"})
-	// Database connection error is expected in this test environment
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to initialize application")
+
+	if os.Getenv("CI") == "true" {
+		// In CI environment, database is available so startup should succeed
+		assert.NoError(t, err)
+	} else {
+		// In local environment without database, expect failure
+		assert.Error(t, err)
+		if err != nil {
+			assert.Contains(t, err.Error(), "failed to initialize application")
+		}
+	}
 }
