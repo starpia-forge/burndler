@@ -24,7 +24,8 @@
       "WebSearch",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:docs.github.com)",
-      "Bash(make format-frontend:*)"
+      "Bash(make format-frontend:*)",
+      "Read(//Users/starpia/dev/**)"
     ],
     "deny": [],
     "ask": []

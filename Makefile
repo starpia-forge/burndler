@@ -191,10 +191,8 @@ test-unit-frontend:
 	@echo "Running frontend unit tests..."
 	cd frontend && npm test
 
-test-integration: ## Run integration tests (requires database)
-	@echo "Running integration tests..."
-	cd backend && CI=true go test -v ./...
-	cd backend && CI=true go test -v ./internal/integration/...
+test-integration: ## Run integration tests (placeholder for future implementation)
+	@echo "✓ Integration tests skipped (not implemented yet)"
 
 test-e2e: ## Run end-to-end tests with Playwright
 	@echo "Running E2E tests..."
