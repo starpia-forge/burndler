@@ -1,0 +1,36 @@
+{
+  "appName": "Burndler",
+  "welcome": "Welcome",
+  "loading": "Loading...",
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "edit": "Edit",
+  "create": "Create",
+  "update": "Update",
+  "confirm": "Confirm",
+  "back": "Back",
+  "next": "Next",
+  "previous": "Previous",
+  "finish": "Finish",
+  "close": "Close",
+  "search": "Search",
+  "filter": "Filter",
+  "sort": "Sort",
+  "actions": "Actions",
+  "status": "Status",
+  "name": "Name",
+  "description": "Description",
+  "version": "Version",
+  "createdAt": "Created",
+  "updatedAt": "Updated",
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "english": "English",
+    "korean": "한국어"
+  }
+}

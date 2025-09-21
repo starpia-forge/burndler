@@ -203,10 +203,12 @@ class ConnectionMonitor {
   isBackendDown(): boolean {
     return (
       !this.status.isConnected &&
-      (this.status.error?.includes('ECONNREFUSED') ||
+      !!(
+        this.status.error?.includes('ECONNREFUSED') ||
         this.status.error?.includes('fetch') ||
         this.status.error?.includes('Connection failed') ||
-        this.status.error?.includes('Request timeout'))
+        this.status.error?.includes('Request timeout')
+      )
     );
   }
 

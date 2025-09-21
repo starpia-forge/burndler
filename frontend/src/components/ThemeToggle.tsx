@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../hooks/useTheme';
 
 const ThemeToggle = () => {
   const { setThemeMode, isLightMode, isDarkMode, isSystemMode } = useTheme();
+  const { t } = useTranslation('common');
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -70,7 +72,7 @@ const ThemeToggle = () => {
               onClick={() => handleOptionClick('light')}
             >
               <SunIcon />
-              Light
+              {t('theme.light')}
             </button>
             <button
               type="button"
@@ -80,7 +82,7 @@ const ThemeToggle = () => {
               onClick={() => handleOptionClick('dark')}
             >
               <MoonIcon />
-              Dark
+              {t('theme.dark')}
             </button>
             <button
               type="button"
@@ -90,7 +92,7 @@ const ThemeToggle = () => {
               onClick={() => handleOptionClick('system')}
             >
               <ComputerIcon />
-              System
+              {t('theme.system')}
             </button>
           </div>
         </div>

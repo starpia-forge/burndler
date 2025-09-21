@@ -180,9 +180,15 @@ build-docker: ## Build Docker image with embedded frontend
 
 test: check-init test-unit test-integration ## Run all tests
 
-test-unit: ## Run unit tests
-	@echo "Running unit tests..."
+test-unit: test-unit-backend test-unit-frontend ## Run unit tests
+	@echo "Unit test completed ✓"
+
+test-unit-backend:
+	@echo "Running backend unit tests..."
 	cd backend && go test -v -short ./...
+
+test-unit-frontend:
+	@echo "Running frontend unit tests..."
 	cd frontend && npm test
 
 test-integration: ## Run integration tests (requires database)
