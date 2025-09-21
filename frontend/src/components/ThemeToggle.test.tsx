@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ThemeProvider } from '../hooks/useTheme';
+import { ThemeProvider, useTheme } from '../hooks/useTheme';
 import ThemeToggle from './ThemeToggle';
 
 // Mock the theme hook for controlled testing
@@ -13,7 +13,7 @@ vi.mock('../hooks/useTheme', async () => {
   };
 });
 
-const mockUseTheme = vi.mocked(await import('../hooks/useTheme')).useTheme;
+const mockUseTheme = vi.mocked(useTheme);
 
 const renderWithTheme = (component: React.ReactElement) => {
   return render(<ThemeProvider>{component}</ThemeProvider>);

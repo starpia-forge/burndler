@@ -1,0 +1,53 @@
+# PostgreSQL-only Compose File for Local Development
+# Used when running backend and frontend locally with hot reload
+
+services:
+  postgres:
+    # PostgreSQL 15 for development (latest stable)
+    image: postgres:15
+    container_name: burndler_postgres_dev
+    environment:
+      POSTGRES_DB: ${DB_NAME:-burndler_dev}
+      POSTGRES_USER: ${DB_USER:-burndler}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      # Multiple databases for development and testing
+      POSTGRES_MULTIPLE_DATABASES: ${DB_NAME:-burndler_dev},${TEST_DB_NAME:-burndler_test}
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      # Init script for creating multiple databases
+      - ./scripts/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-burndler} -d ${DB_NAME:-burndler_dev}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    # Development optimizations
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c max_connections=100
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=4MB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
+
+volumes:
+  postgres_dev_data:
+    driver: local
+
+networks:
+  default:
+    name: burndler_dev_network
+    driver: bridge

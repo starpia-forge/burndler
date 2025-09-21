@@ -7,7 +7,6 @@ on:
       - completed
     branches:
       - main
-      - develop
 
 env:
   GO_VERSION: '1.24'

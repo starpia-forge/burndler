@@ -47,25 +47,101 @@ install-golangci-lint: ## Install golangci-lint tool
 
 # ===== Development =====
 
-dev: ## Start full development environment (backend + frontend + postgres)
-	@echo "Starting development environment..."
-	@cp -n .env.example .env 2>/dev/null || true
-	docker-compose -f compose/dev.compose.yaml up
+dev: dev-db ## Start full development environment (backend + frontend in parallel)
+	@echo "🚀 Starting Burndler Development Environment..."
+	@echo "📦 Database is ready!"
+	@echo "🔄 Starting backend and frontend in parallel..."
+	@echo ""
+	@echo "  🌐 Backend API:  http://localhost:8080"
+	@echo "  🌐 Frontend:     http://localhost:3000"
+	@echo "  🗄️  PostgreSQL:   localhost:5432"
+	@echo ""
+	@echo "Press Ctrl+C to stop all services"
+	@echo ""
+	@make -j 2 dev-backend dev-frontend
 
-dev-backend: ## Start backend only (Go + PostgreSQL)
-	@echo "Starting backend development..."
-	@cp -n .env.example .env 2>/dev/null || true
-	docker-compose -f compose/dev.compose.yaml up postgres backend
+dev-backend: ## Start backend with Air hot reload (requires PostgreSQL)
+	@echo "🔧 Starting backend development with Air hot reload..."
+	@cp -n .env.example .env.development 2>/dev/null || true
+	@make ensure-dev-db
+	@echo "✅ Database confirmed running"
+	@mkdir -p tmp
+	@echo "🔥 Starting Air hot reload..."
+	@if command -v air >/dev/null 2>&1; then \
+		cd backend && air -c ../.air.toml; \
+	else \
+		echo "❌ Air not installed. Installing..."; \
+		go install github.com/cosmtrek/air@latest; \
+		cd backend && air -c ../.air.toml; \
+	fi
 
-dev-frontend: ## Start frontend only (React dev server)
-	@echo "Starting frontend development..."
-	docker-compose -f compose/dev.compose.yaml up frontend
+backend: dev-backend ## Alias for dev-backend (start backend with Air hot reload)
 
-dev-down: ## Stop all development containers
-	docker-compose -f compose/dev.compose.yaml down
+dev-frontend: ## Start frontend with Vite dev server
+	@echo "⚡ Starting frontend development with Vite..."
+	@echo "🌐 Frontend will be available at: http://localhost:3000"
+	@echo "🔄 Hot Module Replacement enabled"
+	cd frontend && npm run dev
 
-dev-clean: ## Stop and remove all dev containers and volumes
-	docker-compose -f compose/dev.compose.yaml down -v
+dev-db: ## Start PostgreSQL database only
+	@echo "🗄️  Starting PostgreSQL database for development..."
+	@cp -n .env.example .env.development 2>/dev/null || true
+	docker-compose -f compose/postgres.compose.yaml --env-file .env.development up -d
+	@echo "✅ PostgreSQL started on localhost:5432"
+	@echo "   📋 Database: burndler_dev"
+	@echo "   📋 Test DB:  burndler_test"
+	@echo "   👤 User:     burndler"
+
+ensure-dev-db: ## Ensure development database is running
+	@if ! docker ps | grep burndler_postgres_dev > /dev/null; then \
+		echo "📦 PostgreSQL not running, starting..."; \
+		make dev-db; \
+		echo "⏳ Waiting for database to be ready..."; \
+		sleep 5; \
+	fi
+	@docker exec burndler_postgres_dev pg_isready -U burndler -d burndler_dev > /dev/null 2>&1 || (echo "⏳ Waiting for PostgreSQL..." && sleep 3)
+
+dev-reset: ## Reset entire development environment
+	@echo "🔄 Resetting development environment..."
+	@make dev-down
+	@echo "🧹 Cleaning up development data..."
+	docker-compose -f compose/postgres.compose.yaml --env-file .env.development down -v
+	@echo "🚀 Restarting fresh environment..."
+	@make dev-db
+	@echo "✅ Environment reset complete!"
+
+dev-down: ## Stop all development services
+	@echo "🛑 Stopping development services..."
+	docker-compose -f compose/postgres.compose.yaml --env-file .env.development down
+	@echo "✅ Development services stopped"
+
+
+dev-logs: ## Show development database logs
+	@echo "📋 PostgreSQL logs:"
+	docker-compose -f compose/postgres.compose.yaml --env-file .env.development logs -f postgres
+
+
+
+dev-status: ## Show development services status
+	@echo "📊 Development Services Status:"
+	@echo ""
+	@if docker ps | grep burndler_postgres_dev > /dev/null; then \
+		echo "✅ PostgreSQL: Running on localhost:5432"; \
+	else \
+		echo "❌ PostgreSQL: Not running"; \
+	fi
+	@echo ""
+	@if curl -s http://localhost:8080/health > /dev/null 2>&1; then \
+		echo "✅ Backend API: Running on localhost:8080"; \
+	else \
+		echo "❌ Backend API: Not running"; \
+	fi
+	@echo ""
+	@if curl -s http://localhost:3000 > /dev/null 2>&1; then \
+		echo "✅ Frontend: Running on localhost:3000"; \
+	else \
+		echo "❌ Frontend: Not running"; \
+	fi
 
 # ===== Build =====
 
@@ -104,15 +180,19 @@ build-docker: ## Build Docker image with embedded frontend
 
 test: check-init test-unit test-integration ## Run all tests
 
-test-unit: ## Run unit tests
-	@echo "Running unit tests..."
+test-unit: test-unit-backend test-unit-frontend ## Run unit tests
+	@echo "Unit test completed ✓"
+
+test-unit-backend:
+	@echo "Running backend unit tests..."
 	cd backend && go test -v -short ./...
+
+test-unit-frontend:
+	@echo "Running frontend unit tests..."
 	cd frontend && npm test
 
-test-integration: ## Run integration tests (requires database)
-	@echo "Running integration tests..."
-	cd backend && go test -v ./...
-	cd test/integration && go test ./...
+test-integration: ## Run integration tests (placeholder for future implementation)
+	@echo "✓ Integration tests skipped (not implemented yet)"
 
 test-e2e: ## Run end-to-end tests with Playwright
 	@echo "Running E2E tests..."

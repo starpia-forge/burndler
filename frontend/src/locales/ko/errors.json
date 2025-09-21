@@ -1,0 +1,28 @@
+{
+  "general": {
+    "somethingWentWrong": "오류가 발생했습니다",
+    "tryAgain": "다시 시도해주세요",
+    "contactSupport": "문제가 지속되면 지원팀에 문의하세요"
+  },
+  "network": {
+    "connectionError": "연결 오류",
+    "backendUnavailable": "백엔드 서비스를 사용할 수 없습니다",
+    "checkConnection": "연결을 확인하고 다시 시도해주세요",
+    "timeout": "요청 시간이 초과되었습니다",
+    "serverError": "서버 오류가 발생했습니다"
+  },
+  "validation": {
+    "required": "필수 입력 항목입니다",
+    "invalidFormat": "형식이 올바르지 않습니다",
+    "tooShort": "너무 짧습니다",
+    "tooLong": "너무 깁니다",
+    "invalidEmail": "올바르지 않은 이메일 주소입니다",
+    "passwordTooWeak": "비밀번호가 너무 약합니다"
+  },
+  "auth": {
+    "unauthorized": "권한이 없습니다",
+    "sessionExpired": "세션이 만료되었습니다",
+    "loginRequired": "계속하려면 로그인해주세요",
+    "insufficientPermissions": "권한이 부족합니다"
+  }
+}

@@ -1,8 +1,6 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 	"log"
 	"os"
 
@@ -17,62 +15,15 @@ var (
 )
 
 func main() {
-	// Parse command line flags
-	var showVersion bool
-	flag.BoolVar(&showVersion, "version", false, "Show version information")
-	flag.BoolVar(&showVersion, "v", false, "Show version information (shorthand)")
-	flag.Parse()
+	// Create CLI with build information
+	cli := app.NewCLI(app.BuildInfo{
+		Version:   Version,
+		BuildTime: BuildTime,
+		GitCommit: GitCommit,
+	})
 
-	// Handle version flag
-	if showVersion {
-		fmt.Printf("Burndler v%s\n", Version)
-		fmt.Printf("Build Time: %s\n", BuildTime)
-		fmt.Printf("Git Commit: %s\n", GitCommit)
-		return
+	// Run CLI with command-line arguments
+	if err := cli.Run(os.Args); err != nil {
+		log.Fatal(err)
 	}
-
-	// Check for migrate command
-	if len(os.Args) > 1 && os.Args[1] == "migrate" {
-		// Run migrations only
-		if err := runMigrations(); err != nil {
-			log.Fatalf("Migration failed: %v", err)
-		}
-		log.Println("Database migrations completed successfully")
-		return
-	}
-
-	// Log version information on startup
-	log.Printf("Starting Burndler v%s (built %s, commit %s)", Version, BuildTime, GitCommit)
-
-	// Initialize application
-	application, err := app.New()
-	if err != nil {
-		log.Fatalf("Failed to initialize application: %v", err)
-	}
-	defer func() {
-		if closeErr := application.Close(); closeErr != nil {
-			log.Printf("Error closing application: %v", closeErr)
-		}
-	}()
-
-	// Run the application
-	if err := application.Run(); err != nil {
-		log.Fatalf("Application error: %v", err)
-	}
-}
-
-func runMigrations() error {
-	// Initialize application for migrations only
-	application, err := app.New()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if closeErr := application.Close(); closeErr != nil {
-			log.Printf("Error closing application during migration: %v", closeErr)
-		}
-	}()
-
-	log.Println("Database migrations completed - application initialized successfully")
-	return nil
 }

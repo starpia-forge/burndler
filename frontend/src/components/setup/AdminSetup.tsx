@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSetup } from '../../hooks/useSetup';
 import { UserPlusIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { useSetupWizardContext } from '../../contexts/SetupWizardContext';
 
 interface AdminSetupProps {
   hasAdmin: boolean;
@@ -8,7 +10,9 @@ interface AdminSetupProps {
 }
 
 export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps) {
+  const { t } = useTranslation('setup');
   const { createAdmin, loading, error } = useSetup();
+  const { setAdminData } = useSetupWizardContext();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -29,23 +33,23 @@ export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      setFormError('Name is required');
+      setFormError(t('adminStep.errors.nameRequired'));
       return false;
     }
     if (!formData.email.trim()) {
-      setFormError('Email is required');
+      setFormError(t('adminStep.errors.emailRequired'));
       return false;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setFormError('Please enter a valid email address');
+      setFormError(t('adminStep.errors.invalidEmail'));
       return false;
     }
     if (formData.password.length < 8) {
-      setFormError('Password must be at least 8 characters long');
+      setFormError(t('adminStep.errors.passwordMinLength'));
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
-      setFormError('Passwords do not match');
+      setFormError(t('adminStep.errors.passwordMismatch'));
       return false;
     }
     return true;
@@ -64,6 +68,14 @@ export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps
         email: formData.email,
         password: formData.password,
       });
+
+      // Save admin data to context for potential future use
+      setAdminData({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+
       onAdminCreated();
     } catch (err) {
       // Error is already handled by useSetup hook
@@ -73,16 +85,16 @@ export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps
   if (hasAdmin) {
     return (
       <div className="p-8 text-center">
-        <UserPlusIcon className="h-16 w-16 text-green-500 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Admin Account Ready</h2>
-        <p className="text-gray-600 mb-6">
-          An admin account already exists in the system. You can proceed to the next step.
-        </p>
+        <UserPlusIcon className="h-16 w-16 text-success mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-foreground mb-2">
+          {t('adminStep.adminReady.title')}
+        </h2>
+        <p className="text-muted-foreground mb-6">{t('adminStep.adminReady.description')}</p>
         <button
           onClick={onAdminCreated}
-          className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+          className="bg-primary-600 text-white px-6 py-2 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
         >
-          Continue to System Configuration
+          {t('adminStep.adminReady.continue')}
         </button>
       </div>
     );
@@ -91,23 +103,21 @@ export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps
   return (
     <div className="p-8">
       <div className="text-center mb-8">
-        <UserPlusIcon className="h-16 w-16 text-blue-600 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Create Admin Account</h2>
-        <p className="text-gray-600">
-          Create the initial administrator account to manage your Burndler system.
-        </p>
+        <UserPlusIcon className="h-16 w-16 text-primary-600 mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-foreground mb-2">{t('adminStep.title')}</h2>
+        <p className="text-muted-foreground">{t('adminStep.description')}</p>
       </div>
 
       {(error || formError) && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <div className="text-sm text-red-700">{error || formError}</div>
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-6">
+          <div className="text-sm text-destructive">{error || formError}</div>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-6">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-            Full Name
+          <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
+            {t('adminStep.fullNameLabel')}
           </label>
           <input
             type="text"
@@ -116,14 +126,14 @@ export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps
             value={formData.name}
             onChange={handleInputChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Enter your full name"
+            className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            placeholder={t('adminStep.fullNamePlaceholder')}
           />
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-            Email Address
+          <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+            {t('adminStep.emailLabel')}
           </label>
           <input
             type="email"
@@ -132,14 +142,14 @@ export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps
             value={formData.email}
             onChange={handleInputChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            placeholder="admin@company.com"
+            className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            placeholder={t('adminStep.emailPlaceholder')}
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-            Password
+          <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
+            {t('adminStep.passwordLabel')}
           </label>
           <div className="relative">
             <input
@@ -149,8 +159,8 @@ export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps
               value={formData.password}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Minimum 8 characters"
+              className="w-full px-3 py-2 pr-10 bg-background border border-input rounded-md text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              placeholder={t('adminStep.passwordPlaceholder')}
             />
             <button
               type="button"
@@ -158,17 +168,20 @@ export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
-                <EyeSlashIcon className="h-5 w-5 text-gray-400" />
+                <EyeSlashIcon className="h-5 w-5 text-muted-foreground" />
               ) : (
-                <EyeIcon className="h-5 w-5 text-gray-400" />
+                <EyeIcon className="h-5 w-5 text-muted-foreground" />
               )}
             </button>
           </div>
         </div>
 
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-            Confirm Password
+          <label
+            htmlFor="confirmPassword"
+            className="block text-sm font-medium text-foreground mb-2"
+          >
+            {t('adminStep.confirmPasswordLabel')}
           </label>
           <div className="relative">
             <input
@@ -178,8 +191,8 @@ export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps
               value={formData.confirmPassword}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Re-enter your password"
+              className="w-full px-3 py-2 pr-10 bg-background border border-input rounded-md text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              placeholder={t('adminStep.confirmPasswordPlaceholder')}
             />
             <button
               type="button"
@@ -187,22 +200,22 @@ export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
               {showConfirmPassword ? (
-                <EyeSlashIcon className="h-5 w-5 text-gray-400" />
+                <EyeSlashIcon className="h-5 w-5 text-muted-foreground" />
               ) : (
-                <EyeIcon className="h-5 w-5 text-gray-400" />
+                <EyeIcon className="h-5 w-5 text-muted-foreground" />
               )}
             </button>
           </div>
         </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="text-sm text-blue-700">
-            <p className="font-medium mb-1">Admin Account Privileges:</p>
+        <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+          <div className="text-sm text-primary-700">
+            <p className="font-medium mb-1">{t('adminStep.privilegesTitle')}</p>
             <ul className="list-disc list-inside space-y-1">
-              <li>Full system access and configuration</li>
-              <li>User management capabilities</li>
-              <li>System monitoring and maintenance</li>
-              <li>Security and access control settings</li>
+              <li>{t('adminStep.privileges.access')}</li>
+              <li>{t('adminStep.privileges.userManagement')}</li>
+              <li>{t('adminStep.privileges.monitoring')}</li>
+              <li>{t('adminStep.privileges.security')}</li>
             </ul>
           </div>
         </div>
@@ -210,9 +223,9 @@ export default function AdminSetup({ hasAdmin, onAdminCreated }: AdminSetupProps
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Creating Admin Account...' : 'Create Admin Account'}
+          {loading ? t('adminStep.creatingAccount') : t('adminStep.createAccount')}
         </button>
       </form>
     </div>

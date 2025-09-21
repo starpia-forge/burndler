@@ -51,7 +51,7 @@ describe('LoginPage', () => {
     it('should render login form elements', () => {
       renderWithProviders(<LoginPage />);
 
-      expect(screen.getByRole('heading', { name: /login/i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /sign in/i })).toBeInTheDocument();
       expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
@@ -173,7 +173,7 @@ describe('LoginPage', () => {
       await user.type(passwordInput, 'password123');
       await user.click(submitButton);
 
-      expect(screen.getByText(/signing in/i)).toBeInTheDocument();
+      expect(screen.getByText(/loading/i)).toBeInTheDocument();
       expect(submitButton).toBeDisabled();
     });
 
