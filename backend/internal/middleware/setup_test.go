@@ -288,6 +288,96 @@ func TestSetupCompleteGuard_NonSetupEndpointAllowed(t *testing.T) {
 	assert.Equal(t, "other endpoint", response["message"])
 }
 
+func TestSetupCompleteGuard_InconsistentState_AllowsAdminCreation(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	db := setupTestDBForSetupMiddleware(t)
+	cfg := &config.Config{}
+	setupService := services.NewSetupService(db, cfg)
+
+	// Manually create an inconsistent state: setup marked complete but no admin exists
+	// This simulates a scenario where setup completion was marked but admin creation failed
+
+	// First trigger setup record creation by checking status
+	_, err := setupService.CheckSetupStatus()
+	assert.NoError(t, err)
+
+	// Force setup to be marked as completed without creating an admin
+	var setupRecord models.Setup
+	err = db.First(&setupRecord).Error
+	assert.NoError(t, err)
+
+	setupRecord.MarkCompleted()
+	err = db.Save(&setupRecord).Error
+	assert.NoError(t, err)
+
+	// Verify setup is marked complete but no admin exists
+	isCompleted, err := setupService.IsSetupCompleted()
+	assert.NoError(t, err)
+	assert.True(t, isCompleted)
+
+	adminExists, err := setupService.CheckAdminExists()
+	assert.NoError(t, err)
+	assert.False(t, adminExists)
+
+	router := gin.New()
+	router.Use(SetupCompleteGuard(setupService))
+	router.POST("/api/v1/setup/admin", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "admin creation allowed"})
+	})
+
+	req, _ := http.NewRequest(http.MethodPost, "/api/v1/setup/admin", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// Should allow admin creation despite setup being marked complete
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response map[string]interface{}
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, err)
+	assert.Equal(t, "admin creation allowed", response["message"])
+}
+
+func TestSetupCompleteGuard_InconsistentState_BlocksOtherSetupEndpoints(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	db := setupTestDBForSetupMiddleware(t)
+	cfg := &config.Config{}
+	setupService := services.NewSetupService(db, cfg)
+
+	// Manually create an inconsistent state: setup marked complete but no admin exists
+	// First trigger setup record creation by checking status
+	_, err := setupService.CheckSetupStatus()
+	assert.NoError(t, err)
+
+	var setupRecord models.Setup
+	err = db.First(&setupRecord).Error
+	assert.NoError(t, err)
+
+	setupRecord.MarkCompleted()
+	err = db.Save(&setupRecord).Error
+	assert.NoError(t, err)
+
+	router := gin.New()
+	router.Use(SetupCompleteGuard(setupService))
+	router.POST("/api/v1/setup/complete", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "setup complete endpoint"})
+	})
+
+	req, _ := http.NewRequest(http.MethodPost, "/api/v1/setup/complete", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	// Should still block other setup endpoints
+	assert.Equal(t, http.StatusForbidden, w.Code)
+
+	var response map[string]interface{}
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, err)
+	assert.Equal(t, "SETUP_ALREADY_COMPLETED", response["error"])
+}
+
 func TestIsSetupEndpoint(t *testing.T) {
 	tests := []struct {
 		path     string

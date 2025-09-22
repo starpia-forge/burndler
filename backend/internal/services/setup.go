@@ -200,6 +200,16 @@ func (s *SetupService) IsSetupCompleted() (bool, error) {
 	return setup.IsCompleted, nil
 }
 
+// CheckAdminExists returns whether at least one admin user exists
+func (s *SetupService) CheckAdminExists() (bool, error) {
+	var adminCount int64
+	err := s.db.Model(&models.User{}).Where("role = ?", "Admin").Count(&adminCount).Error
+	if err != nil {
+		return false, fmt.Errorf("failed to count admin users: %w", err)
+	}
+	return adminCount > 0, nil
+}
+
 // getOrCreateSetup gets the setup record or creates one if it doesn't exist
 func (s *SetupService) getOrCreateSetup() (*models.Setup, error) {
 	var setup models.Setup

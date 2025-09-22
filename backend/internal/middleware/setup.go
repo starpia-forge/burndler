@@ -77,6 +77,26 @@ func SetupCompleteGuard(setupService *services.SetupService) gin.HandlerFunc {
 
 		// If setup is completed, block access to setup modification endpoints
 		if isCompleted {
+			// Special case: Allow admin creation if no admin exists (inconsistent state recovery)
+			if c.Request.Method == http.MethodPost && c.Request.URL.Path == "/api/v1/setup/admin" {
+				adminExists, err := setupService.CheckAdminExists()
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{
+						"error":   "ADMIN_CHECK_FAILED",
+						"message": "Failed to check admin existence",
+					})
+					c.Abort()
+					return
+				}
+
+				// If no admin exists despite setup being marked complete, allow admin creation
+				// This handles database inconsistency where setup was marked complete but admin creation failed
+				if !adminExists {
+					c.Next()
+					return
+				}
+			}
+
 			c.JSON(http.StatusForbidden, gin.H{
 				"error":        "SETUP_ALREADY_COMPLETED",
 				"message":      "Setup has already been completed and cannot be modified",
