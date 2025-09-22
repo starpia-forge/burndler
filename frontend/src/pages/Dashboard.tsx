@@ -14,10 +14,10 @@ export default function Dashboard() {
   const { user, isDeveloper } = useAuth();
 
   const stats = [
-    { name: 'Total Merges', value: '24', icon: DocumentDuplicateIcon, color: 'bg-blue-500' },
-    { name: 'Packages Built', value: '12', icon: CubeIcon, color: 'bg-green-500' },
-    { name: 'Lint Checks', value: '156', icon: DocumentCheckIcon, color: 'bg-yellow-500' },
-    { name: 'Deploy Ready', value: '8', icon: ServerIcon, color: 'bg-purple-500' },
+    { name: 'Total Merges', value: '24', icon: DocumentDuplicateIcon, color: 'bg-primary-500' },
+    { name: 'Packages Built', value: '12', icon: CubeIcon, color: 'bg-success' },
+    { name: 'Lint Checks', value: '156', icon: DocumentCheckIcon, color: 'bg-warning' },
+    { name: 'Deploy Ready', value: '8', icon: ServerIcon, color: 'bg-info' },
   ];
 
   const recentActivity = [
@@ -89,9 +89,9 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
+      <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl p-8 text-white">
         <h1 className="text-3xl font-bold">Welcome back, {user?.name || user?.email || 'User'}!</h1>
-        <p className="mt-2 text-blue-100">
+        <p className="mt-2 text-primary-100">
           Manage your Docker Compose orchestration and offline deployments from one place.
         </p>
       </div>
@@ -101,7 +101,7 @@ export default function Dashboard() {
         {stats.map((stat) => (
           <div
             key={stat.name}
-            className="bg-white overflow-hidden rounded-lg shadow hover:shadow-lg transition-shadow"
+            className="bg-card overflow-hidden rounded-lg shadow hover:shadow-lg transition-shadow border border-border"
           >
             <div className="p-5">
               <div className="flex items-center">
@@ -110,8 +110,10 @@ export default function Dashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">{stat.name}</dt>
-                    <dd className="text-2xl font-bold text-gray-900">{stat.value}</dd>
+                    <dt className="text-sm font-medium text-muted-foreground truncate">
+                      {stat.name}
+                    </dt>
+                    <dd className="text-2xl font-bold text-foreground">{stat.value}</dd>
                   </dl>
                 </div>
               </div>
@@ -122,9 +124,9 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
+        <div className="bg-card rounded-lg shadow border border-border">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="text-lg font-semibold text-foreground">Quick Actions</h2>
           </div>
           <div className="p-6 space-y-4">
             {quickActions.map((action) => {
@@ -133,16 +135,16 @@ export default function Dashboard() {
                 <Link
                   key={action.name}
                   to={action.href}
-                  className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
+                  className="flex items-center p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors group"
                 >
                   <div className="flex-shrink-0">
-                    <action.icon className="h-8 w-8 text-gray-400 group-hover:text-blue-500" />
+                    <action.icon className="h-8 w-8 text-muted-foreground group-hover:text-primary-600" />
                   </div>
                   <div className="ml-4 flex-1">
-                    <p className="text-sm font-medium text-gray-900">{action.name}</p>
-                    <p className="text-sm text-gray-500">{action.description}</p>
+                    <p className="text-sm font-medium text-foreground">{action.name}</p>
+                    <p className="text-sm text-muted-foreground">{action.description}</p>
                   </div>
-                  <ChartBarIcon className="h-5 w-5 text-gray-400" />
+                  <ChartBarIcon className="h-5 w-5 text-muted-foreground" />
                 </Link>
               );
             })}
@@ -150,9 +152,9 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
+        <div className="bg-card rounded-lg shadow border border-border">
+          <div className="px-6 py-4 border-b border-border">
+            <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
           </div>
           <div className="p-6">
             <div className="flow-root">
@@ -162,25 +164,27 @@ export default function Dashboard() {
                     <div className="relative pb-8">
                       {idx !== recentActivity.length - 1 && (
                         <span
-                          className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
+                          className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-border"
                           aria-hidden="true"
                         />
                       )}
                       <div className="relative flex space-x-3">
                         <div>
                           {activity.status === 'success' ? (
-                            <CheckCircleIcon className="h-8 w-8 text-green-500" />
+                            <CheckCircleIcon className="h-8 w-8 text-success" />
                           ) : (
-                            <XCircleIcon className="h-8 w-8 text-red-500" />
+                            <XCircleIcon className="h-8 w-8 text-destructive" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div>
-                            <p className="text-sm text-gray-900">
+                            <p className="text-sm text-foreground">
                               {activity.action}{' '}
-                              <span className="font-medium text-gray-900">{activity.project}</span>
+                              <span className="font-medium text-foreground">
+                                {activity.project}
+                              </span>
                             </p>
-                            <p className="text-sm text-gray-500">{activity.time}</p>
+                            <p className="text-sm text-muted-foreground">{activity.time}</p>
                           </div>
                         </div>
                       </div>
@@ -194,31 +198,31 @@ export default function Dashboard() {
       </div>
 
       {/* System Status */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">System Status</h2>
+      <div className="bg-card rounded-lg shadow border border-border">
+        <div className="px-6 py-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground">System Status</h2>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center p-4 bg-green-50 rounded-lg">
-              <CheckCircleIcon className="h-8 w-8 text-green-500" />
+            <div className="flex items-center p-4 bg-success/10 rounded-lg border border-success/20">
+              <CheckCircleIcon className="h-8 w-8 text-success" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">API Service</p>
-                <p className="text-sm text-gray-500">Operational</p>
+                <p className="text-sm font-medium text-foreground">API Service</p>
+                <p className="text-sm text-muted-foreground">Operational</p>
               </div>
             </div>
-            <div className="flex items-center p-4 bg-green-50 rounded-lg">
-              <CheckCircleIcon className="h-8 w-8 text-green-500" />
+            <div className="flex items-center p-4 bg-success/10 rounded-lg border border-success/20">
+              <CheckCircleIcon className="h-8 w-8 text-success" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">Database</p>
-                <p className="text-sm text-gray-500">Connected</p>
+                <p className="text-sm font-medium text-foreground">Database</p>
+                <p className="text-sm text-muted-foreground">Connected</p>
               </div>
             </div>
-            <div className="flex items-center p-4 bg-green-50 rounded-lg">
-              <CheckCircleIcon className="h-8 w-8 text-green-500" />
+            <div className="flex items-center p-4 bg-success/10 rounded-lg border border-success/20">
+              <CheckCircleIcon className="h-8 w-8 text-success" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">Storage</p>
-                <p className="text-sm text-gray-500">Available</p>
+                <p className="text-sm font-medium text-foreground">Storage</p>
+                <p className="text-sm text-muted-foreground">Available</p>
               </div>
             </div>
           </div>

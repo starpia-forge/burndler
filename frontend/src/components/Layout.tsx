@@ -13,20 +13,20 @@ export default function Layout({ children }: LayoutProps) {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-card shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">Burndler</h1>
+              <h1 className="text-xl font-bold text-foreground">Burndler</h1>
               <nav className="ml-10 flex space-x-4">
                 <Link
                   to="/merge"
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
                     isActive('/merge') || isActive('/')
                       ? 'bg-primary-100 text-primary-700'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                 >
                   Compose Merger
@@ -37,7 +37,7 @@ export default function Layout({ children }: LayoutProps) {
                     className={`px-3 py-2 rounded-md text-sm font-medium ${
                       isActive('/package')
                         ? 'bg-primary-100 text-primary-700'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                     }`}
                   >
                     Package Builder
@@ -50,21 +50,26 @@ export default function Layout({ children }: LayoutProps) {
               {isAuthenticated ? (
                 <>
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-700">{user?.email}</span>
+                    <span className="text-sm text-foreground">{user?.email}</span>
                     <span
                       className={`px-2 py-1 text-xs rounded-full ${
-                        isDeveloper ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                        isDeveloper
+                          ? 'bg-success/10 text-success border border-success/20'
+                          : 'bg-info/10 text-info border border-info/20'
                       }`}
                     >
                       {user?.role}
                     </span>
                   </div>
-                  <button onClick={logout} className="text-sm text-gray-500 hover:text-gray-700">
+                  <button
+                    onClick={logout}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
                     Logout
                   </button>
                 </>
               ) : (
-                <div className="text-sm text-gray-500">Demo Mode (Not Authenticated)</div>
+                <div className="text-sm text-muted-foreground">Demo Mode (Not Authenticated)</div>
               )}
             </div>
           </div>
@@ -75,9 +80,9 @@ export default function Layout({ children }: LayoutProps) {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
 
       {/* Footer */}
-      <footer className="bg-white border-t mt-auto">
+      <footer className="bg-card border-t border-border mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="text-center text-sm text-gray-500">
+          <div className="text-center text-sm text-muted-foreground">
             Burndler - Docker Compose Orchestration for Offline Deployment
           </div>
         </div>
