@@ -19,8 +19,11 @@ export default function SetupComplete() {
   useEffect(() => {
     const finalizeSetup = async () => {
       if (!wizardData.systemConfig) {
-        setLocalError(t('completeStep.errors.missingConfig'));
-        setIsCompleting(false);
+        // If config is missing, immediately redirect to login since setup might already be completed
+        console.warn(
+          'SystemConfig missing, but setup may already be completed. Redirecting to login.'
+        );
+        navigate('/login');
         return;
       }
 
@@ -34,6 +37,11 @@ export default function SetupComplete() {
         clearWizardData();
         setIsSetupFinished(true);
         setIsCompleting(false);
+
+        // Auto-redirect to login page after setup completion
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
       } catch (err) {
         setLocalError(t('completeStep.errors.setupFailed'));
         setIsCompleting(false);
@@ -41,7 +49,7 @@ export default function SetupComplete() {
     };
 
     finalizeSetup();
-  }, [wizardData.systemConfig, completeSetup, clearWizardData, t]);
+  }, [wizardData.systemConfig, completeSetup, clearWizardData, t, navigate]);
 
   useEffect(() => {
     // Auto-redirect to dashboard after 5 seconds if user is authenticated and setup is finished
@@ -54,12 +62,8 @@ export default function SetupComplete() {
     }
   }, [isAuthenticated, isSetupFinished, navigate]);
 
-  const handleGoToDashboard = () => {
-    if (isAuthenticated && isSetupFinished) {
-      navigate('/');
-    } else {
-      navigate('/login');
-    }
+  const handleGoToLogin = () => {
+    navigate('/login');
   };
 
   const handleRetry = () => {
@@ -157,28 +161,24 @@ export default function SetupComplete() {
       <div className="space-y-4">
         <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
           <p className="text-sm text-primary-700">
-            <strong>{t('completeStep.success.nextSteps')}</strong>{' '}
-            {isAuthenticated
-              ? t('completeStep.success.nextStepsAuth')
-              : t('completeStep.success.nextStepsLogin')}
+            <strong>Setup Complete!</strong> You can now log in with your admin account to start
+            using Burndler.
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
-            onClick={handleGoToDashboard}
+            onClick={handleGoToLogin}
             className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
           >
-            {isAuthenticated && isSetupFinished
-              ? t('completeStep.success.goToDashboard')
-              : t('completeStep.success.goToLogin')}
+            Go to Login Page
             <ArrowRightIcon className="ml-2 h-5 w-5" />
           </button>
         </div>
 
-        {isAuthenticated && isSetupFinished && (
-          <p className="text-sm text-muted-foreground">{t('completeStep.success.autoRedirect')}</p>
-        )}
+        <p className="text-sm text-muted-foreground">
+          You will be automatically redirected to the login page in a few seconds.
+        </p>
       </div>
 
       <div className="mt-8 pt-8 border-t border-border">

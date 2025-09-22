@@ -17,11 +17,11 @@ import SystemLanguage from '../components/setup/SystemLanguage';
 import AdminSetup from '../components/setup/AdminSetup';
 import SystemConfig from '../components/setup/SystemConfig';
 import SetupComplete from '../components/setup/SetupComplete';
-import { SetupWizardProvider } from '../contexts/SetupWizardContext';
+import { SetupWizardProvider, useSetupWizardContext } from '../contexts/SetupWizardContext';
 
 type SetupStep = 'status' | 'language' | 'admin' | 'config' | 'complete';
 
-export default function SetupWizard() {
+function SetupWizardContent() {
   const {
     setupStatus,
     loading,
@@ -33,6 +33,7 @@ export default function SetupWizard() {
     isSetupRequired,
   } = useSetup();
   const { isAuthenticated } = useAuth();
+  const { wizardData } = useSetupWizardContext();
   const [currentStep, setCurrentStep] = useState<SetupStep>('status');
 
   useEffect(() => {
@@ -183,7 +184,12 @@ export default function SetupWizard() {
           <AdminSetup
             hasAdmin={setupStatus?.admin_exists ?? false}
             onAdminCreated={() => {
-              setCurrentStep('complete');
+              // Ensure systemConfig is available before proceeding to complete
+              if (!wizardData.systemConfig) {
+                setCurrentStep('config');
+              } else {
+                setCurrentStep('complete');
+              }
             }}
           />
         );
@@ -207,80 +213,86 @@ export default function SetupWizard() {
   };
 
   return (
-    <SetupWizardProvider>
-      <div className="min-h-screen bg-background">
-        {/* Header */}
-        <div className="bg-card shadow border-b border-border">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="flex items-center">
-              <BuildingOfficeIcon className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-2xl font-bold text-foreground">Burndler Setup</h1>
-            </div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Welcome to Burndler! Let's get your system configured.
-            </p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="bg-card shadow border-b border-border">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center">
+            <BuildingOfficeIcon className="h-8 w-8 text-blue-600 mr-3" />
+            <h1 className="text-2xl font-bold text-foreground">Burndler Setup</h1>
           </div>
-        </div>
-
-        {/* Progress Steps */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <nav aria-label="Progress">
-              <ol className="flex items-center">
-                {steps.map((step, stepIdx) => (
-                  <li
-                    key={step.name}
-                    className={`relative ${stepIdx !== steps.length - 1 ? 'pr-8 sm:pr-20' : ''}`}
-                  >
-                    {stepIdx !== steps.length - 1 && (
-                      <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                        <div
-                          className={`h-0.5 w-full ${stepIdx < currentStepIndex ? 'bg-primary-600' : 'bg-border'}`}
-                        />
-                      </div>
-                    )}
-                    <div className="relative flex items-center justify-center">
-                      <div
-                        className={`
-                        h-9 w-9 rounded-full flex items-center justify-center
-                        ${
-                          step.id === currentStep
-                            ? 'bg-primary-600 text-white'
-                            : step.completed || stepIdx < currentStepIndex
-                              ? 'bg-primary-600 text-white'
-                              : 'bg-card border-2 border-border text-muted-foreground'
-                        }
-                      `}
-                      >
-                        <step.icon className="h-5 w-5" />
-                      </div>
-                      <span
-                        className={`
-                        ml-2 text-sm font-medium
-                        ${
-                          step.id === currentStep
-                            ? 'text-primary-600'
-                            : step.completed || stepIdx < currentStepIndex
-                              ? 'text-foreground'
-                              : 'text-muted-foreground'
-                        }
-                      `}
-                      >
-                        {step.name}
-                      </span>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </nav>
-          </div>
-
-          {/* Step Content */}
-          <div className="bg-card rounded-lg shadow-lg border border-border overflow-hidden">
-            {renderStepContent()}
-          </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Welcome to Burndler! Let's get your system configured.
+          </p>
         </div>
       </div>
+
+      {/* Progress Steps */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <nav aria-label="Progress">
+            <ol className="flex items-center">
+              {steps.map((step, stepIdx) => (
+                <li
+                  key={step.name}
+                  className={`relative ${stepIdx !== steps.length - 1 ? 'pr-8 sm:pr-20' : ''}`}
+                >
+                  {stepIdx !== steps.length - 1 && (
+                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                      <div
+                        className={`h-0.5 w-full ${stepIdx < currentStepIndex ? 'bg-primary-600' : 'bg-border'}`}
+                      />
+                    </div>
+                  )}
+                  <div className="relative flex items-center justify-center">
+                    <div
+                      className={`
+                      h-9 w-9 rounded-full flex items-center justify-center
+                      ${
+                        step.id === currentStep
+                          ? 'bg-primary-600 text-white'
+                          : step.completed || stepIdx < currentStepIndex
+                            ? 'bg-primary-600 text-white'
+                            : 'bg-card border-2 border-border text-muted-foreground'
+                      }
+                    `}
+                    >
+                      <step.icon className="h-5 w-5" />
+                    </div>
+                    <span
+                      className={`
+                      ml-2 text-sm font-medium
+                      ${
+                        step.id === currentStep
+                          ? 'text-primary-600'
+                          : step.completed || stepIdx < currentStepIndex
+                            ? 'text-foreground'
+                            : 'text-muted-foreground'
+                      }
+                    `}
+                    >
+                      {step.name}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        </div>
+
+        {/* Step Content */}
+        <div className="bg-card rounded-lg shadow-lg border border-border overflow-hidden">
+          {renderStepContent()}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SetupWizard() {
+  return (
+    <SetupWizardProvider>
+      <SetupWizardContent />
     </SetupWizardProvider>
   );
 }
