@@ -172,6 +172,20 @@ function App() {
                     </SetupGuard>
                   }
                 />
+
+                {/* Fallback route - redirect to login if not authenticated */}
+                <Route
+                  path="*"
+                  element={
+                    <SetupGuard>
+                      <ProtectedRoute>
+                        <DashboardLayout>
+                          <Dashboard />
+                        </DashboardLayout>
+                      </ProtectedRoute>
+                    </SetupGuard>
+                  }
+                />
               </Routes>
             </Router>
           </AuthProvider>

@@ -14,17 +14,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const token = authService.getAccessToken();
         if (token) {
-          // TODO: Validate token and get user info
-          // For now, we'll set a default user if token exists
-          setUser({
-            id: 1,
-            email: 'user@example.com',
-            role: 'Developer',
-          });
+          // Validate token by making an authenticated request
+          try {
+            const response = await fetch('/api/v1/auth/me', {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+
+            if (response.ok) {
+              const userData = await response.json();
+              setUser(userData);
+            } else {
+              // Token is invalid, clear it
+              authService.logout();
+              setUser(null);
+            }
+          } catch (error) {
+            // Network error or invalid response, clear token
+            console.error('Token validation failed:', error);
+            authService.logout();
+            setUser(null);
+          }
+        } else {
+          // No token found, user is not authenticated
+          setUser(null);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
         authService.logout();
+        setUser(null);
       } finally {
         setLoading(false);
       }
