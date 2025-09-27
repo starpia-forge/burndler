@@ -65,9 +65,9 @@ const ModulesPage: React.FC = () => {
 
   const handlePageSizeChange = useCallback(
     (pageSize: number) => {
-      setFilters({ ...filters, page_size: pageSize, page: 1 });
+      setFilters((prev) => ({ ...prev, page_size: pageSize, page: 1 }));
     },
-    [filters, setFilters]
+    [setFilters]
   );
 
   // Delete handler
