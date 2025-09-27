@@ -99,6 +99,11 @@ func (s *Server) setupRouter() {
 	auth.POST("/login", authHandler.Login)
 	auth.POST("/refresh", authHandler.RefreshToken)
 
+	// Protected auth routes
+	authProtected := auth.Group("/")
+	authProtected.Use(middleware.JWTAuth(s.config))
+	authProtected.GET("/me", authHandler.GetCurrentUser)
+
 	// Protected routes
 	protected := v1.Group("/")
 	protected.Use(middleware.JWTAuth(s.config))
