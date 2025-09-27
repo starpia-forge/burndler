@@ -3,6 +3,7 @@ import {
   HomeIcon,
   DocumentDuplicateIcon,
   CubeIcon,
+  Squares2X2Icon,
   DocumentCheckIcon,
   ClockIcon,
   Cog6ToothIcon,
@@ -23,6 +24,7 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
+  { name: 'Modules', href: '/modules', icon: Squares2X2Icon },
   { name: 'Compose Merger', href: '/merge', icon: DocumentDuplicateIcon },
   { name: 'Package Builder', href: '/package', icon: CubeIcon, requiredRole: 'Developer' },
   { name: 'Lint Reports', href: '/lint', icon: DocumentCheckIcon },
