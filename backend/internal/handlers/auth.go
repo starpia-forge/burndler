@@ -3,7 +3,10 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
+	"time"
 
+	"github.com/burndler/burndler/internal/models"
 	"github.com/burndler/burndler/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -31,20 +34,31 @@ type LoginRequest struct {
 
 // RefreshTokenRequest represents the refresh token request body
 type RefreshTokenRequest struct {
-	RefreshToken string `json:"refresh_token" binding:"required,min=1"`
+	RefreshToken string `json:"refreshToken" binding:"required,min=1"`
 }
 
 // LoginResponse represents the successful login response
 type LoginResponse struct {
-	AccessToken  string      `json:"access_token"`
-	RefreshToken string      `json:"refresh_token"`
+	AccessToken  string      `json:"accessToken"`
+	RefreshToken string      `json:"refreshToken"`
 	User         interface{} `json:"user"`
 }
 
 // RefreshTokenResponse represents the successful refresh token response
 type RefreshTokenResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+}
+
+// UserResponse represents the current user response
+type UserResponse struct {
+	ID        uint      `json:"id"`
+	Email     string    `json:"email"`
+	Name      string    `json:"name"`
+	Role      string    `json:"role"`
+	Active    bool      `json:"active"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 // ErrorResponse represents an error response
@@ -165,5 +179,75 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	c.JSON(http.StatusOK, RefreshTokenResponse{
 		AccessToken:  newAccessToken,
 		RefreshToken: newRefreshToken,
+	})
+}
+
+// GetCurrentUser returns the current authenticated user's information
+func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
+	// Get user ID from JWT context (set by middleware)
+	userIDStr, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{
+			Error:   "UNAUTHORIZED",
+			Message: "User ID not found in token context",
+		})
+		return
+	}
+
+	userIDString, ok := userIDStr.(string)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "INTERNAL_ERROR",
+			Message: "Invalid user ID format in token",
+		})
+		return
+	}
+
+	// Convert user ID to uint
+	userID, err := strconv.ParseUint(userIDString, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "INTERNAL_ERROR",
+			Message: "Invalid user ID format",
+		})
+		return
+	}
+
+	// Get user from database
+	var user models.User
+	err = h.db.First(&user, uint(userID)).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, ErrorResponse{
+				Error:   "USER_NOT_FOUND",
+				Message: "User not found",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "INTERNAL_ERROR",
+			Message: "Database error occurred",
+		})
+		return
+	}
+
+	// Check if user is still active
+	if !user.Active {
+		c.JSON(http.StatusForbidden, ErrorResponse{
+			Error:   "ACCOUNT_INACTIVE",
+			Message: "Your account is inactive",
+		})
+		return
+	}
+
+	// Return user information
+	c.JSON(http.StatusOK, UserResponse{
+		ID:        user.ID,
+		Email:     user.Email,
+		Name:      user.Name,
+		Role:      user.Role,
+		Active:    user.Active,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	})
 }
