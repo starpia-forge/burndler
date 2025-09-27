@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import moduleService from '../services/moduleService';
 import {
   Module,
@@ -48,12 +48,44 @@ export function useModules(options: UseModulesOptions = {}): UseModulesReturn {
     filters: { ...DEFAULT_FILTERS, ...initialFilters },
   });
 
-  // Fetch modules based on current filters
+  // Use ref to maintain stable reference to current filters
+  const filtersRef = useRef(state.filters);
+
+  // Development safety: Track fetch calls to detect infinite loops
+  const fetchCountRef = useRef(0);
+  const lastFetchTimeRef = useRef(0);
+
+  // Update ref when filters change
+  filtersRef.current = state.filters;
+
+  // Fetch modules based on current filters (using ref to break circular dependency)
   const fetchModules = useCallback(async () => {
+    // Development safety: Detect potential infinite loops
+    if (process.env.NODE_ENV === 'development') {
+      const now = Date.now();
+      const timeSinceLastFetch = now - lastFetchTimeRef.current;
+
+      if (timeSinceLastFetch < 100) {
+        // Less than 100ms since last fetch
+        fetchCountRef.current += 1;
+        if (fetchCountRef.current > 10) {
+          console.error(
+            '🚨 INFINITE LOOP DETECTED: useModules fetchModules called more than 10 times in quick succession!'
+          );
+          console.error('Current filters:', filtersRef.current);
+          return; // Prevent further execution
+        }
+      } else {
+        fetchCountRef.current = 1; // Reset counter if enough time has passed
+      }
+
+      lastFetchTimeRef.current = now;
+    }
+
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
     try {
-      const response = await moduleService.listModules(state.filters);
+      const response = await moduleService.listModules(filtersRef.current);
       setState((prev) => ({
         ...prev,
         modules: response.data,
@@ -68,7 +100,7 @@ export function useModules(options: UseModulesOptions = {}): UseModulesReturn {
         loading: false,
       }));
     }
-  }, [state.filters]);
+  }, []); // No dependencies - breaks circular dependency
 
   // Set filters and trigger refetch
   const setFilters = useCallback((newFilters: ModuleFilters) => {
@@ -106,7 +138,7 @@ export function useModules(options: UseModulesOptions = {}): UseModulesReturn {
         await moduleService.deleteModule(id);
 
         // If showing deleted modules, refetch to update the list
-        if (state.filters.show_deleted) {
+        if (filtersRef.current.show_deleted) {
           await fetchModules();
         } else {
           // Otherwise, remove from local state
@@ -124,7 +156,7 @@ export function useModules(options: UseModulesOptions = {}): UseModulesReturn {
         throw error; // Re-throw for component error handling
       }
     },
-    [state.filters.show_deleted, fetchModules]
+    [fetchModules] // Keep fetchModules dependency but it's now stable
   );
 
   // Refresh single module
@@ -157,7 +189,8 @@ export function useModules(options: UseModulesOptions = {}): UseModulesReturn {
     if (autoFetch) {
       fetchModules();
     }
-  }, [autoFetch, fetchModules]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFetch, state.filters]); // Depend on filters directly, not fetchModules (intentionally breaking circular dependency)
 
   // Memoized return value to prevent unnecessary re-renders
   const returnValue = useMemo(
