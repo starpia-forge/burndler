@@ -124,7 +124,7 @@ func (a *App) Close() error {
 // Run starts the application and handles graceful shutdown
 func (a *App) Run() error {
 	// Create and run server
-	srv := server.New(a.Config, a.DB, a.Merger, a.Linter, a.Packager)
+	srv := server.New(a.Config, a.DB, a.Storage, a.Merger, a.Linter, a.Packager)
 	return srv.Run()
 }
 

@@ -15,6 +15,7 @@ import (
 	"github.com/burndler/burndler/internal/middleware"
 	"github.com/burndler/burndler/internal/services"
 	"github.com/burndler/burndler/internal/static"
+	"github.com/burndler/burndler/internal/storage"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -22,28 +23,33 @@ import (
 
 // Server represents the HTTP server
 type Server struct {
-	config       *config.Config
-	db           *gorm.DB
-	merger       *services.Merger
-	linter       *services.Linter
-	packager     *services.Packager
-	authService  *services.AuthService
-	setupService *services.SetupService
-	router       *gin.Engine
+	config        *config.Config
+	db            *gorm.DB
+	storage       storage.Storage
+	merger        *services.Merger
+	linter        *services.Linter
+	packager      *services.Packager
+	authService   *services.AuthService
+	setupService  *services.SetupService
+	moduleService *services.ModuleService
+	router        *gin.Engine
 }
 
 // New creates a new server instance
-func New(cfg *config.Config, db *gorm.DB, merger *services.Merger, linter *services.Linter, packager *services.Packager) *Server {
+func New(cfg *config.Config, db *gorm.DB, storage storage.Storage, merger *services.Merger, linter *services.Linter, packager *services.Packager) *Server {
 	authService := services.NewAuthService(cfg, db)
 	setupService := services.NewSetupService(db, cfg)
+	moduleService := services.NewModuleService(db, storage, linter)
 	s := &Server{
-		config:       cfg,
-		db:           db,
-		merger:       merger,
-		linter:       linter,
-		packager:     packager,
-		authService:  authService,
-		setupService: setupService,
+		config:        cfg,
+		db:            db,
+		storage:       storage,
+		merger:        merger,
+		linter:        linter,
+		packager:      packager,
+		authService:   authService,
+		setupService:  setupService,
+		moduleService: moduleService,
 	}
 	s.setupRouter()
 	return s
@@ -69,6 +75,7 @@ func (s *Server) setupRouter() {
 	setupHandler := handlers.NewSetupHandler(s.setupService, s.db)
 	composeHandler := handlers.NewComposeHandler(s.merger, s.linter)
 	packageHandler := handlers.NewPackageHandler(s.packager, s.db)
+	moduleHandler := handlers.NewModuleHandler(s.moduleService, s.db)
 
 	// API v1 routes
 	v1 := s.router.Group("/api/v1")
@@ -103,6 +110,21 @@ func (s *Server) setupRouter() {
 	// Package operations (Developer role only)
 	protected.POST("/build/package", middleware.RequireRole("Developer"), packageHandler.Create)
 	protected.GET("/build/status/:id", packageHandler.Status)
+
+	// Module management
+	modules := protected.Group("/modules")
+	modules.GET("", moduleHandler.ListModules)
+	modules.POST("", middleware.RequireRole("Developer"), moduleHandler.CreateModule)
+	modules.GET("/:id", moduleHandler.GetModule)
+	modules.PUT("/:id", middleware.RequireRole("Developer"), moduleHandler.UpdateModule)
+	modules.DELETE("/:id", middleware.RequireRole("Developer"), moduleHandler.DeleteModule)
+
+	// Module version management
+	modules.GET("/:id/versions", moduleHandler.ListVersions)
+	modules.POST("/:id/versions", middleware.RequireRole("Developer"), moduleHandler.CreateVersion)
+	modules.GET("/:id/versions/:version", moduleHandler.GetVersion)
+	modules.PUT("/:id/versions/:version", middleware.RequireRole("Developer"), moduleHandler.UpdateVersion)
+	modules.POST("/:id/versions/:version/publish", middleware.RequireRole("Developer"), moduleHandler.PublishVersion)
 
 	// Serve static files if enabled
 	if s.config.ServeStaticFiles {

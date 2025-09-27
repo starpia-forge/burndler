@@ -31,7 +31,7 @@ func TestNew(t *testing.T) {
 	linter := services.NewLinter()
 	packager := services.NewPackager(nil)
 
-	srv := New(cfg, nil, merger, linter, packager)
+	srv := New(cfg, nil, nil, merger, linter, packager)
 
 	assert.NotNil(t, srv)
 	assert.Equal(t, cfg, srv.config)
@@ -78,7 +78,7 @@ func TestServer_Run(t *testing.T) {
 		CORSAllowedOrigins: []string{"http://localhost:3000"},
 	}
 
-	srv := New(cfg, nil, services.NewMerger(), services.NewLinter(), services.NewPackager(nil))
+	srv := New(cfg, nil, nil, services.NewMerger(), services.NewLinter(), services.NewPackager(nil))
 
 	// Start server in goroutine
 	done := make(chan bool)
