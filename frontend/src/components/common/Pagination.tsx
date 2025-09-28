@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { PaginationInfo } from '../../types/module';
+import { PaginationInfo } from '../../types/container';
 
 interface PaginationProps {
   pagination: PaginationInfo;

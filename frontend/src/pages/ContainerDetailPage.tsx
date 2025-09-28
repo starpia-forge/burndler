@@ -12,7 +12,7 @@ import {
   CubeIcon,
 } from '@heroicons/react/24/outline';
 import { Container, ContainerVersion } from '../types/container';
-import { StatusBadge, getContainerStatus, getVersionStatus } from '../components/common/StatusBadge';
+import { StatusBadge, getContainerStatus, getContainerVersionStatus } from '../components/common/StatusBadge';
 import { useAuth } from '../hooks/useAuth';
 import containerService from '../services/containerService';
 import { useContainerVersions } from '../hooks/useContainerVersions';
@@ -282,7 +282,7 @@ const ContainerDetailPage: React.FC = () => {
                           <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                             {version.version}
                           </h3>
-                          <StatusBadge status={getVersionStatus(version)} size="sm" />
+                          <StatusBadge status={getContainerVersionStatus(version)} size="sm" />
                         </div>
                         <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                           Created {formatDate(version.created_at)}
