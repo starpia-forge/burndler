@@ -2,7 +2,14 @@ import React from 'react';
 import { ContainerStatus, VersionStatus as ContainerVersionStatus } from '../../types/container';
 
 interface StatusBadgeProps {
-  status: ContainerStatus | ContainerVersionStatus | 'active' | 'inactive' | 'deleted' | 'draft' | 'published';
+  status:
+    | ContainerStatus
+    | ContainerVersionStatus
+    | 'active'
+    | 'inactive'
+    | 'deleted'
+    | 'draft'
+    | 'published';
   size?: 'sm' | 'md' | 'lg';
   variant?: 'default' | 'outline';
   className?: string;
@@ -106,15 +113,19 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   return <span className={`${baseClasses} ${variantClasses} ${className}`}>{config.label}</span>;
 };
 
-
 // Helper function to get status from container
-export const getContainerStatus = (container: { active: boolean; deleted_at?: string }): ContainerStatus => {
+export const getContainerStatus = (container: {
+  active: boolean;
+  deleted_at?: string;
+}): ContainerStatus => {
   if (container.deleted_at) return ContainerStatus.Deleted;
   return container.active ? ContainerStatus.Active : ContainerStatus.Inactive;
 };
 
 // Helper function to get status from container version
-export const getContainerVersionStatus = (version: { published: boolean }): ContainerVersionStatus => {
+export const getContainerVersionStatus = (version: {
+  published: boolean;
+}): ContainerVersionStatus => {
   return version.published ? ContainerVersionStatus.Published : ContainerVersionStatus.Draft;
 };
 

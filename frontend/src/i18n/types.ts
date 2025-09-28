@@ -4,7 +4,7 @@ import 'react-i18next';
 import commonEn from '../locales/en/common.json';
 import authEn from '../locales/en/auth.json';
 import containersEn from '../locales/en/containers.json';
-import projectsEn from '../locales/en/projects.json';
+import servicesEn from '../locales/en/services.json';
 import setupEn from '../locales/en/setup.json';
 import errorsEn from '../locales/en/errors.json';
 
@@ -16,7 +16,7 @@ declare module 'react-i18next' {
       common: typeof commonEn;
       auth: typeof authEn;
       containers: typeof containersEn;
-      projects: typeof projectsEn;
+      services: typeof servicesEn;
       setup: typeof setupEn;
       errors: typeof errorsEn;
     };

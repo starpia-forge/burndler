@@ -115,10 +115,7 @@ class ContainerService {
     data: UpdateVersionRequest
   ): Promise<ContainerVersion> {
     try {
-      return await this.client.put(
-        `/containers/${containerId}/versions/${version}`,
-        data
-      );
+      return await this.client.put(`/containers/${containerId}/versions/${version}`, data);
     } catch (error: any) {
       throw this.handleError(error);
     }
@@ -126,9 +123,7 @@ class ContainerService {
 
   async publishVersion(containerId: number, version: string): Promise<ContainerVersion> {
     try {
-      return await this.client.post(
-        `/containers/${containerId}/versions/${version}/publish`
-      );
+      return await this.client.post(`/containers/${containerId}/versions/${version}/publish`);
     } catch (error: any) {
       throw this.handleError(error);
     }
