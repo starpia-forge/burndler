@@ -67,9 +67,9 @@ const ContainersPage: React.FC = () => {
 
   const handlePageSizeChange = useCallback(
     (pageSize: number) => {
-      setFilters((prev) => ({ ...prev, page_size: pageSize, page: 1 }));
+      setFilters({ ...filters, page_size: pageSize, page: 1 });
     },
-    [setFilters]
+    [filters, setFilters]
   );
 
   // Delete handler

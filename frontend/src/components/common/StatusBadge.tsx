@@ -1,16 +1,15 @@
 import React from 'react';
-import { ModuleStatus, VersionStatus } from '../../types/module';
 import { ContainerStatus, VersionStatus as ContainerVersionStatus } from '../../types/container';
 
 interface StatusBadgeProps {
-  status: ModuleStatus | VersionStatus | ContainerStatus | ContainerVersionStatus | 'active' | 'inactive' | 'deleted' | 'draft' | 'published';
+  status: ContainerStatus | ContainerVersionStatus | 'active' | 'inactive' | 'deleted' | 'draft' | 'published';
   size?: 'sm' | 'md' | 'lg';
   variant?: 'default' | 'outline';
   className?: string;
 }
 
 const statusConfig = {
-  // Module statuses
+  // Container statuses
   active: {
     label: 'Active',
     bgColor: 'bg-green-100 dark:bg-green-900/20',
@@ -107,11 +106,6 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   return <span className={`${baseClasses} ${variantClasses} ${className}`}>{config.label}</span>;
 };
 
-// Helper function to get status from module
-export const getModuleStatus = (module: { active: boolean; deleted_at?: string }): ModuleStatus => {
-  if (module.deleted_at) return ModuleStatus.Deleted;
-  return module.active ? ModuleStatus.Active : ModuleStatus.Inactive;
-};
 
 // Helper function to get status from container
 export const getContainerStatus = (container: { active: boolean; deleted_at?: string }): ContainerStatus => {
@@ -119,9 +113,9 @@ export const getContainerStatus = (container: { active: boolean; deleted_at?: st
   return container.active ? ContainerStatus.Active : ContainerStatus.Inactive;
 };
 
-// Helper function to get status from version
-export const getVersionStatus = (version: { published: boolean }): VersionStatus => {
-  return version.published ? VersionStatus.Published : VersionStatus.Draft;
+// Helper function to get status from container version
+export const getContainerVersionStatus = (version: { published: boolean }): ContainerVersionStatus => {
+  return version.published ? ContainerVersionStatus.Published : ContainerVersionStatus.Draft;
 };
 
 export default StatusBadge;

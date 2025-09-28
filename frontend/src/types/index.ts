@@ -5,6 +5,7 @@ export interface User {
   role: 'Developer' | 'Engineer';
 }
 
+// Legacy Module interface for compose operations
 export interface Module {
   name: string;
   compose: string;

@@ -32,8 +32,7 @@ class ContainerService {
       const queryString = params.toString();
       const url = queryString ? `/containers?${queryString}` : '/containers';
 
-      const response = await this.client.client.get(url);
-      return response.data;
+      return await this.client.get(url);
     } catch (error: any) {
       throw this.handleError(error);
     }
@@ -42,8 +41,7 @@ class ContainerService {
   async getContainer(id: number, includeVersions = false): Promise<Container> {
     try {
       const params = includeVersions ? '?include_versions=true' : '';
-      const response = await this.client.client.get(`/containers/${id}${params}`);
-      return response.data;
+      return await this.client.get(`/containers/${id}${params}`);
     } catch (error: any) {
       throw this.handleError(error);
     }
@@ -51,8 +49,7 @@ class ContainerService {
 
   async createContainer(data: CreateContainerRequest): Promise<Container> {
     try {
-      const response = await this.client.client.post('/containers', data);
-      return response.data;
+      return await this.client.post('/containers', data);
     } catch (error: any) {
       throw this.handleError(error);
     }
@@ -60,8 +57,7 @@ class ContainerService {
 
   async updateContainer(id: number, data: UpdateContainerRequest): Promise<Container> {
     try {
-      const response = await this.client.client.put(`/containers/${id}`, data);
-      return response.data;
+      return await this.client.put(`/containers/${id}`, data);
     } catch (error: any) {
       throw this.handleError(error);
     }
@@ -69,7 +65,7 @@ class ContainerService {
 
   async deleteContainer(id: number): Promise<void> {
     try {
-      await this.client.client.delete(`/containers/${id}`);
+      await this.client.delete(`/containers/${id}`);
     } catch (error: any) {
       throw this.handleError(error);
     }
@@ -91,8 +87,7 @@ class ContainerService {
         ? `/containers/${containerId}/versions?${queryString}`
         : `/containers/${containerId}/versions`;
 
-      const response = await this.client.client.get(url);
-      return response.data;
+      return await this.client.get(url);
     } catch (error: any) {
       throw this.handleError(error);
     }
@@ -100,8 +95,7 @@ class ContainerService {
 
   async createVersion(containerId: number, data: CreateVersionRequest): Promise<ContainerVersion> {
     try {
-      const response = await this.client.client.post(`/containers/${containerId}/versions`, data);
-      return response.data;
+      return await this.client.post(`/containers/${containerId}/versions`, data);
     } catch (error: any) {
       throw this.handleError(error);
     }
@@ -109,8 +103,7 @@ class ContainerService {
 
   async getVersion(containerId: number, version: string): Promise<ContainerVersion> {
     try {
-      const response = await this.client.client.get(`/containers/${containerId}/versions/${version}`);
-      return response.data;
+      return await this.client.get(`/containers/${containerId}/versions/${version}`);
     } catch (error: any) {
       throw this.handleError(error);
     }
@@ -122,11 +115,10 @@ class ContainerService {
     data: UpdateVersionRequest
   ): Promise<ContainerVersion> {
     try {
-      const response = await this.client.client.put(
+      return await this.client.put(
         `/containers/${containerId}/versions/${version}`,
         data
       );
-      return response.data;
     } catch (error: any) {
       throw this.handleError(error);
     }
@@ -134,10 +126,9 @@ class ContainerService {
 
   async publishVersion(containerId: number, version: string): Promise<ContainerVersion> {
     try {
-      const response = await this.client.client.post(
+      return await this.client.post(
         `/containers/${containerId}/versions/${version}/publish`
       );
-      return response.data;
     } catch (error: any) {
       throw this.handleError(error);
     }
