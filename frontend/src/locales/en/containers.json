@@ -1,0 +1,21 @@
+{
+  "title": "Containers",
+  "containerRegistry": "Container Registry",
+  "createContainer": "Create Container",
+  "editContainer": "Edit Container",
+  "deleteContainer": "Delete Container",
+  "containerName": "Container Name",
+  "containerVersion": "Container Version",
+  "published": "Published",
+  "draft": "Draft",
+  "publishContainer": "Publish Container",
+  "unpublishContainer": "Unpublish Container",
+  "containerDetails": "Container Details",
+  "dockerCompose": "Docker Compose",
+  "resources": "Resources",
+  "versions": "Versions",
+  "latestVersion": "Latest Version",
+  "noContainers": "No containers found",
+  "searchContainers": "Search containers...",
+  "filterByStatus": "Filter by status"
+}
