@@ -6,14 +6,14 @@ import HttpBackend from 'i18next-http-backend';
 // Import translation files for better bundling
 import commonEn from '../locales/en/common.json';
 import authEn from '../locales/en/auth.json';
-import modulesEn from '../locales/en/modules.json';
+import containersEn from '../locales/en/containers.json';
 import projectsEn from '../locales/en/projects.json';
 import setupEn from '../locales/en/setup.json';
 import errorsEn from '../locales/en/errors.json';
 
 import commonKo from '../locales/ko/common.json';
 import authKo from '../locales/ko/auth.json';
-import modulesKo from '../locales/ko/modules.json';
+import containersKo from '../locales/ko/containers.json';
 import projectsKo from '../locales/ko/projects.json';
 import setupKo from '../locales/ko/setup.json';
 import errorsKo from '../locales/ko/errors.json';
@@ -22,7 +22,7 @@ const resources = {
   en: {
     common: commonEn,
     auth: authEn,
-    modules: modulesEn,
+    containers: containersEn,
     projects: projectsEn,
     setup: setupEn,
     errors: errorsEn,
@@ -30,7 +30,7 @@ const resources = {
   ko: {
     common: commonKo,
     auth: authKo,
-    modules: modulesKo,
+    containers: containersKo,
     projects: projectsKo,
     setup: setupKo,
     errors: errorsKo,
@@ -47,7 +47,7 @@ i18n
     supportedLngs: ['en', 'ko'],
 
     // Namespace configuration
-    ns: ['common', 'auth', 'modules', 'projects', 'setup', 'errors'],
+    ns: ['common', 'auth', 'containers', 'projects', 'setup', 'errors'],
     defaultNS: 'common',
 
     // Language detection options

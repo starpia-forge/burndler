@@ -1,0 +1,21 @@
+{
+  "title": "컨테이너",
+  "containerRegistry": "컨테이너 레지스트리",
+  "createContainer": "컨테이너 생성",
+  "editContainer": "컨테이너 편집",
+  "deleteContainer": "컨테이너 삭제",
+  "containerName": "컨테이너 이름",
+  "containerVersion": "컨테이너 버전",
+  "published": "배포됨",
+  "draft": "초안",
+  "publishContainer": "컨테이너 배포",
+  "unpublishContainer": "배포 취소",
+  "containerDetails": "컨테이너 상세정보",
+  "dockerCompose": "Docker Compose",
+  "resources": "리소스",
+  "versions": "버전",
+  "latestVersion": "최신 버전",
+  "noContainers": "컨테이너가 없습니다",
+  "searchContainers": "컨테이너 검색...",
+  "filterByStatus": "상태별 필터"
+}
