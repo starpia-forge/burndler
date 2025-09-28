@@ -324,7 +324,7 @@ func (s *ProjectService) RemoveContainerFromProject(projectID, containerID uint)
 	}
 
 	// Find and delete the project module
-	result := s.db.Where("project_id = ? AND module_id = ?", projectID, moduleID).Delete(&models.ProjectContainer{})
+	result := s.db.Where("project_id = ? AND container_id = ?", projectID, containerID).Delete(&models.ProjectContainer{})
 	if result.Error != nil {
 		return fmt.Errorf("failed to remove module from project: %w", result.Error)
 	}
@@ -363,11 +363,11 @@ func (s *ProjectService) ReorderProjectContainers(projectID uint, containerOrder
 
 	// Update in transaction
 	return s.db.Transaction(func(tx *gorm.DB) error {
-		for moduleID, order := range moduleOrders {
+		for containerID, order := range containerOrders {
 			if err := tx.Model(&models.ProjectContainer{}).
-				Where("project_id = ? AND module_id = ?", projectID, moduleID).
+				Where("project_id = ? AND container_id = ?", projectID, containerID).
 				Update("order", order).Error; err != nil {
-				return fmt.Errorf("failed to update order for module %d: %w", moduleID, err)
+				return fmt.Errorf("failed to update order for container %d: %w", containerID, err)
 			}
 		}
 		return nil
