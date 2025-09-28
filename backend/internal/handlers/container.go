@@ -12,38 +12,38 @@ import (
 	"gorm.io/gorm"
 )
 
-// ModuleHandler handles module-related HTTP endpoints
-type ModuleHandler struct {
-	moduleService *services.ModuleService
+// ContainerHandler handles container-related HTTP endpoints
+type ContainerHandler struct {
+	containerService *services.ContainerService
 	db            *gorm.DB
 }
 
-// NewModuleHandler creates a new module handler
-func NewModuleHandler(moduleService *services.ModuleService, db *gorm.DB) *ModuleHandler {
-	return &ModuleHandler{
-		moduleService: moduleService,
+// NewContainerHandler creates a new container handler
+func NewContainerHandler(containerService *services.ContainerService, db *gorm.DB) *ContainerHandler {
+	return &ContainerHandler{
+		containerService: containerService,
 		db:            db,
 	}
 }
 
-// CreateModuleRequest represents the request to create a module
-type CreateModuleRequest struct {
+// CreateContainerRequest represents the request to create a container
+type CreateContainerRequest struct {
 	Name        string `json:"name" binding:"required,min=1,max=100"`
 	Description string `json:"description" binding:"max=500"`
 	Author      string `json:"author" binding:"max=100"`
 	Repository  string `json:"repository" binding:"max=200"`
 }
 
-// UpdateModuleRequest represents the request to update a module
-type UpdateModuleRequest struct {
+// UpdateContainerRequest represents the request to update a container
+type UpdateContainerRequest struct {
 	Description *string `json:"description" binding:"omitempty,max=500"`
 	Author      *string `json:"author" binding:"omitempty,max=100"`
 	Repository  *string `json:"repository" binding:"omitempty,max=200"`
 	Active      *bool   `json:"active"`
 }
 
-// ModuleListQuery represents query parameters for listing modules
-type ModuleListQuery struct {
+// ContainerListQuery represents query parameters for listing containers
+type ContainerListQuery struct {
 	Page        int    `form:"page,default=1" binding:"min=1"`
 	PageSize    int    `form:"page_size,default=10" binding:"min=1"`
 	Active      *bool  `form:"active"`
@@ -52,7 +52,7 @@ type ModuleListQuery struct {
 	Published   bool   `form:"published_only,default=false"`
 }
 
-// CreateVersionRequest represents the request to create a module version
+// CreateVersionRequest represents the request to create a container version
 type CreateVersionRequest struct {
 	Version       string                 `json:"version" binding:"required"`
 	Compose       string                 `json:"compose" binding:"required"`
@@ -61,7 +61,7 @@ type CreateVersionRequest struct {
 	Dependencies  map[string]string      `json:"dependencies"`
 }
 
-// UpdateVersionRequest represents the request to update a module version
+// UpdateVersionRequest represents the request to update a container version
 type UpdateVersionRequest struct {
 	Compose       string                 `json:"compose"`
 	Variables     map[string]interface{} `json:"variables"`
@@ -84,9 +84,9 @@ func ValidateSemVer(version string) error {
 	return nil
 }
 
-// ListModules handles GET /api/v1/modules
-func (h *ModuleHandler) ListModules(c *gin.Context) {
-	var query ModuleListQuery
+// ListContainers handles GET /api/v1/containers
+func (h *ContainerHandler) ListContainers(c *gin.Context) {
+	var query ContainerListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "INVALID_QUERY_PARAMS",
@@ -101,7 +101,7 @@ func (h *ModuleHandler) ListModules(c *gin.Context) {
 	}
 
 	// Convert to service filters
-	filters := services.ModuleFilters{
+	filters := services.ContainerFilters{
 		Page:         query.Page,
 		PageSize:     query.PageSize,
 		Active:       query.Active,
@@ -113,11 +113,11 @@ func (h *ModuleHandler) ListModules(c *gin.Context) {
 	// Only show_deleted=true will include soft deleted records
 	// No need to manually filter by Active field for soft delete
 
-	result, err := h.moduleService.ListModules(filters)
+	result, err := h.containerService.ListContainers(filters)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "INTERNAL_ERROR",
-			Message: "Failed to list modules",
+			Message: "Failed to list containers",
 		})
 		return
 	}
@@ -125,9 +125,9 @@ func (h *ModuleHandler) ListModules(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// CreateModule handles POST /api/v1/modules
-func (h *ModuleHandler) CreateModule(c *gin.Context) {
-	var req CreateModuleRequest
+// CreateContainer handles POST /api/v1/containers
+func (h *ContainerHandler) CreateContainer(c *gin.Context) {
+	var req CreateContainerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "VALIDATION_FAILED",
@@ -137,14 +137,14 @@ func (h *ModuleHandler) CreateModule(c *gin.Context) {
 	}
 
 	// Convert to service request
-	serviceReq := services.CreateModuleRequest{
+	serviceReq := services.CreateContainerRequest{
 		Name:        req.Name,
 		Description: req.Description,
 		Author:      req.Author,
 		Repository:  req.Repository,
 	}
 
-	module, err := h.moduleService.CreateModule(serviceReq)
+	container, err := h.containerService.CreateContainer(serviceReq)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
 			c.JSON(http.StatusConflict, ErrorResponse{
@@ -155,22 +155,22 @@ func (h *ModuleHandler) CreateModule(c *gin.Context) {
 		}
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "INTERNAL_ERROR",
-			Message: "Failed to create module",
+			Message: "Failed to create container",
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, module)
+	c.JSON(http.StatusCreated, container)
 }
 
-// GetModule handles GET /api/v1/modules/:id
-func (h *ModuleHandler) GetModule(c *gin.Context) {
+// GetContainer handles GET /api/v1/containers/:id
+func (h *ContainerHandler) GetContainer(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "INVALID_ID",
-			Message: "Invalid module ID",
+			Message: "Invalid container ID",
 		})
 		return
 	}
@@ -178,38 +178,38 @@ func (h *ModuleHandler) GetModule(c *gin.Context) {
 	// Check if user wants to include versions
 	includeVersions := c.Query("include_versions") == "true"
 
-	module, err := h.moduleService.GetModule(uint(id), includeVersions)
+	container, err := h.containerService.GetContainer(uint(id), includeVersions)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			c.JSON(http.StatusNotFound, ErrorResponse{
 				Error:   "MODULE_NOT_FOUND",
-				Message: "Module not found",
+				Message: "Container not found",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "INTERNAL_ERROR",
-			Message: "Failed to get module",
+			Message: "Failed to get container",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, module)
+	c.JSON(http.StatusOK, container)
 }
 
-// UpdateModule handles PUT /api/v1/modules/:id
-func (h *ModuleHandler) UpdateModule(c *gin.Context) {
+// UpdateContainer handles PUT /api/v1/containers/:id
+func (h *ContainerHandler) UpdateContainer(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "INVALID_ID",
-			Message: "Invalid module ID",
+			Message: "Invalid container ID",
 		})
 		return
 	}
 
-	var req UpdateModuleRequest
+	var req UpdateContainerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "VALIDATION_FAILED",
@@ -219,7 +219,7 @@ func (h *ModuleHandler) UpdateModule(c *gin.Context) {
 	}
 
 	// Convert to service request
-	serviceReq := services.UpdateModuleRequest{
+	serviceReq := services.UpdateContainerRequest{
 		Active: req.Active,
 	}
 	if req.Description != nil {
@@ -232,56 +232,56 @@ func (h *ModuleHandler) UpdateModule(c *gin.Context) {
 		serviceReq.Repository = *req.Repository
 	}
 
-	module, err := h.moduleService.UpdateModule(uint(id), serviceReq)
+	container, err := h.containerService.UpdateContainer(uint(id), serviceReq)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			c.JSON(http.StatusNotFound, ErrorResponse{
 				Error:   "MODULE_NOT_FOUND",
-				Message: "Module not found",
+				Message: "Container not found",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "INTERNAL_ERROR",
-			Message: "Failed to update module",
+			Message: "Failed to update container",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, module)
+	c.JSON(http.StatusOK, container)
 }
 
-// DeleteModule handles DELETE /api/v1/modules/:id
-func (h *ModuleHandler) DeleteModule(c *gin.Context) {
+// DeleteContainer handles DELETE /api/v1/containers/:id
+func (h *ContainerHandler) DeleteContainer(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "INVALID_ID",
-			Message: "Invalid module ID",
+			Message: "Invalid container ID",
 		})
 		return
 	}
 
-	err = h.moduleService.DeleteModule(uint(id))
+	err = h.containerService.DeleteContainer(uint(id))
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			c.JSON(http.StatusNotFound, ErrorResponse{
 				Error:   "MODULE_NOT_FOUND",
-				Message: "Module not found",
+				Message: "Container not found",
 			})
 			return
 		}
 		if strings.Contains(err.Error(), "published versions") {
 			c.JSON(http.StatusConflict, ErrorResponse{
 				Error:   "MODULE_HAS_PUBLISHED_VERSIONS",
-				Message: "Cannot delete module with published versions",
+				Message: "Cannot delete container with published versions",
 			})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "INTERNAL_ERROR",
-			Message: "Failed to delete module",
+			Message: "Failed to delete container",
 		})
 		return
 	}
@@ -289,26 +289,26 @@ func (h *ModuleHandler) DeleteModule(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-// ListVersions handles GET /api/v1/modules/:id/versions
-func (h *ModuleHandler) ListVersions(c *gin.Context) {
+// ListVersions handles GET /api/v1/containers/:id/versions
+func (h *ContainerHandler) ListVersions(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "INVALID_ID",
-			Message: "Invalid module ID",
+			Message: "Invalid container ID",
 		})
 		return
 	}
 
 	publishedOnly := c.Query("published_only") == "true"
 
-	versions, err := h.moduleService.ListVersions(uint(id), publishedOnly)
+	versions, err := h.containerService.ListVersions(uint(id), publishedOnly)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			c.JSON(http.StatusNotFound, ErrorResponse{
 				Error:   "MODULE_NOT_FOUND",
-				Message: "Module not found",
+				Message: "Container not found",
 			})
 			return
 		}
@@ -324,14 +324,14 @@ func (h *ModuleHandler) ListVersions(c *gin.Context) {
 	})
 }
 
-// CreateVersion handles POST /api/v1/modules/:id/versions
-func (h *ModuleHandler) CreateVersion(c *gin.Context) {
+// CreateVersion handles POST /api/v1/containers/:id/versions
+func (h *ContainerHandler) CreateVersion(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "INVALID_ID",
-			Message: "Invalid module ID",
+			Message: "Invalid container ID",
 		})
 		return
 	}
@@ -368,12 +368,12 @@ func (h *ModuleHandler) CreateVersion(c *gin.Context) {
 		Dependencies:  req.Dependencies,
 	}
 
-	version, err := h.moduleService.CreateVersion(uint(id), serviceReq)
+	version, err := h.containerService.CreateVersion(uint(id), serviceReq)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			c.JSON(http.StatusNotFound, ErrorResponse{
 				Error:   "MODULE_NOT_FOUND",
-				Message: "Module not found",
+				Message: "Container not found",
 			})
 			return
 		}
@@ -401,21 +401,21 @@ func (h *ModuleHandler) CreateVersion(c *gin.Context) {
 	c.JSON(http.StatusCreated, version)
 }
 
-// GetVersion handles GET /api/v1/modules/:id/versions/:version
-func (h *ModuleHandler) GetVersion(c *gin.Context) {
+// GetVersion handles GET /api/v1/containers/:id/versions/:version
+func (h *ContainerHandler) GetVersion(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "INVALID_ID",
-			Message: "Invalid module ID",
+			Message: "Invalid container ID",
 		})
 		return
 	}
 
 	versionParam := c.Param("version")
 
-	version, err := h.moduleService.GetVersion(uint(id), versionParam)
+	version, err := h.containerService.GetVersion(uint(id), versionParam)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			c.JSON(http.StatusNotFound, ErrorResponse{
@@ -434,14 +434,14 @@ func (h *ModuleHandler) GetVersion(c *gin.Context) {
 	c.JSON(http.StatusOK, version)
 }
 
-// UpdateVersion handles PUT /api/v1/modules/:id/versions/:version
-func (h *ModuleHandler) UpdateVersion(c *gin.Context) {
+// UpdateVersion handles PUT /api/v1/containers/:id/versions/:version
+func (h *ContainerHandler) UpdateVersion(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "INVALID_ID",
-			Message: "Invalid module ID",
+			Message: "Invalid container ID",
 		})
 		return
 	}
@@ -465,7 +465,7 @@ func (h *ModuleHandler) UpdateVersion(c *gin.Context) {
 		Dependencies:  req.Dependencies,
 	}
 
-	version, err := h.moduleService.UpdateVersion(uint(id), versionParam, serviceReq)
+	version, err := h.containerService.UpdateVersion(uint(id), versionParam, serviceReq)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			c.JSON(http.StatusNotFound, ErrorResponse{
@@ -498,21 +498,21 @@ func (h *ModuleHandler) UpdateVersion(c *gin.Context) {
 	c.JSON(http.StatusOK, version)
 }
 
-// PublishVersion handles POST /api/v1/modules/:id/versions/:version/publish
-func (h *ModuleHandler) PublishVersion(c *gin.Context) {
+// PublishVersion handles POST /api/v1/containers/:id/versions/:version/publish
+func (h *ContainerHandler) PublishVersion(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "INVALID_ID",
-			Message: "Invalid module ID",
+			Message: "Invalid container ID",
 		})
 		return
 	}
 
 	versionParam := c.Param("version")
 
-	version, err := h.moduleService.PublishVersion(uint(id), versionParam)
+	version, err := h.containerService.PublishVersion(uint(id), versionParam)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			c.JSON(http.StatusNotFound, ErrorResponse{
