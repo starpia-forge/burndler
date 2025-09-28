@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Project represents a collection of modules for deployment
+// Project represents a collection of containers for deployment
 type Project struct {
 	ID              uint           `gorm:"primaryKey" json:"id"`
 	Name            string         `gorm:"not null" json:"name"`
@@ -22,7 +22,7 @@ type Project struct {
 
 	// Relationships
 	User           User            `gorm:"foreignKey:UserID" json:"user,omitempty"`
-	ProjectModules []ProjectModule `gorm:"foreignKey:ProjectID" json:"project_modules,omitempty"`
+	ProjectContainers []ProjectContainer `gorm:"foreignKey:ProjectID" json:"project_containers,omitempty"`
 	Builds         []Build         `gorm:"foreignKey:ProjectID" json:"builds,omitempty"`
 }
 
@@ -31,32 +31,32 @@ func (Project) TableName() string {
 	return "projects"
 }
 
-// GetModuleCount returns the number of modules in this project
-func (p *Project) GetModuleCount() int {
+// GetContainerCount returns the number of containers in this project
+func (p *Project) GetContainerCount() int {
 	count := 0
-	for _, pm := range p.ProjectModules {
-		if pm.Enabled {
+	for _, pc := range p.ProjectContainers {
+		if pc.Enabled {
 			count++
 		}
 	}
 	return count
 }
 
-// GetEnabledModules returns all enabled project modules ordered by position
-func (p *Project) GetEnabledModules() []ProjectModule {
-	var enabled []ProjectModule
-	for _, pm := range p.ProjectModules {
-		if pm.Enabled {
-			enabled = append(enabled, pm)
+// GetEnabledContainers returns all enabled project containers ordered by position
+func (p *Project) GetEnabledContainers() []ProjectContainer {
+	var enabled []ProjectContainer
+	for _, pc := range p.ProjectContainers {
+		if pc.Enabled {
+			enabled = append(enabled, pc)
 		}
 	}
 	return enabled
 }
 
-// HasModule checks if project contains a specific module
-func (p *Project) HasModule(moduleID uint) bool {
-	for _, pm := range p.ProjectModules {
-		if pm.ModuleID == moduleID && pm.Enabled {
+// HasContainer checks if project contains a specific container
+func (p *Project) HasContainer(containerID uint) bool {
+	for _, pc := range p.ProjectContainers {
+		if pc.ContainerID == containerID && pc.Enabled {
 			return true
 		}
 	}
@@ -65,5 +65,5 @@ func (p *Project) HasModule(moduleID uint) bool {
 
 // CanBuild checks if project is ready for building
 func (p *Project) CanBuild() bool {
-	return p.Active && p.GetModuleCount() > 0
+	return p.Active && p.GetContainerCount() > 0
 }

@@ -6,8 +6,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// Module represents a reusable deployment unit
-type Module struct {
+// Container represents a reusable deployment unit
+type Container struct {
 	ID          uint           `gorm:"primaryKey" json:"id"`
 	Name        string         `gorm:"uniqueIndex;not null" json:"name"`
 	Description string         `json:"description"`
@@ -19,27 +19,27 @@ type Module struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relationships
-	Versions []ModuleVersion `gorm:"foreignKey:ModuleID" json:"versions,omitempty"`
+	Versions []ContainerVersion `gorm:"foreignKey:ContainerID" json:"versions,omitempty"`
 }
 
-// TableName specifies the table name for Module model
-func (Module) TableName() string {
-	return "modules"
+// TableName specifies the table name for Container model
+func (Container) TableName() string {
+	return "containers"
 }
 
 // GetLatestVersion returns the latest published version
-func (m *Module) GetLatestVersion() *ModuleVersion {
-	for i := len(m.Versions) - 1; i >= 0; i-- {
-		if m.Versions[i].Published {
-			return &m.Versions[i]
+func (c *Container) GetLatestVersion() *ContainerVersion {
+	for i := len(c.Versions) - 1; i >= 0; i-- {
+		if c.Versions[i].Published {
+			return &c.Versions[i]
 		}
 	}
 	return nil
 }
 
-// HasPublishedVersions checks if module has any published versions
-func (m *Module) HasPublishedVersions() bool {
-	for _, version := range m.Versions {
+// HasPublishedVersions checks if container has any published versions
+func (c *Container) HasPublishedVersions() bool {
+	for _, version := range c.Versions {
 		if version.Published {
 			return true
 		}

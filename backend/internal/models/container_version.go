@@ -7,10 +7,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// ModuleVersion represents a versioned module release
-type ModuleVersion struct {
+// ContainerVersion represents a versioned container release
+type ContainerVersion struct {
 	ID              uint           `gorm:"primaryKey" json:"id"`
-	ModuleID        uint           `gorm:"not null;index" json:"module_id"`
+	ContainerID     uint           `gorm:"not null;index" json:"container_id"`
 	Version         string         `gorm:"not null" json:"version"`
 	ComposeContent  string         `gorm:"type:text;not null" json:"compose_content"`
 	Variables       datatypes.JSON `gorm:"type:text" json:"variables"`
@@ -23,19 +23,19 @@ type ModuleVersion struct {
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relationships
-	Module Module `gorm:"foreignKey:ModuleID" json:"module,omitempty"`
+	Container Container `gorm:"foreignKey:ContainerID" json:"container,omitempty"`
 }
 
-// TableName specifies the table name for ModuleVersion model
-func (ModuleVersion) TableName() string {
-	return "module_versions"
+// TableName specifies the table name for ContainerVersion model
+func (ContainerVersion) TableName() string {
+	return "container_versions"
 }
 
 // BeforeUpdate ensures published versions cannot be modified
-func (mv *ModuleVersion) BeforeUpdate(tx *gorm.DB) error {
+func (cv *ContainerVersion) BeforeUpdate(tx *gorm.DB) error {
 	// Check if this record was already published before this update
-	var original ModuleVersion
-	if err := tx.Where("id = ?", mv.ID).First(&original).Error; err != nil {
+	var original ContainerVersion
+	if err := tx.Where("id = ?", cv.ID).First(&original).Error; err != nil {
 		return nil // If we can't find the original, allow the update
 	}
 
@@ -48,18 +48,18 @@ func (mv *ModuleVersion) BeforeUpdate(tx *gorm.DB) error {
 }
 
 // Publish marks the version as published
-func (mv *ModuleVersion) Publish() {
+func (cv *ContainerVersion) Publish() {
 	now := time.Now()
-	mv.Published = true
-	mv.PublishedAt = &now
+	cv.Published = true
+	cv.PublishedAt = &now
 }
 
 // CanModify checks if version can be modified
-func (mv *ModuleVersion) CanModify() bool {
-	return !mv.Published
+func (cv *ContainerVersion) CanModify() bool {
+	return !cv.Published
 }
 
-// GetFullName returns module name with version
-func (mv *ModuleVersion) GetFullName() string {
-	return mv.Module.Name + ":" + mv.Version
+// GetFullName returns container name with version
+func (cv *ContainerVersion) GetFullName() string {
+	return cv.Container.Name + ":" + cv.Version
 }
