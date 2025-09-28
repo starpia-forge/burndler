@@ -9,6 +9,8 @@ import Pagination from '../common/Pagination';
 interface ModuleListProps {
   modules: Module[];
   loading: boolean;
+  initialLoading?: boolean;
+  isRefreshing?: boolean;
   error: string | null;
   pagination: any;
   filters: ModuleFiltersType;
@@ -26,6 +28,8 @@ interface ModuleListProps {
 export const ModuleList: React.FC<ModuleListProps> = ({
   modules,
   loading,
+  initialLoading = false,
+  isRefreshing = false,
   error,
   pagination,
   filters,
@@ -54,8 +58,8 @@ export const ModuleList: React.FC<ModuleListProps> = ({
     }
   };
 
-  // Loading state
-  if (loading && modules.length === 0) {
+  // Loading state - only show skeleton on initial load
+  if (initialLoading && modules.length === 0) {
     return (
       <div className={`space-y-6 ${className}`}>
         <ModuleFilters
@@ -105,10 +109,10 @@ export const ModuleList: React.FC<ModuleListProps> = ({
           {onRefresh && (
             <button
               onClick={onRefresh}
-              disabled={loading}
+              disabled={loading || isRefreshing}
               className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              Refresh
+              {isRefreshing ? 'Refreshing...' : 'Refresh'}
             </button>
           )}
 
@@ -165,18 +169,18 @@ export const ModuleList: React.FC<ModuleListProps> = ({
                 module={module}
                 onEdit={onEditModule}
                 onDelete={handleDeleteModule}
-                className={loading ? 'opacity-75 pointer-events-none' : ''}
+                className={isRefreshing ? 'opacity-75 pointer-events-none' : ''}
               />
             ))}
           </div>
 
-          {/* Loading overlay for subsequent pages */}
-          {loading && (
+          {/* Loading overlay for refresh operations */}
+          {isRefreshing && (
             <div className="relative">
               <div className="absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-50 flex items-center justify-center z-10">
                 <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-current"></div>
-                  <span>Loading modules...</span>
+                  <span>Refreshing modules...</span>
                 </div>
               </div>
             </div>
