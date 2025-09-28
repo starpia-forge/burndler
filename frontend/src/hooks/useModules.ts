@@ -16,6 +16,8 @@ export interface UseModulesOptions {
 export interface UseModulesReturn {
   modules: Module[];
   loading: boolean;
+  initialLoading: boolean;
+  isRefreshing: boolean;
   error: string | null;
   pagination: ModuleListResponse['pagination'] | null;
   filters: ModuleFilters;
@@ -43,6 +45,8 @@ export function useModules(options: UseModulesOptions = {}): UseModulesReturn {
   const [state, setState] = useState<ModuleListState>({
     modules: [],
     loading: false,
+    initialLoading: true,
+    isRefreshing: false,
     error: null,
     pagination: null,
     filters: { ...DEFAULT_FILTERS, ...initialFilters },
@@ -54,6 +58,9 @@ export function useModules(options: UseModulesOptions = {}): UseModulesReturn {
   // Development safety: Track fetch calls to detect infinite loops
   const fetchCountRef = useRef(0);
   const lastFetchTimeRef = useRef(0);
+
+  // Track if this is the first fetch to determine loading state
+  const isFirstFetchRef = useRef(true);
 
   // Update ref when filters change
   filtersRef.current = state.filters;
@@ -82,7 +89,17 @@ export function useModules(options: UseModulesOptions = {}): UseModulesReturn {
       lastFetchTimeRef.current = now;
     }
 
-    setState((prev) => ({ ...prev, loading: true, error: null }));
+    // Determine if this is initial loading or refresh using ref
+    const isInitialLoad = isFirstFetchRef.current;
+    isFirstFetchRef.current = false;
+
+    setState((prev) => ({
+      ...prev,
+      loading: true,
+      initialLoading: isInitialLoad,
+      isRefreshing: !isInitialLoad,
+      error: null,
+    }));
 
     try {
       const response = await moduleService.listModules(filtersRef.current);
@@ -91,6 +108,8 @@ export function useModules(options: UseModulesOptions = {}): UseModulesReturn {
         modules: response.data,
         pagination: response.pagination,
         loading: false,
+        initialLoading: false,
+        isRefreshing: false,
       }));
     } catch (error: any) {
       const apiError = error as ApiError;
@@ -98,6 +117,8 @@ export function useModules(options: UseModulesOptions = {}): UseModulesReturn {
         ...prev,
         error: apiError.message || 'Failed to fetch modules',
         loading: false,
+        initialLoading: false,
+        isRefreshing: false,
       }));
     }
   }, []); // No dependencies - breaks circular dependency
@@ -197,6 +218,8 @@ export function useModules(options: UseModulesOptions = {}): UseModulesReturn {
     () => ({
       modules: state.modules,
       loading: state.loading,
+      initialLoading: state.initialLoading,
+      isRefreshing: state.isRefreshing,
       error: state.error,
       pagination: state.pagination,
       filters: state.filters,
@@ -210,6 +233,8 @@ export function useModules(options: UseModulesOptions = {}): UseModulesReturn {
     [
       state.modules,
       state.loading,
+      state.initialLoading,
+      state.isRefreshing,
       state.error,
       state.pagination,
       state.filters,

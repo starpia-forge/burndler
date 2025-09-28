@@ -10,6 +10,8 @@ const ModulesPage: React.FC = () => {
   const {
     modules,
     loading,
+    initialLoading,
+    isRefreshing,
     error,
     pagination,
     filters,
@@ -89,6 +91,8 @@ const ModulesPage: React.FC = () => {
         <ModuleList
           modules={modules}
           loading={loading}
+          initialLoading={initialLoading}
+          isRefreshing={isRefreshing}
           error={error}
           pagination={pagination}
           filters={filters}

@@ -94,6 +94,8 @@ export interface VersionFilters {
 export interface ModuleListState {
   modules: Module[];
   loading: boolean;
+  initialLoading: boolean;
+  isRefreshing: boolean;
   error: string | null;
   pagination: PaginationInfo | null;
   filters: ModuleFilters;
