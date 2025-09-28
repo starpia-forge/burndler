@@ -72,7 +72,7 @@ func TestAuthHandler_Login(t *testing.T) {
 				"password": "testPassword123!",
 			},
 			expectedStatus:  http.StatusOK,
-			expectedFields:  []string{"access_token", "refresh_token", "user"},
+			expectedFields:  []string{"accessToken", "refreshToken", "user"},
 			shouldHaveToken: true,
 		},
 		{
@@ -173,8 +173,8 @@ func TestAuthHandler_Login(t *testing.T) {
 
 			// Check token presence
 			if tt.shouldHaveToken {
-				assert.NotEmpty(t, response["access_token"])
-				assert.NotEmpty(t, response["refresh_token"])
+				assert.NotEmpty(t, response["accessToken"])
+				assert.NotEmpty(t, response["refreshToken"])
 				assert.Contains(t, response, "user")
 
 				// Verify user data doesn't contain password
@@ -182,8 +182,8 @@ func TestAuthHandler_Login(t *testing.T) {
 				assert.True(t, ok)
 				assert.NotContains(t, user, "password")
 			} else {
-				assert.NotContains(t, response, "access_token")
-				assert.NotContains(t, response, "refresh_token")
+				assert.NotContains(t, response, "accessToken")
+				assert.NotContains(t, response, "refreshToken")
 			}
 		})
 	}
@@ -242,8 +242,8 @@ func TestAuthHandler_Login_InactiveUser(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Contains(t, response, "error")
-	assert.NotContains(t, response, "access_token")
-	assert.NotContains(t, response, "refresh_token")
+	assert.NotContains(t, response, "accessToken")
+	assert.NotContains(t, response, "refreshToken")
 }
 
 func TestAuthHandler_RefreshToken(t *testing.T) {
@@ -287,10 +287,10 @@ func TestAuthHandler_RefreshToken(t *testing.T) {
 		{
 			name: "valid refresh token",
 			requestBody: map[string]string{
-				"refresh_token": validRefreshToken,
+				"refreshToken": validRefreshToken,
 			},
 			expectedStatus:  http.StatusOK,
-			expectedFields:  []string{"access_token", "refresh_token"},
+			expectedFields:  []string{"accessToken", "refreshToken"},
 			shouldHaveToken: true,
 		},
 		{
@@ -303,7 +303,7 @@ func TestAuthHandler_RefreshToken(t *testing.T) {
 		{
 			name: "empty refresh token",
 			requestBody: map[string]string{
-				"refresh_token": "",
+				"refreshToken": "",
 			},
 			expectedStatus:  http.StatusBadRequest,
 			expectedFields:  []string{"error"},
@@ -312,7 +312,7 @@ func TestAuthHandler_RefreshToken(t *testing.T) {
 		{
 			name: "invalid refresh token",
 			requestBody: map[string]string{
-				"refresh_token": "invalid.token.string",
+				"refreshToken": "invalid.token.string",
 			},
 			expectedStatus:  http.StatusUnauthorized,
 			expectedFields:  []string{"error"},
@@ -358,11 +358,11 @@ func TestAuthHandler_RefreshToken(t *testing.T) {
 
 			// Check token presence
 			if tt.shouldHaveToken {
-				assert.NotEmpty(t, response["access_token"])
-				assert.NotEmpty(t, response["refresh_token"])
+				assert.NotEmpty(t, response["accessToken"])
+				assert.NotEmpty(t, response["refreshToken"])
 			} else {
-				assert.NotContains(t, response, "access_token")
-				assert.NotContains(t, response, "refresh_token")
+				assert.NotContains(t, response, "accessToken")
+				assert.NotContains(t, response, "refreshToken")
 			}
 		})
 	}
