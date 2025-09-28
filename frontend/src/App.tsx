@@ -5,8 +5,8 @@ import ComposeMerger from './components/ComposeMerger';
 import PackageBuilder from './components/PackageBuilder';
 import LoginPage from './components/LoginPage';
 import SetupWizard from './pages/SetupWizard';
-import ModulesPage from './pages/ModulesPage';
-import ModuleDetailPage from './pages/ModuleDetailPage';
+import ContainersPage from './pages/ContainersPage';
+import ContainerDetailPage from './pages/ContainerDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import SetupGuard from './components/SetupGuard';
 import { AuthProvider } from './hooks/useAuth';
@@ -86,24 +86,24 @@ function App() {
                   }
                 />
                 <Route
-                  path="/modules"
+                  path="/containers"
                   element={
                     <SetupGuard>
                       <ProtectedRoute>
                         <DashboardLayout>
-                          <ModulesPage />
+                          <ContainersPage />
                         </DashboardLayout>
                       </ProtectedRoute>
                     </SetupGuard>
                   }
                 />
                 <Route
-                  path="/modules/:id"
+                  path="/containers/:id"
                   element={
                     <SetupGuard>
                       <ProtectedRoute>
                         <DashboardLayout>
-                          <ModuleDetailPage />
+                          <ContainerDetailPage />
                         </DashboardLayout>
                       </ProtectedRoute>
                     </SetupGuard>
