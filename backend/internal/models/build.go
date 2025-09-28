@@ -9,11 +9,10 @@ import (
 
 // Build represents a package build job
 type Build struct {
-	ID           uuid.UUID      `gorm:"type:uuid;primaryKey" json:"id"`
-	Name         string         `gorm:"not null" json:"name"`
-	ProjectID    *uint          `gorm:"index" json:"project_id"`
-	ServiceID    *uint          `gorm:"index" json:"service_id"`
-	UserID       uint           `gorm:"not null" json:"user_id"`
+	ID        uuid.UUID      `gorm:"type:uuid;primaryKey" json:"id"`
+	Name      string         `gorm:"not null" json:"name"`
+	ServiceID *uint          `gorm:"index" json:"service_id"`
+	UserID    uint           `gorm:"not null" json:"user_id"`
 	Status       string         `gorm:"not null;default:'queued'" json:"status"` // queued, building, completed, failed
 	Progress     int            `gorm:"default:0" json:"progress"`               // 0-100
 	DownloadURL  string         `json:"download_url,omitempty"`
@@ -27,7 +26,6 @@ type Build struct {
 
 	// Relationships
 	User    User     `gorm:"foreignKey:UserID" json:"user,omitempty"`
-	Project *Project `gorm:"foreignKey:ProjectID" json:"project,omitempty"`
 	Service *Service `gorm:"foreignKey:ServiceID" json:"service,omitempty"`
 }
 
@@ -59,11 +57,6 @@ func (b *Build) IsInProgress() bool {
 	return b.Status == "building"
 }
 
-// IsProjectBuild checks if this build is based on a project
-func (b *Build) IsProjectBuild() bool {
-	return b.ProjectID != nil
-}
-
 // IsServiceBuild checks if this build is based on a service
 func (b *Build) IsServiceBuild() bool {
 	return b.ServiceID != nil
@@ -71,36 +64,24 @@ func (b *Build) IsServiceBuild() bool {
 
 // IsDirectBuild checks if this build is a direct compose build
 func (b *Build) IsDirectBuild() bool {
-	return b.ProjectID == nil && b.ServiceID == nil
+	return b.ServiceID == nil
 }
 
 // GetBuildType returns the type of build
 func (b *Build) GetBuildType() string {
-	if b.IsProjectBuild() {
-		return "project"
-	}
 	if b.IsServiceBuild() {
 		return "service"
 	}
 	return "direct"
 }
 
-// GetSourceID returns the source ID (Project or Service ID)
+// GetSourceID returns the source ID (Service ID)
 func (b *Build) GetSourceID() *uint {
-	if b.ProjectID != nil {
-		return b.ProjectID
-	}
-	if b.ServiceID != nil {
-		return b.ServiceID
-	}
-	return nil
+	return b.ServiceID
 }
 
-// GetSourceName returns the source name (Project or Service name)
+// GetSourceName returns the source name (Service name)
 func (b *Build) GetSourceName() string {
-	if b.Project != nil {
-		return b.Project.Name
-	}
 	if b.Service != nil {
 		return b.Service.Name
 	}
