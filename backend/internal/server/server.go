@@ -29,10 +29,11 @@ type Server struct {
 	merger        *services.Merger
 	linter        *services.Linter
 	packager      *services.Packager
-	authService   *services.AuthService
-	setupService  *services.SetupService
+	authService      *services.AuthService
+	setupService     *services.SetupService
 	containerService *services.ContainerService
-	router        *gin.Engine
+	serviceService   *services.ServiceService
+	router           *gin.Engine
 }
 
 // New creates a new server instance
@@ -40,6 +41,7 @@ func New(cfg *config.Config, db *gorm.DB, storage storage.Storage, merger *servi
 	authService := services.NewAuthService(cfg, db)
 	setupService := services.NewSetupService(db, cfg)
 	containerService := services.NewContainerService(db, storage, linter)
+	serviceService := services.NewServiceService(db, storage)
 	s := &Server{
 		config:        cfg,
 		db:            db,
@@ -47,9 +49,10 @@ func New(cfg *config.Config, db *gorm.DB, storage storage.Storage, merger *servi
 		merger:        merger,
 		linter:        linter,
 		packager:      packager,
-		authService:   authService,
-		setupService:  setupService,
+		authService:      authService,
+		setupService:     setupService,
 		containerService: containerService,
+		serviceService:   serviceService,
 	}
 	s.setupRouter()
 	return s
@@ -76,6 +79,7 @@ func (s *Server) setupRouter() {
 	composeHandler := handlers.NewComposeHandler(s.merger, s.linter)
 	packageHandler := handlers.NewPackageHandler(s.packager, s.db)
 	containerHandler := handlers.NewContainerHandler(s.containerService, s.db)
+	serviceHandler := handlers.NewServiceHandler(s.serviceService, s.db)
 
 	// API v1 routes
 	v1 := s.router.Group("/api/v1")
@@ -130,6 +134,24 @@ func (s *Server) setupRouter() {
 	containers.GET("/:id/versions/:version", containerHandler.GetVersion)
 	containers.PUT("/:id/versions/:version", middleware.RequireRole("Developer"), containerHandler.UpdateVersion)
 	containers.POST("/:id/versions/:version/publish", middleware.RequireRole("Developer"), containerHandler.PublishVersion)
+
+	// Service management
+	serviceRoutes := protected.Group("/services")
+	serviceRoutes.GET("", serviceHandler.ListServices)
+	serviceRoutes.POST("", middleware.RequireRole("Developer"), serviceHandler.CreateService)
+	serviceRoutes.GET("/:id", serviceHandler.GetService)
+	serviceRoutes.PUT("/:id", middleware.RequireRole("Developer"), serviceHandler.UpdateService)
+	serviceRoutes.DELETE("/:id", middleware.RequireRole("Developer"), serviceHandler.DeleteService)
+
+	// Service container management
+	serviceRoutes.GET("/:id/containers", serviceHandler.GetServiceContainers)
+	serviceRoutes.POST("/:id/containers", middleware.RequireRole("Developer"), serviceHandler.AddContainerToService)
+	serviceRoutes.PUT("/:id/containers/:container_id", middleware.RequireRole("Developer"), serviceHandler.UpdateServiceContainer)
+	serviceRoutes.DELETE("/:id/containers/:container_id", middleware.RequireRole("Developer"), serviceHandler.RemoveContainerFromService)
+
+	// Service operations
+	serviceRoutes.POST("/:id/validate", serviceHandler.ValidateService)
+	serviceRoutes.POST("/:id/build", middleware.RequireRole("Developer"), serviceHandler.BuildService)
 
 	// Serve static files if enabled
 	if s.config.ServeStaticFiles {
