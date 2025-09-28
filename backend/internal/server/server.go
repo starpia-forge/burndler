@@ -31,7 +31,7 @@ type Server struct {
 	packager      *services.Packager
 	authService   *services.AuthService
 	setupService  *services.SetupService
-	moduleService *services.ModuleService
+	containerService *services.ContainerService
 	router        *gin.Engine
 }
 
@@ -39,7 +39,7 @@ type Server struct {
 func New(cfg *config.Config, db *gorm.DB, storage storage.Storage, merger *services.Merger, linter *services.Linter, packager *services.Packager) *Server {
 	authService := services.NewAuthService(cfg, db)
 	setupService := services.NewSetupService(db, cfg)
-	moduleService := services.NewModuleService(db, storage, linter)
+	containerService := services.NewContainerService(db, storage, linter)
 	s := &Server{
 		config:        cfg,
 		db:            db,
@@ -49,7 +49,7 @@ func New(cfg *config.Config, db *gorm.DB, storage storage.Storage, merger *servi
 		packager:      packager,
 		authService:   authService,
 		setupService:  setupService,
-		moduleService: moduleService,
+		containerService: containerService,
 	}
 	s.setupRouter()
 	return s
@@ -75,7 +75,7 @@ func (s *Server) setupRouter() {
 	setupHandler := handlers.NewSetupHandler(s.setupService, s.db)
 	composeHandler := handlers.NewComposeHandler(s.merger, s.linter)
 	packageHandler := handlers.NewPackageHandler(s.packager, s.db)
-	moduleHandler := handlers.NewModuleHandler(s.moduleService, s.db)
+	containerHandler := handlers.NewContainerHandler(s.containerService, s.db)
 
 	// API v1 routes
 	v1 := s.router.Group("/api/v1")
@@ -116,20 +116,20 @@ func (s *Server) setupRouter() {
 	protected.POST("/build/package", middleware.RequireRole("Developer"), packageHandler.Create)
 	protected.GET("/build/status/:id", packageHandler.Status)
 
-	// Module management
-	modules := protected.Group("/modules")
-	modules.GET("", moduleHandler.ListModules)
-	modules.POST("", middleware.RequireRole("Developer"), moduleHandler.CreateModule)
-	modules.GET("/:id", moduleHandler.GetModule)
-	modules.PUT("/:id", middleware.RequireRole("Developer"), moduleHandler.UpdateModule)
-	modules.DELETE("/:id", middleware.RequireRole("Developer"), moduleHandler.DeleteModule)
+	// Container management
+	containers := protected.Group("/containers")
+	containers.GET("", containerHandler.ListContainers)
+	containers.POST("", middleware.RequireRole("Developer"), containerHandler.CreateContainer)
+	containers.GET("/:id", containerHandler.GetContainer)
+	containers.PUT("/:id", middleware.RequireRole("Developer"), containerHandler.UpdateContainer)
+	containers.DELETE("/:id", middleware.RequireRole("Developer"), containerHandler.DeleteContainer)
 
-	// Module version management
-	modules.GET("/:id/versions", moduleHandler.ListVersions)
-	modules.POST("/:id/versions", middleware.RequireRole("Developer"), moduleHandler.CreateVersion)
-	modules.GET("/:id/versions/:version", moduleHandler.GetVersion)
-	modules.PUT("/:id/versions/:version", middleware.RequireRole("Developer"), moduleHandler.UpdateVersion)
-	modules.POST("/:id/versions/:version/publish", middleware.RequireRole("Developer"), moduleHandler.PublishVersion)
+	// Container version management
+	containers.GET("/:id/versions", containerHandler.ListVersions)
+	containers.POST("/:id/versions", middleware.RequireRole("Developer"), containerHandler.CreateVersion)
+	containers.GET("/:id/versions/:version", containerHandler.GetVersion)
+	containers.PUT("/:id/versions/:version", middleware.RequireRole("Developer"), containerHandler.UpdateVersion)
+	containers.POST("/:id/versions/:version/publish", middleware.RequireRole("Developer"), containerHandler.PublishVersion)
 
 	// Serve static files if enabled
 	if s.config.ServeStaticFiles {

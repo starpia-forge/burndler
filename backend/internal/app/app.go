@@ -36,10 +36,10 @@ func New() (*App, error) {
 	// Run migrations
 	if err := db.AutoMigrate(
 		&models.User{},
-		&models.Module{},
-		&models.ModuleVersion{},
+		&models.Container{},
+		&models.ContainerVersion{},
 		&models.Project{},
-		&models.ProjectModule{},
+		&models.ProjectContainer{},
 		&models.Build{},
 		&models.Setup{},
 	); err != nil {
@@ -78,10 +78,10 @@ func NewWithConfig(cfg *config.Config) (*App, error) {
 	// Run migrations
 	if err := db.AutoMigrate(
 		&models.User{},
-		&models.Module{},
-		&models.ModuleVersion{},
+		&models.Container{},
+		&models.ContainerVersion{},
 		&models.Project{},
-		&models.ProjectModule{},
+		&models.ProjectContainer{},
 		&models.Build{},
 		&models.Setup{},
 	); err != nil {

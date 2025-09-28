@@ -80,7 +80,7 @@ func (s *ProjectService) CreateProject(userID uint, req CreateProjectRequest) (*
 	return project, nil
 }
 
-// GetProject retrieves a project by ID with optional module loading
+// GetProject retrieves a project by ID with optional container loading
 func (s *ProjectService) GetProject(id uint, includeContainers bool) (*models.Project, error) {
 	var project models.Project
 	query := s.db
@@ -199,7 +199,7 @@ func (s *ProjectService) UpdateProject(id uint, req UpdateProjectRequest) (*mode
 	return project, nil
 }
 
-// DeleteProject deletes a project and all its module associations
+// DeleteProject deletes a project and all its container associations
 func (s *ProjectService) DeleteProject(id uint) error {
 	project, err := s.GetProject(id, false)
 	if err != nil {
@@ -208,9 +208,9 @@ func (s *ProjectService) DeleteProject(id uint) error {
 
 	// Delete in transaction to maintain consistency
 	return s.db.Transaction(func(tx *gorm.DB) error {
-		// Delete all project modules first
+		// Delete all project containers first
 		if err := tx.Where("project_id = ?", id).Delete(&models.ProjectContainer{}).Error; err != nil {
-			return fmt.Errorf("failed to delete project modules: %w", err)
+			return fmt.Errorf("failed to delete project containers: %w", err)
 		}
 
 		// Delete the project
@@ -222,7 +222,7 @@ func (s *ProjectService) DeleteProject(id uint) error {
 	})
 }
 
-// AddModuleToProject adds a module version to a project
+// AddContainerToProject adds a container version to a project
 func (s *ProjectService) AddContainerToProject(projectID uint, req AddContainerToProjectRequest) (*models.ProjectContainer, error) {
 	// Verify project exists
 	project, err := s.GetProject(projectID, false)
@@ -230,29 +230,29 @@ func (s *ProjectService) AddContainerToProject(projectID uint, req AddContainerT
 		return nil, err
 	}
 
-	// Verify module version exists
+	// Verify container version exists
 	var containerVersion models.ContainerVersion
 	if err := s.db.Preload("Container").First(&containerVersion, req.ContainerVersionID).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("module version not found")
+			return nil, fmt.Errorf("container version not found")
 		}
-		return nil, fmt.Errorf("failed to get module version: %w", err)
+		return nil, fmt.Errorf("failed to get container version: %w", err)
 	}
 
-	// Verify the module version belongs to the specified module
-	if containerVersion.ModuleID != req.ModuleID {
-		return nil, fmt.Errorf("module version does not belong to specified module")
+	// Verify the container version belongs to the specified container
+	if containerVersion.ContainerID != req.ContainerID {
+		return nil, fmt.Errorf("container version does not belong to specified container")
 	}
 
-	// Check if module version is published
+	// Check if container version is published
 	if !containerVersion.Published {
-		return nil, fmt.Errorf("cannot add unpublished module version to project")
+		return nil, fmt.Errorf("cannot add unpublished container version to project")
 	}
 
-	// Check if module is already in project
-	var existingProjectModule models.ProjectContainer
-	if err := s.db.Where("project_id = ? AND module_id = ?", projectID, req.ModuleID).First(&existingProjectModule).Error; err == nil {
-		return nil, fmt.Errorf("module '%s' is already added to project '%s'", containerVersion.Module.Name, project.Name)
+	// Check if container is already in project
+	var existingProjectContainer models.ProjectContainer
+	if err := s.db.Where("project_id = ? AND container_id = ?", projectID, req.ContainerID).First(&existingProjectContainer).Error; err == nil {
+		return nil, fmt.Errorf("container '%s' is already added to project '%s'", containerVersion.Container.Name, project.Name)
 	}
 
 	// Set default order if not provided
@@ -268,7 +268,7 @@ func (s *ProjectService) AddContainerToProject(projectID uint, req AddContainerT
 
 	projectContainer := &models.ProjectContainer{
 		ProjectID:       projectID,
-		ModuleID:        req.ModuleID,
+		ContainerID:     req.ContainerID,
 		ContainerVersionID: req.ContainerVersionID,
 		Order:           req.Order,
 		Enabled:         req.Enabled,
