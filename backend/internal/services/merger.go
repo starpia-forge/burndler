@@ -18,7 +18,7 @@ func NewMerger() *Merger {
 // MergeRequest represents a merge request
 type MergeRequest struct {
 	Modules          []Module          `json:"modules"`
-	ProjectVariables map[string]string `json:"project_variables"`
+	ServiceVariables map[string]string `json:"service_variables"`
 }
 
 // Module represents a compose module to merge
@@ -63,7 +63,7 @@ func (m *Merger) Merge(req *MergeRequest) (*MergeResult, error) {
 				// Update depends_on references
 				if config, ok := serviceConfig.(map[string]interface{}); ok {
 					m.updateDependsOn(config, module.Name, result.Mappings)
-					m.substituteVariables(config, module.Variables, req.ProjectVariables)
+					m.substituteVariables(config, module.Variables, req.ServiceVariables)
 				}
 
 				mergedServices[newName] = serviceConfig
@@ -144,23 +144,23 @@ func (m *Merger) updateDependsOn(service map[string]interface{}, namespace strin
 	}
 }
 
-// substituteVariables replaces variables with project overrides > module defaults
-func (m *Merger) substituteVariables(config map[string]interface{}, moduleVars, projectVars map[string]string) {
+// substituteVariables replaces variables with service overrides > module defaults
+func (m *Merger) substituteVariables(config map[string]interface{}, moduleVars, serviceVars map[string]string) {
 	for key, value := range config {
 		switch v := value.(type) {
 		case string:
 			// Check for variable substitution
 			if strings.Contains(v, "${") {
-				config[key] = m.replaceVariables(v, moduleVars, projectVars)
+				config[key] = m.replaceVariables(v, moduleVars, serviceVars)
 			}
 		case map[string]interface{}:
 			// Recurse into nested maps
-			m.substituteVariables(v, moduleVars, projectVars)
+			m.substituteVariables(v, moduleVars, serviceVars)
 		case []interface{}:
 			// Process arrays
 			for i, item := range v {
 				if str, ok := item.(string); ok && strings.Contains(str, "${") {
-					v[i] = m.replaceVariables(str, moduleVars, projectVars)
+					v[i] = m.replaceVariables(str, moduleVars, serviceVars)
 				}
 			}
 		}
@@ -168,7 +168,7 @@ func (m *Merger) substituteVariables(config map[string]interface{}, moduleVars, 
 }
 
 // replaceVariables replaces ${VAR} with actual values
-func (m *Merger) replaceVariables(str string, moduleVars, projectVars map[string]string) string {
+func (m *Merger) replaceVariables(str string, moduleVars, serviceVars map[string]string) string {
 	result := str
 
 	// Find all variables
@@ -182,8 +182,8 @@ func (m *Merger) replaceVariables(str string, moduleVars, projectVars map[string
 
 		varName := result[start+2 : end]
 
-		// Project variables override module variables
-		if val, ok := projectVars[varName]; ok {
+		// Service variables override module variables
+		if val, ok := serviceVars[varName]; ok {
 			result = strings.Replace(result, result[start:end+1], val, 1)
 		} else if val, ok := moduleVars[varName]; ok {
 			result = strings.Replace(result, result[start:end+1], val, 1)
