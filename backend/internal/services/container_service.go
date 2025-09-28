@@ -81,7 +81,7 @@ type PaginatedResponse[T any] struct {
 func (s *ContainerService) CreateContainer(req CreateContainerRequest) (*models.Container, error) {
 	// Check if container name already exists
 	var existingContainer models.Container
-	if err := s.db.Where("name = ?", req.Name).First(&existingModule).Error; err == nil {
+	if err := s.db.Where("name = ?", req.Name).First(&existingContainer).Error; err == nil {
 		return nil, fmt.Errorf("container with name '%s' already exists", req.Name)
 	}
 
@@ -111,14 +111,14 @@ func (s *ContainerService) GetContainer(id uint, includeVersions bool) (*models.
 		})
 	}
 
-	if err := query.First(&module, id).Error; err != nil {
+	if err := query.First(&container, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("container not found")
 		}
 		return nil, fmt.Errorf("failed to get container: %w", err)
 	}
 
-	return &module, nil
+	return &container, nil
 }
 
 // GetContainerByName retrieves a container by name
@@ -132,14 +132,14 @@ func (s *ContainerService) GetContainerByName(name string, includeVersions bool)
 		})
 	}
 
-	if err := query.Where("name = ?", name).First(&module).Error; err != nil {
+	if err := query.Where("name = ?", name).First(&container).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("module '%s' not found", name)
 		}
 		return nil, fmt.Errorf("failed to get container: %w", err)
 	}
 
-	return &module, nil
+	return &container, nil
 }
 
 // ListContainers returns a paginated list of containers
@@ -200,7 +200,7 @@ func (s *ContainerService) ListContainers(filters ContainerFilters) (*PaginatedR
 
 // UpdateModule updates an existing module
 func (s *ContainerService) UpdateContainer(id uint, req UpdateContainerRequest) (*models.Container, error) {
-	module, err := s.GetModule(id, false)
+	container, err := s.GetContainer(id, false)
 	if err != nil {
 		return nil, err
 	}
@@ -219,8 +219,8 @@ func (s *ContainerService) UpdateContainer(id uint, req UpdateContainerRequest) 
 		container.Active = *req.Active
 	}
 
-	if err := s.db.Save(module).Error; err != nil {
-		return nil, fmt.Errorf("failed to update module: %w", err)
+	if err := s.db.Save(container).Error; err != nil {
+		return nil, fmt.Errorf("failed to update container: %w", err)
 	}
 
 	return container, nil
@@ -228,18 +228,18 @@ func (s *ContainerService) UpdateContainer(id uint, req UpdateContainerRequest) 
 
 // DeleteModule soft deletes a module
 func (s *ContainerService) DeleteContainer(id uint) error {
-	module, err := s.GetModule(id, true)
+	container, err := s.GetContainer(id, true)
 	if err != nil {
 		return err
 	}
 
 	// Check if module has published versions
 	if container.HasPublishedVersions() {
-		return fmt.Errorf("cannot delete module with published versions")
+		return fmt.Errorf("cannot delete container with published versions")
 	}
 
-	if err := s.db.Delete(module).Error; err != nil {
-		return fmt.Errorf("failed to delete module: %w", err)
+	if err := s.db.Delete(container).Error; err != nil {
+		return fmt.Errorf("failed to delete container: %w", err)
 	}
 
 	return nil
@@ -247,15 +247,15 @@ func (s *ContainerService) DeleteContainer(id uint) error {
 
 // CreateVersion creates a new version for a module
 func (s *ContainerService) CreateVersion(containerID uint, req CreateVersionRequest) (*models.ContainerVersion, error) {
-	// Verify module exists
-	module, err := s.GetContainer(containerID, false)
+	// Verify container exists
+	container, err := s.GetContainer(containerID, false)
 	if err != nil {
 		return nil, err
 	}
 
 	// Check if version already exists
 	var existingVersion models.ContainerVersion
-	if err := s.db.Where("module_id = ? AND version = ?", moduleID, req.Version).First(&existingVersion).Error; err == nil {
+	if err := s.db.Where("container_id = ? AND version = ?", containerID, req.Version).First(&existingVersion).Error; err == nil {
 		return nil, fmt.Errorf("version '%s' already exists for module '%s'", req.Version, container.Name)
 	}
 
@@ -287,9 +287,9 @@ func (s *ContainerService) CreateVersion(containerID uint, req CreateVersionRequ
 		return nil, fmt.Errorf("failed to create version: %w", err)
 	}
 
-	// Load the module relationship
+	// Load the container relationship
 	if err := s.db.Preload("Container").First(version, version.ID).Error; err != nil {
-		return nil, fmt.Errorf("failed to load version with module: %w", err)
+		return nil, fmt.Errorf("failed to load version with container: %w", err)
 	}
 
 	return version, nil
@@ -299,7 +299,7 @@ func (s *ContainerService) CreateVersion(containerID uint, req CreateVersionRequ
 func (s *ContainerService) GetVersion(containerID uint, version string) (*models.ContainerVersion, error) {
 	var containerVersion models.ContainerVersion
 
-	if err := s.db.Preload("Container").Where("module_id = ? AND version = ?", moduleID, version).First(&containerVersion).Error; err != nil {
+	if err := s.db.Preload("Container").Where("container_id = ? AND version = ?", containerID, version).First(&containerVersion).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("version '%s' not found", version)
 		}
@@ -309,9 +309,9 @@ func (s *ContainerService) GetVersion(containerID uint, version string) (*models
 	return &containerVersion, nil
 }
 
-// UpdateVersion updates an existing module version (only if unpublished)
+// UpdateVersion updates an existing container version (only if unpublished)
 func (s *ContainerService) UpdateVersion(containerID uint, version string, req UpdateVersionRequest) (*models.ContainerVersion, error) {
-	containerVersion, err := s.GetVersion(moduleID, version)
+	containerVersion, err := s.GetVersion(containerID, version)
 	if err != nil {
 		return nil, err
 	}
@@ -351,9 +351,9 @@ func (s *ContainerService) UpdateVersion(containerID uint, version string, req U
 	return containerVersion, nil
 }
 
-// PublishVersion publishes a module version making it immutable
+// PublishVersion publishes a container version making it immutable
 func (s *ContainerService) PublishVersion(containerID uint, version string) (*models.ContainerVersion, error) {
-	containerVersion, err := s.GetVersion(moduleID, version)
+	containerVersion, err := s.GetVersion(containerID, version)
 	if err != nil {
 		return nil, err
 	}
@@ -378,13 +378,13 @@ func (s *ContainerService) PublishVersion(containerID uint, version string) (*mo
 
 // ListVersions returns all versions for a module
 func (s *ContainerService) ListVersions(containerID uint, publishedOnly bool) ([]models.ContainerVersion, error) {
-	// Verify module exists
+	// Verify container exists
 	if _, err := s.GetContainer(containerID, false); err != nil {
 		return nil, err
 	}
 
 	var versions []models.ContainerVersion
-	query := s.db.Where("module_id = ?", moduleID)
+	query := s.db.Where("container_id = ?", containerID)
 
 	if publishedOnly {
 		query = query.Where("published = ?", true)
