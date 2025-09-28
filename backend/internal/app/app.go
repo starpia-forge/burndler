@@ -40,6 +40,8 @@ func New() (*App, error) {
 		&models.ContainerVersion{},
 		&models.Project{},
 		&models.ProjectContainer{},
+		&models.Service{},
+		&models.ServiceContainer{},
 		&models.Build{},
 		&models.Setup{},
 	); err != nil {
@@ -82,6 +84,8 @@ func NewWithConfig(cfg *config.Config) (*App, error) {
 		&models.ContainerVersion{},
 		&models.Project{},
 		&models.ProjectContainer{},
+		&models.Service{},
+		&models.ServiceContainer{},
 		&models.Build{},
 		&models.Setup{},
 	); err != nil {
