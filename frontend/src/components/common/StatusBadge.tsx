@@ -129,4 +129,13 @@ export const getContainerVersionStatus = (version: {
   return version.published ? ContainerVersionStatus.Published : ContainerVersionStatus.Draft;
 };
 
+// Helper function to get status from service
+export const getServiceStatus = (service: {
+  active: boolean;
+  deleted_at?: string;
+}): 'active' | 'inactive' | 'deleted' => {
+  if (service.deleted_at) return 'deleted';
+  return service.active ? 'active' : 'inactive';
+};
+
 export default StatusBadge;

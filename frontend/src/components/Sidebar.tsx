@@ -1,7 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import {
   HomeIcon,
-  DocumentDuplicateIcon,
   CubeIcon,
   Squares2X2Icon,
   DocumentCheckIcon,
@@ -11,6 +10,7 @@ import {
   ChevronRightIcon,
   CommandLineIcon,
   ShieldCheckIcon,
+  RectangleStackIcon,
 } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
@@ -25,7 +25,7 @@ interface NavItem {
 const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Containers', href: '/containers', icon: Squares2X2Icon },
-  { name: 'Compose Merger', href: '/merge', icon: DocumentDuplicateIcon },
+  { name: 'Services', href: '/services', icon: RectangleStackIcon },
   { name: 'Package Builder', href: '/package', icon: CubeIcon, requiredRole: 'Developer' },
   { name: 'Lint Reports', href: '/lint', icon: DocumentCheckIcon },
   { name: 'Build History', href: '/history', icon: ClockIcon },

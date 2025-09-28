@@ -63,5 +63,9 @@ export interface Build {
   completedAt?: string;
 }
 
-// Re-export setup types
+// Re-export all types
+export * from './auth';
+export * from './container';
+export * from './service';
 export * from './setup';
+export * from './theme';

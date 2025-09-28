@@ -1,12 +1,13 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import DashboardLayout from './components/DashboardLayout';
 import Dashboard from './pages/Dashboard';
-import ComposeMerger from './components/ComposeMerger';
 import PackageBuilder from './components/PackageBuilder';
 import LoginPage from './components/LoginPage';
 import SetupWizard from './pages/SetupWizard';
 import ContainersPage from './pages/ContainersPage';
 import ContainerDetailPage from './pages/ContainerDetailPage';
+import ServicesPage from './pages/ServicesPage';
+import ServiceDetailPage from './pages/ServiceDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import SetupGuard from './components/SetupGuard';
 import { AuthProvider } from './hooks/useAuth';
@@ -62,18 +63,6 @@ function App() {
                   }
                 />
                 <Route
-                  path="/merge"
-                  element={
-                    <SetupGuard>
-                      <ProtectedRoute>
-                        <DashboardLayout>
-                          <ComposeMerger />
-                        </DashboardLayout>
-                      </ProtectedRoute>
-                    </SetupGuard>
-                  }
-                />
-                <Route
                   path="/package"
                   element={
                     <SetupGuard>
@@ -104,6 +93,30 @@ function App() {
                       <ProtectedRoute>
                         <DashboardLayout>
                           <ContainerDetailPage />
+                        </DashboardLayout>
+                      </ProtectedRoute>
+                    </SetupGuard>
+                  }
+                />
+                <Route
+                  path="/services"
+                  element={
+                    <SetupGuard>
+                      <ProtectedRoute>
+                        <DashboardLayout>
+                          <ServicesPage />
+                        </DashboardLayout>
+                      </ProtectedRoute>
+                    </SetupGuard>
+                  }
+                />
+                <Route
+                  path="/services/:id"
+                  element={
+                    <SetupGuard>
+                      <ProtectedRoute>
+                        <DashboardLayout>
+                          <ServiceDetailPage />
                         </DashboardLayout>
                       </ProtectedRoute>
                     </SetupGuard>
