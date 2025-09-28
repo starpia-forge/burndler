@@ -186,7 +186,9 @@ export function useContainers(options: UseContainersOptions = {}): UseContainers
       const updatedContainer = await containerService.getContainer(id);
       setState((prev) => ({
         ...prev,
-        containers: prev.containers.map((container) => (container.id === id ? updatedContainer : container)),
+        containers: prev.containers.map((container) =>
+          container.id === id ? updatedContainer : container
+        ),
       }));
     } catch (error: any) {
       // If container not found (404), remove from list
@@ -266,7 +268,11 @@ export function useContainerSearch(containers: Container[], searchTerm: string) 
 }
 
 // Helper hook for sorting containers
-export function useContainerSort(containers: Container[], sortBy: string, sortDirection: 'asc' | 'desc') {
+export function useContainerSort(
+  containers: Container[],
+  sortBy: string,
+  sortDirection: 'asc' | 'desc'
+) {
   return useMemo(() => {
     const sortedContainers = [...containers].sort((a, b) => {
       let aValue: any;

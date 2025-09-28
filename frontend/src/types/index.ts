@@ -14,7 +14,7 @@ export interface Module {
 
 export interface MergeRequest {
   modules: Module[];
-  projectVariables?: Record<string, string>;
+  serviceVariables?: Record<string, string>;
 }
 
 export interface MergeResult {

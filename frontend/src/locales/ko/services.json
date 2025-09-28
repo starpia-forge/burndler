@@ -1,0 +1,20 @@
+{
+  "title": "서비스",
+  "createService": "서비스 생성",
+  "editService": "서비스 편집",
+  "deleteService": "서비스 삭제",
+  "serviceName": "서비스 이름",
+  "serviceDetails": "서비스 상세정보",
+  "addContainer": "컨테이너 추가",
+  "removeContainer": "컨테이너 제거",
+  "buildService": "서비스 빌드",
+  "deployService": "서비스 배포",
+  "serviceContainers": "서비스 컨테이너",
+  "noServices": "서비스가 없습니다",
+  "searchServices": "서비스 검색...",
+  "buildStatus": "빌드 상태",
+  "lastBuild": "마지막 빌드",
+  "buildHistory": "빌드 기록",
+  "installer": "설치 패키지",
+  "downloadInstaller": "설치 패키지 다운로드"
+}

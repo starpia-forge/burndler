@@ -4,7 +4,7 @@ import api from '../services/api';
 
 export default function ComposeMerger() {
   const [modules, setModules] = useState<Module[]>([{ name: 'module1', compose: '' }]);
-  const [projectVariables, setProjectVariables] = useState<Record<string, string>>({});
+  const [serviceVariables, setServiceVariables] = useState<Record<string, string>>({});
   const [mergeResult, setMergeResult] = useState<MergeResult | null>(null);
   const [lintResult, setLintResult] = useState<LintResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +34,7 @@ export default function ComposeMerger() {
       // Merge compose files
       const result = await api.mergeCompose({
         modules,
-        projectVariables,
+        serviceVariables,
       });
       setMergeResult(result);
 
@@ -106,9 +106,9 @@ export default function ComposeMerger() {
 
       {/* Project Variables */}
       <div className="bg-white p-4 rounded-lg shadow">
-        <h3 className="text-lg font-medium text-gray-900 mb-3">Project Variables (Optional)</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-3">Service Variables (Optional)</h3>
         <textarea
-          value={Object.entries(projectVariables)
+          value={Object.entries(serviceVariables)
             .map(([k, v]) => `${k}=${v}`)
             .join('\n')}
           onChange={(e) => {
@@ -119,7 +119,7 @@ export default function ComposeMerger() {
                 vars[key.trim()] = value.trim();
               }
             });
-            setProjectVariables(vars);
+            setServiceVariables(vars);
           }}
           placeholder="KEY=value (one per line)"
           rows={5}

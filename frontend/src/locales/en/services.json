@@ -1,0 +1,20 @@
+{
+  "title": "Services",
+  "createService": "Create Service",
+  "editService": "Edit Service",
+  "deleteService": "Delete Service",
+  "serviceName": "Service Name",
+  "serviceDetails": "Service Details",
+  "addContainer": "Add Container",
+  "removeContainer": "Remove Container",
+  "buildService": "Build Service",
+  "deployService": "Deploy Service",
+  "serviceContainers": "Service Containers",
+  "noServices": "No services found",
+  "searchServices": "Search services...",
+  "buildStatus": "Build Status",
+  "lastBuild": "Last Build",
+  "buildHistory": "Build History",
+  "installer": "Installer",
+  "downloadInstaller": "Download Installer"
+}

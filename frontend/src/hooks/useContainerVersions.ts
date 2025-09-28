@@ -36,7 +36,9 @@ const DEFAULT_FILTERS: VersionFilters = {
   published_only: false,
 };
 
-export function useContainerVersions(options: UseContainerVersionsOptions): UseContainerVersionsReturn {
+export function useContainerVersions(
+  options: UseContainerVersionsOptions
+): UseContainerVersionsReturn {
   const { containerId, autoFetch = true, initialFilters = {} } = options;
 
   const [state, setState] = useState<ContainerVersionState>({
