@@ -12,14 +12,14 @@ import (
 // ProjectService handles project management operations
 type ProjectService struct {
 	db            *gorm.DB
-	moduleService *ModuleService
+	containerService *ContainerService
 }
 
 // NewProjectService creates a new ProjectService instance
-func NewProjectService(db *gorm.DB, moduleService *ModuleService) *ProjectService {
+func NewProjectService(db *gorm.DB, containerService *ContainerService) *ProjectService {
 	return &ProjectService{
 		db:            db,
-		moduleService: moduleService,
+		containerService: containerService,
 	}
 }
 
@@ -35,17 +35,17 @@ type UpdateProjectRequest struct {
 	Description string `json:"description"`
 }
 
-// AddModuleToProjectRequest represents the request to add a module to a project
-type AddModuleToProjectRequest struct {
-	ModuleID        uint                   `json:"module_id" binding:"required"`
-	ModuleVersionID uint                   `json:"module_version_id" binding:"required"`
+// AddContainerToProjectRequest represents the request to add a container to a project
+type AddContainerToProjectRequest struct {
+	ContainerID        uint                   `json:"container_id" binding:"required"`
+	ContainerVersionID uint                   `json:"container_version_id" binding:"required"`
 	Order           int                    `json:"order"`
 	Enabled         bool                   `json:"enabled"`
 	OverrideVars    map[string]interface{} `json:"override_vars"`
 }
 
-// UpdateProjectModuleRequest represents the request to update a project module
-type UpdateProjectModuleRequest struct {
+// UpdateProjectContainerRequest represents the request to update a project container
+type UpdateProjectContainerRequest struct {
 	Order        *int                   `json:"order"`
 	Enabled      *bool                  `json:"enabled"`
 	OverrideVars map[string]interface{} `json:"override_vars"`
@@ -81,14 +81,14 @@ func (s *ProjectService) CreateProject(userID uint, req CreateProjectRequest) (*
 }
 
 // GetProject retrieves a project by ID with optional module loading
-func (s *ProjectService) GetProject(id uint, includeModules bool) (*models.Project, error) {
+func (s *ProjectService) GetProject(id uint, includeContainers bool) (*models.Project, error) {
 	var project models.Project
 	query := s.db
 
-	if includeModules {
-		query = query.Preload("ProjectModules", func(db *gorm.DB) *gorm.DB {
-			return db.Order("project_modules.order ASC")
-		}).Preload("ProjectModules.Module").Preload("ProjectModules.ModuleVersion")
+	if includeContainers {
+		query = query.Preload("ProjectContainers", func(db *gorm.DB) *gorm.DB {
+			return db.Order("project_containers.order ASC")
+		}).Preload("ProjectContainers.Container").Preload("ProjectContainers.ContainerVersion")
 	}
 
 	if err := query.First(&project, id).Error; err != nil {
@@ -102,14 +102,14 @@ func (s *ProjectService) GetProject(id uint, includeModules bool) (*models.Proje
 }
 
 // GetProjectByName retrieves a project by name for a specific user
-func (s *ProjectService) GetProjectByName(userID uint, name string, includeModules bool) (*models.Project, error) {
+func (s *ProjectService) GetProjectByName(userID uint, name string, includeContainers bool) (*models.Project, error) {
 	var project models.Project
 	query := s.db
 
-	if includeModules {
-		query = query.Preload("ProjectModules", func(db *gorm.DB) *gorm.DB {
-			return db.Order("project_modules.order ASC")
-		}).Preload("ProjectModules.Module").Preload("ProjectModules.ModuleVersion")
+	if includeContainers {
+		query = query.Preload("ProjectContainers", func(db *gorm.DB) *gorm.DB {
+			return db.Order("project_containers.order ASC")
+		}).Preload("ProjectContainers.Container").Preload("ProjectContainers.ContainerVersion")
 	}
 
 	if err := query.Where("user_id = ? AND name = ?", userID, name).First(&project).Error; err != nil {
@@ -209,7 +209,7 @@ func (s *ProjectService) DeleteProject(id uint) error {
 	// Delete in transaction to maintain consistency
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		// Delete all project modules first
-		if err := tx.Where("project_id = ?", id).Delete(&models.ProjectModule{}).Error; err != nil {
+		if err := tx.Where("project_id = ?", id).Delete(&models.ProjectContainer{}).Error; err != nil {
 			return fmt.Errorf("failed to delete project modules: %w", err)
 		}
 
@@ -223,7 +223,7 @@ func (s *ProjectService) DeleteProject(id uint) error {
 }
 
 // AddModuleToProject adds a module version to a project
-func (s *ProjectService) AddModuleToProject(projectID uint, req AddModuleToProjectRequest) (*models.ProjectModule, error) {
+func (s *ProjectService) AddContainerToProject(projectID uint, req AddContainerToProjectRequest) (*models.ProjectContainer, error) {
 	// Verify project exists
 	project, err := s.GetProject(projectID, false)
 	if err != nil {
@@ -231,8 +231,8 @@ func (s *ProjectService) AddModuleToProject(projectID uint, req AddModuleToProje
 	}
 
 	// Verify module version exists
-	var moduleVersion models.ModuleVersion
-	if err := s.db.Preload("Module").First(&moduleVersion, req.ModuleVersionID).Error; err != nil {
+	var containerVersion models.ContainerVersion
+	if err := s.db.Preload("Container").First(&containerVersion, req.ContainerVersionID).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("module version not found")
 		}
@@ -240,25 +240,25 @@ func (s *ProjectService) AddModuleToProject(projectID uint, req AddModuleToProje
 	}
 
 	// Verify the module version belongs to the specified module
-	if moduleVersion.ModuleID != req.ModuleID {
+	if containerVersion.ModuleID != req.ModuleID {
 		return nil, fmt.Errorf("module version does not belong to specified module")
 	}
 
 	// Check if module version is published
-	if !moduleVersion.Published {
+	if !containerVersion.Published {
 		return nil, fmt.Errorf("cannot add unpublished module version to project")
 	}
 
 	// Check if module is already in project
-	var existingProjectModule models.ProjectModule
+	var existingProjectModule models.ProjectContainer
 	if err := s.db.Where("project_id = ? AND module_id = ?", projectID, req.ModuleID).First(&existingProjectModule).Error; err == nil {
-		return nil, fmt.Errorf("module '%s' is already added to project '%s'", moduleVersion.Module.Name, project.Name)
+		return nil, fmt.Errorf("module '%s' is already added to project '%s'", containerVersion.Module.Name, project.Name)
 	}
 
 	// Set default order if not provided
 	if req.Order == 0 {
 		var maxOrder int
-		s.db.Model(&models.ProjectModule{}).Where("project_id = ?", projectID).Select("COALESCE(MAX(\"order\"), 0)").Scan(&maxOrder)
+		s.db.Model(&models.ProjectContainer{}).Where("project_id = ?", projectID).Select("COALESCE(MAX(\"order\"), 0)").Scan(&maxOrder)
 		req.Order = maxOrder + 1
 	}
 
@@ -266,31 +266,31 @@ func (s *ProjectService) AddModuleToProject(projectID uint, req AddModuleToProje
 	overrideVarsBytes, _ := json.Marshal(req.OverrideVars)
 	overrideVarsJSON := datatypes.JSON(overrideVarsBytes)
 
-	projectModule := &models.ProjectModule{
+	projectContainer := &models.ProjectContainer{
 		ProjectID:       projectID,
 		ModuleID:        req.ModuleID,
-		ModuleVersionID: req.ModuleVersionID,
+		ContainerVersionID: req.ContainerVersionID,
 		Order:           req.Order,
 		Enabled:         req.Enabled,
 		OverrideVars:    overrideVarsJSON,
 	}
 
-	if err := s.db.Create(projectModule).Error; err != nil {
+	if err := s.db.Create(projectContainer).Error; err != nil {
 		return nil, fmt.Errorf("failed to add module to project: %w", err)
 	}
 
 	// Load relationships
-	if err := s.db.Preload("Module").Preload("ModuleVersion").First(projectModule, projectModule.ID).Error; err != nil {
+	if err := s.db.Preload("Container").Preload("ContainerVersion").First(projectContainer, projectContainer.ID).Error; err != nil {
 		return nil, fmt.Errorf("failed to load project module with relationships: %w", err)
 	}
 
-	return projectModule, nil
+	return projectContainer, nil
 }
 
 // UpdateProjectModule updates a project module configuration
-func (s *ProjectService) UpdateProjectModule(projectModuleID uint, req UpdateProjectModuleRequest) (*models.ProjectModule, error) {
-	var projectModule models.ProjectModule
-	if err := s.db.Preload("Module").Preload("ModuleVersion").First(&projectModule, projectModuleID).Error; err != nil {
+func (s *ProjectService) UpdateProjectContainer(projectContainerID uint, req UpdateProjectContainerRequest) (*models.ProjectContainer, error) {
+	var projectContainer models.ProjectContainer
+	if err := s.db.Preload("Container").Preload("ContainerVersion").First(&projectContainer, projectContainerID).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("project module not found")
 		}
@@ -299,32 +299,32 @@ func (s *ProjectService) UpdateProjectModule(projectModuleID uint, req UpdatePro
 
 	// Update fields
 	if req.Order != nil {
-		projectModule.Order = *req.Order
+		projectContainer.Order = *req.Order
 	}
 	if req.Enabled != nil {
-		projectModule.Enabled = *req.Enabled
+		projectContainer.Enabled = *req.Enabled
 	}
 	if req.OverrideVars != nil {
 		overrideVarsBytes, _ := json.Marshal(req.OverrideVars)
-		projectModule.OverrideVars = datatypes.JSON(overrideVarsBytes)
+		projectContainer.OverrideVars = datatypes.JSON(overrideVarsBytes)
 	}
 
-	if err := s.db.Save(&projectModule).Error; err != nil {
+	if err := s.db.Save(&projectContainer).Error; err != nil {
 		return nil, fmt.Errorf("failed to update project module: %w", err)
 	}
 
-	return &projectModule, nil
+	return &projectContainer, nil
 }
 
 // RemoveModuleFromProject removes a module from a project
-func (s *ProjectService) RemoveModuleFromProject(projectID, moduleID uint) error {
+func (s *ProjectService) RemoveContainerFromProject(projectID, containerID uint) error {
 	// Verify project exists
 	if _, err := s.GetProject(projectID, false); err != nil {
 		return err
 	}
 
 	// Find and delete the project module
-	result := s.db.Where("project_id = ? AND module_id = ?", projectID, moduleID).Delete(&models.ProjectModule{})
+	result := s.db.Where("project_id = ? AND module_id = ?", projectID, moduleID).Delete(&models.ProjectContainer{})
 	if result.Error != nil {
 		return fmt.Errorf("failed to remove module from project: %w", result.Error)
 	}
@@ -335,27 +335,27 @@ func (s *ProjectService) RemoveModuleFromProject(projectID, moduleID uint) error
 	return nil
 }
 
-// GetProjectModules returns all modules in a project ordered by their order field
-func (s *ProjectService) GetProjectModules(projectID uint) ([]models.ProjectModule, error) {
+// GetProjectContainers returns all modules in a project ordered by their order field
+func (s *ProjectService) GetProjectContainers(projectID uint) ([]models.ProjectContainer, error) {
 	// Verify project exists
 	if _, err := s.GetProject(projectID, false); err != nil {
 		return nil, err
 	}
 
-	var projectModules []models.ProjectModule
+	var projectContainers []models.ProjectContainer
 	if err := s.db.Where("project_id = ?", projectID).
-		Preload("Module").
-		Preload("ModuleVersion").
+		Preload("Container").
+		Preload("ContainerVersion").
 		Order("\"order\" ASC").
-		Find(&projectModules).Error; err != nil {
+		Find(&projectContainers).Error; err != nil {
 		return nil, fmt.Errorf("failed to get project modules: %w", err)
 	}
 
-	return projectModules, nil
+	return projectContainers, nil
 }
 
-// ReorderProjectModules updates the order of modules in a project
-func (s *ProjectService) ReorderProjectModules(projectID uint, moduleOrders map[uint]int) error {
+// ReorderProjectContainers updates the order of modules in a project
+func (s *ProjectService) ReorderProjectContainers(projectID uint, containerOrders map[uint]int) error {
 	// Verify project exists
 	if _, err := s.GetProject(projectID, false); err != nil {
 		return err
@@ -364,7 +364,7 @@ func (s *ProjectService) ReorderProjectModules(projectID uint, moduleOrders map[
 	// Update in transaction
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		for moduleID, order := range moduleOrders {
-			if err := tx.Model(&models.ProjectModule{}).
+			if err := tx.Model(&models.ProjectContainer{}).
 				Where("project_id = ? AND module_id = ?", projectID, moduleID).
 				Update("order", order).Error; err != nil {
 				return fmt.Errorf("failed to update order for module %d: %w", moduleID, err)
