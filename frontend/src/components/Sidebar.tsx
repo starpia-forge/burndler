@@ -48,12 +48,12 @@ export default function Sidebar() {
     <aside
       className={`${
         collapsed ? 'w-20' : 'w-64'
-      } fixed left-0 top-16 bottom-0 z-30 flex flex-col bg-gray-900 transition-all duration-300 ease-in-out`}
+      } fixed left-0 top-16 bottom-0 z-30 flex flex-col bg-card border-r border-border transition-all duration-300 ease-in-out`}
     >
       {/* Collapse Toggle */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-6 bg-gray-900 text-white p-1 rounded-full border-2 border-gray-700 hover:bg-gray-800 transition-colors"
+        className="absolute -right-3 top-6 bg-card text-foreground p-1 rounded-full border-2 border-border hover:bg-accent transition-colors"
       >
         {collapsed ? (
           <ChevronRightIcon className="w-4 h-4" />
@@ -72,7 +72,7 @@ export default function Sidebar() {
               `group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                 isActive
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
               }`
             }
             title={collapsed ? item.name : undefined}
@@ -80,7 +80,7 @@ export default function Sidebar() {
             <item.icon className={`${collapsed ? 'mx-auto' : 'mr-3'} h-6 w-6 flex-shrink-0`} />
             {!collapsed && <span className="truncate">{item.name}</span>}
             {!collapsed && item.requiredRole && (
-              <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-700 text-gray-300">
+              <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
                 {item.requiredRole}
               </span>
             )}
@@ -90,7 +90,7 @@ export default function Sidebar() {
 
       {/* User Info Footer */}
       {!collapsed && user && (
-        <div className="flex-shrink-0 p-4 border-t border-gray-800">
+        <div className="flex-shrink-0 p-4 border-t border-border">
           <div className="flex items-center">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-semibold text-sm">
@@ -98,8 +98,10 @@ export default function Sidebar() {
               </span>
             </div>
             <div className="ml-3 overflow-hidden">
-              <p className="text-sm font-medium text-white truncate">{user.name || user.email}</p>
-              <p className="text-xs text-gray-400">{user.role}</p>
+              <p className="text-sm font-medium text-foreground truncate">
+                {user.name || user.email}
+              </p>
+              <p className="text-xs text-muted-foreground">{user.role}</p>
             </div>
           </div>
         </div>
@@ -107,7 +109,7 @@ export default function Sidebar() {
 
       {/* Version */}
       <div className={`p-4 text-center ${collapsed ? 'px-2' : ''}`}>
-        <p className="text-xs text-gray-500">{collapsed ? 'v0.1' : 'Burndler v0.1.0'}</p>
+        <p className="text-xs text-muted-foreground">{collapsed ? 'v0.1' : 'Burndler v0.1.0'}</p>
       </div>
     </aside>
   );
