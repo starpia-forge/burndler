@@ -98,3 +98,6 @@ go.work
 # Local storage (development)
 /storage/
 /var/
+
+# Project artifacts
+.initialized
