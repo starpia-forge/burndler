@@ -6,6 +6,7 @@ import LoginPage from './components/LoginPage';
 import SetupWizard from './pages/SetupWizard';
 import ContainersPage from './pages/ContainersPage';
 import ContainerDetailPage from './pages/ContainerDetailPage';
+import CreateContainerPage from './pages/CreateContainerPage';
 import ServicesPage from './pages/ServicesPage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -82,6 +83,18 @@ function App() {
                       <ProtectedRoute>
                         <DashboardLayout>
                           <ContainersPage />
+                        </DashboardLayout>
+                      </ProtectedRoute>
+                    </SetupGuard>
+                  }
+                />
+                <Route
+                  path="/containers/create"
+                  element={
+                    <SetupGuard>
+                      <ProtectedRoute>
+                        <DashboardLayout>
+                          <CreateContainerPage />
                         </DashboardLayout>
                       </ProtectedRoute>
                     </SetupGuard>
