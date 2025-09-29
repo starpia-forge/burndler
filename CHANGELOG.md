@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.0.0 (2025-09-29)
+
+### 🚀 Features
+
+* Initial Burndler platform implementation with container registry and project management ([535bcf0](https://github.com/starpia-forge/burndler/commit/535bcf0ae32fae0be72edea99c204bee5b57796b))
+
 ## [1.0.1](https://github.com/starpia-forge/burndler/compare/v1.0.0...v1.0.1) (2025-09-19)
 
 ### 🐛 Bug Fixes
