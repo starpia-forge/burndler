@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go test:*)",
+      "Bash(go tool cover:*)",
+      "Bash(go fmt:*)",
+      "Bash(make lint-go:*)",
+      "Bash(git tag:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(make test-unit:*)",
+      "Bash(npm install)",
+      "Bash(npm test:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh workflow:*)",
+      "Bash(gh run view:*)",
+      "Bash(golangci-lint run:*)",
+      "Bash(npm run lint)",
+      "Bash(make pre-commit:*)",
+      "Bash(make lint-backend:*)",
+      "Bash(make lint-frontend:*)",
+      "Bash(make lint:*)",
+      "Bash(make format-backend:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.github.com)",
+      "Bash(make format-frontend:*)",
+      "Read(//Users/starpia/dev/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

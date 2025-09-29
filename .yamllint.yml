@@ -1,0 +1,37 @@
+# YAML linting configuration for Burndler
+extends: default
+
+rules:
+  # Allow longer lines for docker-compose files
+  line-length:
+    max: 120
+    level: warning
+
+  # Allow multiple spaces for alignment in YAML
+  indentation:
+    spaces: 2
+    indent-sequences: true
+
+  # Be more lenient with trailing spaces in comments
+  trailing-spaces:
+    level: warning
+
+  # Allow empty values (common in compose files)
+  empty-values:
+    forbid-in-block-mappings: false
+    forbid-in-flow-mappings: false
+
+  # Allow document start for multi-doc YAML files
+  document-start:
+    present: false
+
+  # Allow truthy values (on/off, yes/no) common in compose
+  truthy:
+    allowed-values: ['true', 'false', 'on', 'off', 'yes', 'no']
+    check-keys: false
+
+ignore: |
+  .git/
+  node_modules/
+  dist/
+  coverage/

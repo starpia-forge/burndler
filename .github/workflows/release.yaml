@@ -1,0 +1,183 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branches:
+      - main
+
+env:
+  GO_VERSION: '1.24'
+  NODE_VERSION: '20'
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    if: github.repository == 'starpia-forge/burndler' && github.event.workflow_run.conclusion == 'success'
+    outputs:
+      released: ${{ steps.semantic.outputs.new_release_published }}
+      version: ${{ steps.semantic.outputs.new_release_version }}
+      tag: ${{ steps.semantic.outputs.new_release_git_tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Install semantic-release dependencies
+        run: |
+          npm install -g \
+            semantic-release \
+            @semantic-release/changelog \
+            @semantic-release/exec \
+            @semantic-release/git \
+            @semantic-release/github \
+            conventional-changelog-conventionalcommits
+
+      - name: Install build dependencies
+        run: |
+          cd frontend && npm ci
+          cd ../backend && go mod download
+
+      - name: Initialize build environment
+        run: |
+          make init
+
+      - name: Build application for release
+        run: |
+          make build
+
+      - name: Run semantic release
+        id: semantic
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          # Run semantic-release
+          npx semantic-release
+
+          # Check if a release was created and set GitHub Actions outputs
+          if [ -f VERSION ]; then
+            VERSION=$(cat VERSION)
+            echo "Release version $VERSION detected"
+            echo "new_release_published=true" >> $GITHUB_OUTPUT
+            echo "new_release_version=$VERSION" >> $GITHUB_OUTPUT
+            echo "new_release_git_tag=v$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "No new release created"
+            echo "new_release_published=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build release binaries
+        if: steps.semantic.outputs.new_release_published == 'true'
+        env:
+          VERSION: ${{ steps.semantic.outputs.new_release_version }}
+          BUILD_TIME: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          GIT_COMMIT: ${{ github.sha }}
+        run: |
+          # Build main binary with version info using make
+          make build-backend-with-static
+
+          # Make binary executable
+          chmod +x dist/burndler
+
+      - name: Upload release artifacts
+        if: steps.semantic.outputs.new_release_published == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-binaries-${{ steps.semantic.outputs.new_release_version }}
+          path: |
+            dist/burndler
+          retention-days: 90
+
+  docker-release:
+    name: Tag and Push Release Images
+    runs-on: ubuntu-latest
+    needs: release
+    if: needs.release.outputs.released == 'true'
+
+    steps:
+      - name: Install crane
+        uses: imjasonh/setup-crane@v0.3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Retag and push release images
+        env:
+          SOURCE_IMAGE: ghcr.io/${{ github.repository }}:main
+          REGISTRY: ghcr.io/${{ github.repository }}
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          # Verify source image exists
+          echo "Verifying source image: $SOURCE_IMAGE"
+          crane digest $SOURCE_IMAGE
+
+          # Create semantic version tags from main tag
+          echo "Creating release tags..."
+          crane copy $SOURCE_IMAGE $REGISTRY:$VERSION
+
+          # Create major.minor tag (e.g., 1.2)
+          MAJOR_MINOR=$(echo $VERSION | cut -d. -f1-2)
+          crane copy $SOURCE_IMAGE $REGISTRY:$MAJOR_MINOR
+
+          # Create major tag (e.g., 1)
+          MAJOR=$(echo $VERSION | cut -d. -f1)
+          crane copy $SOURCE_IMAGE $REGISTRY:$MAJOR
+
+          # Update latest tag
+          crane copy $SOURCE_IMAGE $REGISTRY:latest
+
+          # Verify all tags were created successfully
+          echo "Verifying created tags..."
+          crane digest $REGISTRY:$VERSION
+          crane digest $REGISTRY:$MAJOR_MINOR
+          crane digest $REGISTRY:$MAJOR
+          crane digest $REGISTRY:latest
+
+          echo "✅ Successfully retagged $SOURCE_IMAGE with release tags:"
+          echo "  - $REGISTRY:$VERSION"
+          echo "  - $REGISTRY:$MAJOR_MINOR"
+          echo "  - $REGISTRY:$MAJOR"
+          echo "  - $REGISTRY:latest"
+
+
+  notify:
+    name: Release Notification
+    runs-on: ubuntu-latest
+    needs: [release, docker-release]
+    if: needs.release.outputs.released == 'true'
+
+    steps:
+      - name: Notify release completion
+        run: |
+          echo "🚀 Burndler v${{ needs.release.outputs.version }} has been released!"
+          echo "📦 Docker image: ghcr.io/${{ github.repository }}:${{ needs.release.outputs.version }}"
+          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.release.outputs.tag }}"

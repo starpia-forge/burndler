@@ -1,0 +1,351 @@
+openapi: 3.0.3
+info:
+  title: Burndler API
+  description: Docker Compose orchestration for offline deployment
+  version: 0.1.0
+  contact:
+    name: Burndler Team
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development server
+  - url: https://api.burndler.example/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      tags: [System]
+      security: []
+      responses:
+        '200':
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /compose/merge:
+    post:
+      summary: Merge multiple compose files
+      tags: [Compose]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MergeRequest'
+      responses:
+        '200':
+          description: Successfully merged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MergeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /compose/lint:
+    post:
+      summary: Lint merged compose file
+      tags: [Compose]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LintRequest'
+      responses:
+        '200':
+          description: Lint results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LintResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /build/package:
+    post:
+      summary: Create offline installer package
+      tags: [Build]
+      x-rbac-role: Developer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PackageRequest'
+      responses:
+        '202':
+          description: Package build started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /build/status/{buildId}:
+    get:
+      summary: Get build status
+      tags: [Build]
+      parameters:
+        - name: buildId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Build status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BuildStatus'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+        - message
+        - timestamp
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error context
+        timestamp:
+          type: string
+          format: date-time
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+
+    MergeRequest:
+      type: object
+      required:
+        - modules
+      properties:
+        modules:
+          type: array
+          items:
+            type: object
+            required:
+              - name
+              - compose
+            properties:
+              name:
+                type: string
+                description: Module namespace
+              compose:
+                type: string
+                description: Compose YAML content
+              variables:
+                type: object
+                description: Module-specific variables
+        projectVariables:
+          type: object
+          description: Project-level variable overrides
+
+    MergeResponse:
+      type: object
+      required:
+        - mergedCompose
+        - mappings
+      properties:
+        mergedCompose:
+          type: string
+          description: Merged compose YAML
+        mappings:
+          type: object
+          description: Service/network/volume name mappings
+        warnings:
+          type: array
+          items:
+            type: string
+
+    LintRequest:
+      type: object
+      required:
+        - compose
+      properties:
+        compose:
+          type: string
+          description: Compose YAML to lint
+        strictMode:
+          type: boolean
+          default: true
+
+    LintResponse:
+      type: object
+      required:
+        - valid
+        - errors
+        - warnings
+      properties:
+        valid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              rule:
+                type: string
+              message:
+                type: string
+              line:
+                type: integer
+        warnings:
+          type: array
+          items:
+            type: object
+            properties:
+              rule:
+                type: string
+              message:
+                type: string
+              line:
+                type: integer
+
+    PackageRequest:
+      type: object
+      required:
+        - compose
+        - name
+      properties:
+        name:
+          type: string
+          description: Package name
+        compose:
+          type: string
+          description: Merged compose YAML
+        resources:
+          type: array
+          items:
+            type: object
+            properties:
+              module:
+                type: string
+              version:
+                type: string
+              files:
+                type: array
+                items:
+                  type: string
+
+    PackageResponse:
+      type: object
+      required:
+        - buildId
+        - status
+      properties:
+        buildId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [queued, building, completed, failed]
+        downloadUrl:
+          type: string
+          description: Available when completed
+
+    BuildStatus:
+      type: object
+      required:
+        - buildId
+        - status
+        - createdAt
+      properties:
+        buildId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [queued, building, completed, failed]
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        downloadUrl:
+          type: string
+        error:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Insufficient permissions (Engineer role attempting write)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

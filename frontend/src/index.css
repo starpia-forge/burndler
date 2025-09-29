@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light theme colors */
+    --primary-50: 220 100% 97%;
+    --primary-100: 221 83% 87%;
+    --primary-200: 219 77% 81%;
+    --primary-300: 218 71% 76%;
+    --primary-400: 218 61% 69%;
+    --primary-500: 217 91% 60%;
+    --primary-600: 221 83% 53%;
+    --primary-700: 224 76% 48%;
+    --primary-800: 226 71% 40%;
+    --primary-900: 224 64% 33%;
+
+    --background: 0 0% 100%;
+    --foreground: 222 84% 5%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 84% 5%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 84% 5%;
+
+    --secondary: 210 40% 98%;
+    --secondary-foreground: 215 25% 27%;
+
+    --muted: 210 40% 98%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 210 40% 98%;
+    --accent-foreground: 215 25% 27%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --info: 188 95% 37%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 210 40% 98%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark theme colors */
+    --primary-50: 224 64% 33%;
+    --primary-100: 226 71% 40%;
+    --primary-200: 224 76% 48%;
+    --primary-300: 221 83% 53%;
+    --primary-400: 217 91% 60%;
+    --primary-500: 218 61% 69%;
+    --primary-600: 218 71% 76%;
+    --primary-700: 219 77% 81%;
+    --primary-800: 221 83% 87%;
+    --primary-900: 220 100% 97%;
+
+    --background: 222 84% 5%;
+    --foreground: 210 40% 98%;
+
+    --card: 215 28% 17%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 215 28% 17%;
+    --popover-foreground: 210 40% 98%;
+
+    --secondary: 215 25% 27%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 215 28% 17%;
+    --muted-foreground: 217 10% 65%;
+
+    --accent: 215 25% 27%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 76% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 69% 40%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 95% 40%;
+    --warning-foreground: 0 0% 100%;
+
+    --info: 186 100% 35%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 215 25% 27%;
+    --input: 215 28% 17%;
+    --ring: 218 61% 69%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

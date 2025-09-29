@@ -1,0 +1,67 @@
+{
+  "appName": "번들러",
+  "welcome": "환영합니다",
+  "loading": "로딩 중...",
+  "save": "저장",
+  "cancel": "취소",
+  "delete": "삭제",
+  "edit": "편집",
+  "create": "생성",
+  "update": "업데이트",
+  "confirm": "확인",
+  "back": "이전",
+  "next": "다음",
+  "previous": "이전",
+  "finish": "완료",
+  "close": "닫기",
+  "search": "검색",
+  "filter": "필터",
+  "sort": "정렬",
+  "actions": "작업",
+  "status": "상태",
+  "name": "이름",
+  "description": "설명",
+  "version": "버전",
+  "createdAt": "생성일",
+  "updatedAt": "수정일",
+  "theme": {
+    "light": "밝은 테마",
+    "dark": "어두운 테마",
+    "system": "시스템 설정"
+  },
+  "language": {
+    "english": "English",
+    "korean": "한국어"
+  },
+  "navigation": {
+    "dashboard": "대시보드",
+    "containers": "컨테이너",
+    "services": "서비스",
+    "packageBuilder": "패키지 빌더",
+    "lintReports": "린트 보고서",
+    "buildHistory": "빌드 기록",
+    "cliTools": "CLI 도구",
+    "rbacManager": "RBAC 관리자",
+    "settings": "설정"
+  },
+  "roles": {
+    "developer": "개발자",
+    "engineer": "엔지니어"
+  },
+  "version": {
+    "short": "v0.1",
+    "full": "v0.1.0"
+  },
+  "pages": {
+    "lintReportsComingSoon": "린트 보고서 기능이 곧 출시됩니다...",
+    "buildHistoryComingSoon": "빌드 기록 기능이 곧 출시됩니다...",
+    "cliToolsComingSoon": "CLI 도구 문서가 곧 출시됩니다...",
+    "rbacComingSoon": "역할 기반 접근 제어 관리 기능이 곧 출시됩니다...",
+    "settingsComingSoon": "설정 페이지가 곧 출시됩니다..."
+  },
+  "showingResults": "{{total}} 중 {{from}}-{{to}} 표시",
+  "accessDenied": "접근 거부",
+  "networkError": "네트워크 오류입니다. 연결을 확인해주세요.",
+  "unauthorized": "이 작업을 수행할 권한이 없습니다.",
+  "serverError": "서버 오류입니다. 나중에 다시 시도해주세요."
+}

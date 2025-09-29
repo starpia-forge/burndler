@@ -1,0 +1,67 @@
+{
+  "appName": "Burndler",
+  "welcome": "Welcome",
+  "loading": "Loading...",
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "edit": "Edit",
+  "create": "Create",
+  "update": "Update",
+  "confirm": "Confirm",
+  "back": "Back",
+  "next": "Next",
+  "previous": "Previous",
+  "finish": "Finish",
+  "close": "Close",
+  "search": "Search",
+  "filter": "Filter",
+  "sort": "Sort",
+  "actions": "Actions",
+  "status": "Status",
+  "name": "Name",
+  "description": "Description",
+  "version": "Version",
+  "createdAt": "Created",
+  "updatedAt": "Updated",
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "english": "English",
+    "korean": "한국어"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "containers": "Containers",
+    "services": "Services",
+    "packageBuilder": "Package Builder",
+    "lintReports": "Lint Reports",
+    "buildHistory": "Build History",
+    "cliTools": "CLI Tools",
+    "rbacManager": "RBAC Manager",
+    "settings": "Settings"
+  },
+  "roles": {
+    "developer": "Developer",
+    "engineer": "Engineer"
+  },
+  "version": {
+    "short": "v0.1",
+    "full": "v0.1.0"
+  },
+  "pages": {
+    "lintReportsComingSoon": "Lint reports feature coming soon...",
+    "buildHistoryComingSoon": "Build history feature coming soon...",
+    "cliToolsComingSoon": "CLI tools documentation coming soon...",
+    "rbacComingSoon": "Role-based access control management coming soon...",
+    "settingsComingSoon": "Settings page coming soon..."
+  },
+  "showingResults": "Showing {{from}} to {{to}} of {{total}} results",
+  "accessDenied": "Access Denied",
+  "networkError": "Network error. Please check your connection.",
+  "unauthorized": "You are not authorized to perform this action.",
+  "serverError": "Server error. Please try again later."
+}
