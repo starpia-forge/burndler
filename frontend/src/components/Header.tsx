@@ -69,7 +69,9 @@ export default function Header() {
                         <p className="text-xs text-muted-foreground mt-1">
                           <span
                             className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                              user?.role === 'Developer'
+                              user?.role === 'Admin'
+                                ? 'bg-purple-100 text-purple-800'
+                                : user?.role === 'Developer'
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-blue-100 text-blue-800'
                             }`}
