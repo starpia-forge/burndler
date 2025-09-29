@@ -74,6 +74,7 @@ go.work
 
 # Backend embedded frontend (keep placeholder, ignore built assets)
 /backend/internal/static/dist/*
+!/backend/internal/static/dist/.gitkeep
 !/backend/internal/static/dist/index.html
 !/backend/internal/static/dist/placeholder.html
 !/backend/internal/static/dist/assets/.gitkeep
