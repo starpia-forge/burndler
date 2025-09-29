@@ -174,7 +174,10 @@ export const ContainerForm: React.FC<ContainerFormProps> = ({
             />
             {errors.author && <p className="mt-1 text-sm text-red-600">{errors.author}</p>}
             <p className="mt-1 text-sm text-muted-foreground">
-              {t('containers:authorCharacterCount', { count: formData.author?.length || 0, max: 100 })}
+              {t('containers:authorCharacterCount', {
+                count: formData.author?.length || 0,
+                max: 100,
+              })}
             </p>
           </div>
 
