@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/burndler/burndler/internal/models"
@@ -101,9 +102,11 @@ func TestServiceHandler_CreateService(t *testing.T) {
 			w := httptest.NewRecorder()
 			router := gin.New()
 
-			// Mock middleware to set user context
+			// Mock middleware to set user context (matching JWT middleware format)
 			router.Use(func(c *gin.Context) {
-				c.Set("user", user)
+				c.Set("user_id", strconv.Itoa(int(user.ID)))
+				c.Set("email", user.Email)
+				c.Set("role", user.Role)
 				c.Next()
 			})
 
@@ -170,9 +173,11 @@ func TestServiceHandler_GetService(t *testing.T) {
 			w := httptest.NewRecorder()
 			router := gin.New()
 
-			// Mock middleware to set user context
+			// Mock middleware to set user context (matching JWT middleware format)
 			router.Use(func(c *gin.Context) {
-				c.Set("user", user)
+				c.Set("user_id", strconv.Itoa(int(user.ID)))
+				c.Set("email", user.Email)
+				c.Set("role", user.Role)
 				c.Next()
 			})
 
@@ -239,9 +244,11 @@ func TestServiceHandler_ListServices(t *testing.T) {
 			w := httptest.NewRecorder()
 			router := gin.New()
 
-			// Mock middleware to set user context
+			// Mock middleware to set user context (matching JWT middleware format)
 			router.Use(func(c *gin.Context) {
-				c.Set("user", user)
+				c.Set("user_id", strconv.Itoa(int(user.ID)))
+				c.Set("email", user.Email)
+				c.Set("role", user.Role)
 				c.Next()
 			})
 
@@ -314,9 +321,11 @@ func TestServiceHandler_UpdateService(t *testing.T) {
 			w := httptest.NewRecorder()
 			router := gin.New()
 
-			// Mock middleware to set user context
+			// Mock middleware to set user context (matching JWT middleware format)
 			router.Use(func(c *gin.Context) {
-				c.Set("user", user)
+				c.Set("user_id", strconv.Itoa(int(user.ID)))
+				c.Set("email", user.Email)
+				c.Set("role", user.Role)
 				c.Next()
 			})
 
@@ -383,9 +392,11 @@ func TestServiceHandler_DeleteService(t *testing.T) {
 			w := httptest.NewRecorder()
 			router := gin.New()
 
-			// Mock middleware to set user context
+			// Mock middleware to set user context (matching JWT middleware format)
 			router.Use(func(c *gin.Context) {
-				c.Set("user", user)
+				c.Set("user_id", strconv.Itoa(int(user.ID)))
+				c.Set("email", user.Email)
+				c.Set("role", user.Role)
 				c.Next()
 			})
 
