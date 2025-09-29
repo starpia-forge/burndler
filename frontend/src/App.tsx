@@ -7,6 +7,7 @@ import SetupWizard from './pages/SetupWizard';
 import ContainersPage from './pages/ContainersPage';
 import ContainerDetailPage from './pages/ContainerDetailPage';
 import CreateContainerPage from './pages/CreateContainerPage';
+import EditContainerPage from './pages/EditContainerPage';
 import CreateContainerVersionPage from './pages/CreateContainerVersionPage';
 import ContainerVersionDetailPage from './pages/ContainerVersionDetailPage';
 import ServicesPage from './pages/ServicesPage';
@@ -109,6 +110,18 @@ function App() {
                       <ProtectedRoute>
                         <DashboardLayout>
                           <ContainerDetailPage />
+                        </DashboardLayout>
+                      </ProtectedRoute>
+                    </SetupGuard>
+                  }
+                />
+                <Route
+                  path="/containers/:id/edit"
+                  element={
+                    <SetupGuard>
+                      <ProtectedRoute>
+                        <DashboardLayout>
+                          <EditContainerPage />
                         </DashboardLayout>
                       </ProtectedRoute>
                     </SetupGuard>

@@ -72,8 +72,8 @@ export default function Header() {
                               user?.role === 'Admin'
                                 ? 'bg-purple-100 text-purple-800'
                                 : user?.role === 'Developer'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-blue-100 text-blue-800'
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-blue-100 text-blue-800'
                             }`}
                           >
                             {user?.role && t(`auth:role.${user.role.toLowerCase()}`)}

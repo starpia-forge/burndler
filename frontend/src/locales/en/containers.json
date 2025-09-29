@@ -121,5 +121,11 @@
   "variables": "Variables",
   "resourcePaths": "Resource Paths",
   "dependencies": "Dependencies",
-  "publishVersion": "Publish Version"
+  "publishVersion": "Publish Version",
+  "editContainerTitle": "Edit Container",
+  "editContainerDescription": "Edit the information for the {containerName} container.",
+  "updateContainer": "Update Container",
+  "updating": "Updating...",
+  "updateFailed": "Failed to update container. Please try again.",
+  "updateSuccess": "Container updated successfully."
 }
