@@ -7,6 +7,8 @@ import SetupWizard from './pages/SetupWizard';
 import ContainersPage from './pages/ContainersPage';
 import ContainerDetailPage from './pages/ContainerDetailPage';
 import CreateContainerPage from './pages/CreateContainerPage';
+import CreateContainerVersionPage from './pages/CreateContainerVersionPage';
+import ContainerVersionDetailPage from './pages/ContainerVersionDetailPage';
 import ServicesPage from './pages/ServicesPage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -107,6 +109,30 @@ function App() {
                       <ProtectedRoute>
                         <DashboardLayout>
                           <ContainerDetailPage />
+                        </DashboardLayout>
+                      </ProtectedRoute>
+                    </SetupGuard>
+                  }
+                />
+                <Route
+                  path="/containers/:id/versions/create"
+                  element={
+                    <SetupGuard>
+                      <ProtectedRoute>
+                        <DashboardLayout>
+                          <CreateContainerVersionPage />
+                        </DashboardLayout>
+                      </ProtectedRoute>
+                    </SetupGuard>
+                  }
+                />
+                <Route
+                  path="/containers/:id/versions/:version"
+                  element={
+                    <SetupGuard>
+                      <ProtectedRoute>
+                        <DashboardLayout>
+                          <ContainerVersionDetailPage />
                         </DashboardLayout>
                       </ProtectedRoute>
                     </SetupGuard>
