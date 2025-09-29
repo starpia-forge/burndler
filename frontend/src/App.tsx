@@ -10,6 +10,7 @@ import ServicesPage from './pages/ServicesPage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import SetupGuard from './components/SetupGuard';
+import PlaceholderPage from './components/PlaceholderPage';
 import { AuthProvider } from './hooks/useAuth';
 import { SetupProvider } from './hooks/useSetup';
 import { BackendConnectionProvider } from './hooks/useBackendConnection';
@@ -128,14 +129,10 @@ function App() {
                     <SetupGuard>
                       <ProtectedRoute>
                         <DashboardLayout>
-                          <div className="p-6 bg-card rounded-lg shadow border border-border">
-                            <h2 className="text-2xl font-bold mb-4 text-foreground">
-                              Lint Reports
-                            </h2>
-                            <p className="text-muted-foreground">
-                              Lint reports feature coming soon...
-                            </p>
-                          </div>
+                          <PlaceholderPage
+                            titleKey="navigation.lintReports"
+                            descriptionKey="pages.lintReportsComingSoon"
+                          />
                         </DashboardLayout>
                       </ProtectedRoute>
                     </SetupGuard>
@@ -147,14 +144,10 @@ function App() {
                     <SetupGuard>
                       <ProtectedRoute>
                         <DashboardLayout>
-                          <div className="p-6 bg-card rounded-lg shadow border border-border">
-                            <h2 className="text-2xl font-bold mb-4 text-foreground">
-                              Build History
-                            </h2>
-                            <p className="text-muted-foreground">
-                              Build history feature coming soon...
-                            </p>
-                          </div>
+                          <PlaceholderPage
+                            titleKey="navigation.buildHistory"
+                            descriptionKey="pages.buildHistoryComingSoon"
+                          />
                         </DashboardLayout>
                       </ProtectedRoute>
                     </SetupGuard>
@@ -166,12 +159,10 @@ function App() {
                     <SetupGuard>
                       <ProtectedRoute>
                         <DashboardLayout>
-                          <div className="p-6 bg-card rounded-lg shadow border border-border">
-                            <h2 className="text-2xl font-bold mb-4 text-foreground">CLI Tools</h2>
-                            <p className="text-muted-foreground">
-                              CLI tools documentation coming soon...
-                            </p>
-                          </div>
+                          <PlaceholderPage
+                            titleKey="navigation.cliTools"
+                            descriptionKey="pages.cliToolsComingSoon"
+                          />
                         </DashboardLayout>
                       </ProtectedRoute>
                     </SetupGuard>
@@ -183,14 +174,10 @@ function App() {
                     <SetupGuard>
                       <ProtectedRoute>
                         <DashboardLayout>
-                          <div className="p-6 bg-card rounded-lg shadow border border-border">
-                            <h2 className="text-2xl font-bold mb-4 text-foreground">
-                              RBAC Manager
-                            </h2>
-                            <p className="text-muted-foreground">
-                              Role-based access control management coming soon...
-                            </p>
-                          </div>
+                          <PlaceholderPage
+                            titleKey="navigation.rbacManager"
+                            descriptionKey="pages.rbacComingSoon"
+                          />
                         </DashboardLayout>
                       </ProtectedRoute>
                     </SetupGuard>
@@ -202,10 +189,10 @@ function App() {
                     <SetupGuard>
                       <ProtectedRoute>
                         <DashboardLayout>
-                          <div className="p-6 bg-card rounded-lg shadow border border-border">
-                            <h2 className="text-2xl font-bold mb-4 text-foreground">Settings</h2>
-                            <p className="text-muted-foreground">Settings page coming soon...</p>
-                          </div>
+                          <PlaceholderPage
+                            titleKey="navigation.settings"
+                            descriptionKey="pages.settingsComingSoon"
+                          />
                         </DashboardLayout>
                       </ProtectedRoute>
                     </SetupGuard>

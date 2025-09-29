@@ -1,11 +1,13 @@
 import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Container } from '../types/container';
 import { useContainers } from '../hooks/useContainers';
 import ContainerList from '../components/containers/ContainerList';
 
 const ContainersPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation(['containers', 'common']);
 
   const {
     containers,

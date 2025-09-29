@@ -13,30 +13,42 @@ import {
   RectangleStackIcon,
 } from '@heroicons/react/24/outline';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 
 interface NavItem {
-  name: string;
+  translationKey: string;
   href: string;
   icon: React.ComponentType<any>;
   requiredRole?: 'Developer' | 'Engineer';
 }
 
 const navigation: NavItem[] = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Containers', href: '/containers', icon: Squares2X2Icon },
-  { name: 'Services', href: '/services', icon: RectangleStackIcon },
-  { name: 'Package Builder', href: '/package', icon: CubeIcon, requiredRole: 'Developer' },
-  { name: 'Lint Reports', href: '/lint', icon: DocumentCheckIcon },
-  { name: 'Build History', href: '/history', icon: ClockIcon },
-  { name: 'CLI Tools', href: '/cli', icon: CommandLineIcon },
-  { name: 'RBAC Manager', href: '/rbac', icon: ShieldCheckIcon, requiredRole: 'Developer' },
-  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
+  { translationKey: 'navigation.dashboard', href: '/', icon: HomeIcon },
+  { translationKey: 'navigation.containers', href: '/containers', icon: Squares2X2Icon },
+  { translationKey: 'navigation.services', href: '/services', icon: RectangleStackIcon },
+  {
+    translationKey: 'navigation.packageBuilder',
+    href: '/package',
+    icon: CubeIcon,
+    requiredRole: 'Developer',
+  },
+  { translationKey: 'navigation.lintReports', href: '/lint', icon: DocumentCheckIcon },
+  { translationKey: 'navigation.buildHistory', href: '/history', icon: ClockIcon },
+  { translationKey: 'navigation.cliTools', href: '/cli', icon: CommandLineIcon },
+  {
+    translationKey: 'navigation.rbacManager',
+    href: '/rbac',
+    icon: ShieldCheckIcon,
+    requiredRole: 'Developer',
+  },
+  { translationKey: 'navigation.settings', href: '/settings', icon: Cog6ToothIcon },
 ];
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { user, isDeveloper } = useAuth();
+  const { t } = useTranslation(['common']);
 
   const filteredNavigation = navigation.filter((item) => {
     if (!item.requiredRole) return true;
@@ -64,28 +76,31 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-        {filteredNavigation.map((item) => (
-          <NavLink
-            key={item.name}
-            to={item.href}
-            className={({ isActive }) =>
-              `group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                isActive
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-              }`
-            }
-            title={collapsed ? item.name : undefined}
-          >
-            <item.icon className={`${collapsed ? 'mx-auto' : 'mr-3'} h-6 w-6 flex-shrink-0`} />
-            {!collapsed && <span className="truncate">{item.name}</span>}
-            {!collapsed && item.requiredRole && (
-              <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
-                {item.requiredRole}
-              </span>
-            )}
-          </NavLink>
-        ))}
+        {filteredNavigation.map((item) => {
+          const translatedName = t(item.translationKey);
+          return (
+            <NavLink
+              key={item.translationKey}
+              to={item.href}
+              className={({ isActive }) =>
+                `group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  isActive
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                }`
+              }
+              title={collapsed ? translatedName : undefined}
+            >
+              <item.icon className={`${collapsed ? 'mx-auto' : 'mr-3'} h-6 w-6 flex-shrink-0`} />
+              {!collapsed && <span className="truncate">{translatedName}</span>}
+              {!collapsed && item.requiredRole && (
+                <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
+                  {t(`roles.${item.requiredRole.toLowerCase()}`)}
+                </span>
+              )}
+            </NavLink>
+          );
+        })}
       </nav>
 
       {/* User Info Footer */}
@@ -101,7 +116,9 @@ export default function Sidebar() {
               <p className="text-sm font-medium text-foreground truncate">
                 {user.name || user.email}
               </p>
-              <p className="text-xs text-muted-foreground">{user.role}</p>
+              <p className="text-xs text-muted-foreground">
+                {t(`roles.${user.role?.toLowerCase()}`)}
+              </p>
             </div>
           </div>
         </div>
@@ -109,7 +126,9 @@ export default function Sidebar() {
 
       {/* Version */}
       <div className={`p-4 text-center ${collapsed ? 'px-2' : ''}`}>
-        <p className="text-xs text-muted-foreground">{collapsed ? 'v0.1' : 'Burndler v0.1.0'}</p>
+        <p className="text-xs text-muted-foreground">
+          {collapsed ? t('version.short') : `${t('appName')} ${t('version.full')}`}
+        </p>
       </div>
     </aside>
   );

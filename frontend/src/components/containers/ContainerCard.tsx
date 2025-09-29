@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   EyeIcon,
   PencilIcon,
@@ -29,6 +30,7 @@ export const ContainerCard: React.FC<ContainerCardProps> = ({
   showActions = true,
 }) => {
   const { isDeveloper } = useAuth();
+  const { t } = useTranslation(['containers', 'common']);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const status = getContainerStatus(container);
@@ -49,9 +51,7 @@ export const ContainerCard: React.FC<ContainerCardProps> = ({
 
     if (!onDelete || isDeleting) return;
 
-    const confirmed = window.confirm(
-      `Are you sure you want to delete container "${container.name}"?\n\nThis action cannot be undone.`
-    );
+    const confirmed = window.confirm(t('containers:confirmDelete', { name: container.name }));
 
     if (confirmed) {
       setIsDeleting(true);
@@ -109,7 +109,7 @@ export const ContainerCard: React.FC<ContainerCardProps> = ({
                   <button
                     onClick={handleEdit}
                     className="p-1 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
-                    title="Edit container"
+                    title={t('containers:editContainerTitle')}
                   >
                     <PencilIcon className="h-4 w-4" />
                   </button>
@@ -117,7 +117,7 @@ export const ContainerCard: React.FC<ContainerCardProps> = ({
                     onClick={handleDelete}
                     disabled={isDeleting}
                     className="p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors disabled:opacity-50"
-                    title="Delete container"
+                    title={t('containers:deleteContainerTitle')}
                   >
                     <TrashIcon className="h-4 w-4" />
                   </button>
@@ -149,19 +149,25 @@ export const ContainerCard: React.FC<ContainerCardProps> = ({
           <div className="mt-3 flex items-center justify-between">
             <div className="flex items-center space-x-4 text-sm">
               <div className="text-gray-600 dark:text-gray-400">
-                <span className="font-medium">{versionCount}</span> version
-                {versionCount !== 1 ? 's' : ''}
+                <span className="font-medium">{versionCount}</span>{' '}
+                {t('containers:versionsText', {
+                  count: versionCount,
+                  s: versionCount !== 1 ? 's' : '',
+                })}
               </div>
               {publishedVersions > 0 && (
                 <div className="text-blue-600 dark:text-blue-400">
-                  <span className="font-medium">{publishedVersions}</span> published
+                  <span className="font-medium">{publishedVersions}</span>{' '}
+                  {t('containers:published')}
                 </div>
               )}
             </div>
 
             <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
               <ClockIcon className="h-3 w-3" />
-              <span>Updated {formatDate(container.updated_at)}</span>
+              <span>
+                {t('containers:updated')} {formatDate(container.updated_at)}
+              </span>
             </div>
           </div>
         </div>
@@ -175,7 +181,7 @@ export const ContainerCard: React.FC<ContainerCardProps> = ({
                 className="inline-flex items-center space-x-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
               >
                 <EyeIcon className="h-4 w-4" />
-                <span>View Details</span>
+                <span>{t('containers:viewDetails')}</span>
               </Link>
 
               {isDeveloper && status !== 'deleted' && (
@@ -185,7 +191,7 @@ export const ContainerCard: React.FC<ContainerCardProps> = ({
                     className="inline-flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                   >
                     <PencilIcon className="h-4 w-4" />
-                    <span>Edit</span>
+                    <span>{t('containers:edit')}</span>
                   </button>
                   <button
                     onClick={handleDelete}
@@ -193,7 +199,7 @@ export const ContainerCard: React.FC<ContainerCardProps> = ({
                     className="inline-flex items-center space-x-1 text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 disabled:opacity-50"
                   >
                     <TrashIcon className="h-4 w-4" />
-                    <span>{isDeleting ? 'Deleting...' : 'Delete'}</span>
+                    <span>{isDeleting ? t('containers:deleting') : t('containers:delete')}</span>
                   </button>
                 </div>
               )}
@@ -206,7 +212,7 @@ export const ContainerCard: React.FC<ContainerCardProps> = ({
           <div className="absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-75 dark:bg-opacity-75 flex items-center justify-center rounded-lg">
             <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-              <span className="text-sm">Deleting...</span>
+              <span className="text-sm">{t('containers:deleting')}</span>
             </div>
           </div>
         )}

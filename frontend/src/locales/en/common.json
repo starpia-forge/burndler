@@ -32,5 +32,32 @@
   "language": {
     "english": "English",
     "korean": "한국어"
-  }
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "containers": "Containers",
+    "services": "Services",
+    "packageBuilder": "Package Builder",
+    "lintReports": "Lint Reports",
+    "buildHistory": "Build History",
+    "cliTools": "CLI Tools",
+    "rbacManager": "RBAC Manager",
+    "settings": "Settings"
+  },
+  "roles": {
+    "developer": "Developer",
+    "engineer": "Engineer"
+  },
+  "version": {
+    "short": "v0.1",
+    "full": "v0.1.0"
+  },
+  "pages": {
+    "lintReportsComingSoon": "Lint reports feature coming soon...",
+    "buildHistoryComingSoon": "Build history feature coming soon...",
+    "cliToolsComingSoon": "CLI tools documentation coming soon...",
+    "rbacComingSoon": "Role-based access control management coming soon...",
+    "settingsComingSoon": "Settings page coming soon..."
+  },
+  "showingResults": "Showing {{from}} to {{to}} of {{total}} results"
 }

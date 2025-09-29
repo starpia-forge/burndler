@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { Container, ContainerFilters as ContainerFiltersType } from '../../types/container';
 import { useAuth } from '../../hooks/useAuth';
@@ -44,6 +45,7 @@ export const ContainerList: React.FC<ContainerListProps> = ({
   className = '',
 }) => {
   const { isDeveloper } = useAuth();
+  const { t } = useTranslation(['containers', 'common']);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleDeleteContainer = async (container: Container) => {
@@ -53,7 +55,7 @@ export const ContainerList: React.FC<ContainerListProps> = ({
       setDeleteError(null);
       await onDeleteContainer(container);
     } catch (error: any) {
-      setDeleteError(error.message || 'Failed to delete container');
+      setDeleteError(error.message || t('containers:failedToDelete'));
       throw error; // Re-throw for component error handling
     }
   };
@@ -99,10 +101,10 @@ export const ContainerList: React.FC<ContainerListProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Containers</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Manage your Docker Compose containers and versions
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {t('containers:title')}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">{t('containers:description')}</p>
         </div>
 
         <div className="flex items-center space-x-3">
@@ -112,7 +114,7 @@ export const ContainerList: React.FC<ContainerListProps> = ({
               disabled={loading || isRefreshing}
               className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              {isRefreshing ? 'Refreshing...' : 'Refresh'}
+              {isRefreshing ? t('containers:refreshing') : t('containers:refresh')}
             </button>
           )}
 
@@ -123,7 +125,7 @@ export const ContainerList: React.FC<ContainerListProps> = ({
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
             >
               <PlusIcon className="h-4 w-4 mr-2" />
-              Create Container
+              {t('containers:createContainer')}
             </button>
           )}
         </div>
@@ -142,7 +144,9 @@ export const ContainerList: React.FC<ContainerListProps> = ({
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4">
           <div className="flex">
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-300">Error</h3>
+              <h3 className="text-sm font-medium text-red-800 dark:text-red-300">
+                {t('containers:error')}
+              </h3>
               <div className="mt-2 text-sm text-red-700 dark:text-red-400">
                 {error || deleteError}
               </div>
@@ -151,7 +155,7 @@ export const ContainerList: React.FC<ContainerListProps> = ({
                   onClick={() => setDeleteError(null)}
                   className="mt-2 text-sm text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300"
                 >
-                  Dismiss
+                  {t('containers:dismiss')}
                 </button>
               )}
             </div>
@@ -180,7 +184,7 @@ export const ContainerList: React.FC<ContainerListProps> = ({
               <div className="absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-50 flex items-center justify-center z-10">
                 <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-current"></div>
-                  <span>Refreshing containers...</span>
+                  <span>{t('containers:refreshingContainers')}</span>
                 </div>
               </div>
             </div>
@@ -216,12 +220,12 @@ export const ContainerList: React.FC<ContainerListProps> = ({
             />
           </svg>
           <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-            No containers found
+            {t('containers:noContainers')}
           </h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {filters.search || filters.author || filters.active !== undefined
-              ? "Try adjusting your search filters to find what you're looking for."
-              : 'Get started by creating your first container.'}
+              ? t('containers:tryAdjustingFilters')
+              : t('containers:createYourFirst')}
           </p>
           <div className="mt-6">
             {filters.search || filters.author || filters.active !== undefined ? (
@@ -229,7 +233,7 @@ export const ContainerList: React.FC<ContainerListProps> = ({
                 onClick={onClearFilters}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                Clear filters
+                {t('containers:clearFilters')}
               </button>
             ) : isDeveloper && onCreateContainer ? (
               <button
@@ -237,7 +241,7 @@ export const ContainerList: React.FC<ContainerListProps> = ({
                 className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <PlusIcon className="h-4 w-4 mr-2" />
-                Create your first container
+                {t('containers:createYourFirst')}
               </button>
             ) : null}
           </div>
@@ -247,7 +251,7 @@ export const ContainerList: React.FC<ContainerListProps> = ({
       {/* Results summary */}
       {pagination && pagination.total > 0 && (
         <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-          Showing {containers.length} of {pagination.total} containers
+          {t('containers:showingResults', { showing: containers.length, total: pagination.total })}
         </div>
       )}
     </div>

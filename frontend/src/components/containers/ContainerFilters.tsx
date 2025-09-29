@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   MagnifyingGlassIcon,
   XMarkIcon,
@@ -31,6 +32,7 @@ export const ContainerFilters: React.FC<ContainerFiltersProps> = ({
   className = '',
 }) => {
   const { isDeveloper } = useAuth();
+  const { t } = useTranslation(['containers', 'common']);
   const [searchTerm, setSearchTerm] = useState(filters.search || '');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showAuthorSuggestions, setShowAuthorSuggestions] = useState(false);
@@ -83,7 +85,7 @@ export const ContainerFilters: React.FC<ContainerFiltersProps> = ({
           </div>
           <input
             type="text"
-            placeholder="Search containers by name, description, or author..."
+            placeholder={t('containers:searchPlaceholder')}
             value={searchTerm}
             onChange={handleSearchChange}
             disabled={loading}
@@ -102,9 +104,9 @@ export const ContainerFilters: React.FC<ContainerFiltersProps> = ({
             disabled={loading}
             className="block px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
           >
-            <option value="all">All Containers</option>
-            <option value="active">Active Only</option>
-            <option value="inactive">Inactive Only</option>
+            <option value="all">{t('containers:allContainers')}</option>
+            <option value="active">{t('containers:activeOnly')}</option>
+            <option value="inactive">{t('containers:inactiveOnly')}</option>
           </select>
 
           {/* Advanced filters toggle */}
@@ -118,7 +120,7 @@ export const ContainerFilters: React.FC<ContainerFiltersProps> = ({
             disabled={loading}
           >
             <AdjustmentsHorizontalIcon className="h-4 w-4 mr-1" />
-            Filters
+            {t('containers:filters')}
             {activeFilterCount > 0 && (
               <span className="ml-1 bg-blue-600 dark:bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[1rem] text-center">
                 {activeFilterCount}
@@ -132,7 +134,7 @@ export const ContainerFilters: React.FC<ContainerFiltersProps> = ({
               onClick={onClearFilters}
               disabled={loading}
               className="inline-flex items-center px-2 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-50"
-              title="Clear all filters"
+              title={t('containers:clearAllFilters')}
             >
               <XMarkIcon className="h-4 w-4" />
             </button>
@@ -147,11 +149,11 @@ export const ContainerFilters: React.FC<ContainerFiltersProps> = ({
             {/* Author filter */}
             <div className="relative">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Author
+                {t('containers:authorFilter')}
               </label>
               <input
                 type="text"
-                placeholder="Filter by author..."
+                placeholder={t('containers:filterByAuthor')}
                 value={filters.author || ''}
                 onChange={(e) => handleFilterChange('author', e.target.value)}
                 onFocus={() => setShowAuthorSuggestions(true)}
@@ -182,7 +184,7 @@ export const ContainerFilters: React.FC<ContainerFiltersProps> = ({
             {/* Published filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Version Status
+                {t('containers:versionStatus')}
               </label>
               <select
                 value={filters.published_only ? 'published' : 'all'}
@@ -192,8 +194,8 @@ export const ContainerFilters: React.FC<ContainerFiltersProps> = ({
                 disabled={loading}
                 className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
               >
-                <option value="all">All Versions</option>
-                <option value="published">Published Only</option>
+                <option value="all">{t('containers:allVersions')}</option>
+                <option value="published">{t('containers:publishedOnly')}</option>
               </select>
             </div>
 
@@ -201,7 +203,7 @@ export const ContainerFilters: React.FC<ContainerFiltersProps> = ({
             {isDeveloper && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Visibility
+                  {t('containers:visibility')}
                 </label>
                 <label className="flex items-center space-x-2 pt-2">
                   <input
@@ -212,7 +214,7 @@ export const ContainerFilters: React.FC<ContainerFiltersProps> = ({
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded disabled:opacity-50"
                   />
                   <span className="text-sm text-gray-700 dark:text-gray-300">
-                    Show deleted containers
+                    {t('containers:showDeleted')}
                   </span>
                 </label>
               </div>
@@ -224,14 +226,17 @@ export const ContainerFilters: React.FC<ContainerFiltersProps> = ({
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {activeFilterCount} filter{activeFilterCount !== 1 ? 's' : ''} applied
+                  {t('containers:filtersApplied', {
+                    count: activeFilterCount,
+                    s: activeFilterCount !== 1 ? 's' : '',
+                  })}
                 </div>
                 <button
                   onClick={onClearFilters}
                   disabled={loading}
                   className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50"
                 >
-                  Clear all filters
+                  {t('containers:clearAllFilters')}
                 </button>
               </div>
             </div>

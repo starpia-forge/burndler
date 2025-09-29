@@ -16,13 +16,14 @@ export const ContainerSelector: React.FC<ContainerSelectorProps> = ({
   initialSelection = [],
   disabled = false,
 }) => {
-  const [selectedContainers, setSelectedContainers] = useState<ServiceContainerFormState[]>(
-    initialSelection
-  );
+  const [selectedContainers, setSelectedContainers] =
+    useState<ServiceContainerFormState[]>(initialSelection);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [loadingVersions, setLoadingVersions] = useState<Record<number, boolean>>({});
-  const [containerVersions, setContainerVersions] = useState<Record<number, ContainerVersion[]>>({});
+  const [containerVersions, setContainerVersions] = useState<Record<number, ContainerVersion[]>>(
+    {}
+  );
 
   const {
     containers,
@@ -49,24 +50,27 @@ export const ContainerSelector: React.FC<ContainerSelectorProps> = ({
   }, [selectedContainers, onSelectionChange]);
 
   // Load versions for a container
-  const loadContainerVersions = useCallback(async (containerId: number) => {
-    if (containerVersions[containerId] || loadingVersions[containerId]) {
-      return; // Already loaded or loading
-    }
+  const loadContainerVersions = useCallback(
+    async (containerId: number) => {
+      if (containerVersions[containerId] || loadingVersions[containerId]) {
+        return; // Already loaded or loading
+      }
 
-    setLoadingVersions(prev => ({ ...prev, [containerId]: true }));
-    try {
-      const response = await containerService.listVersions(containerId, { published_only: true });
-      setContainerVersions(prev => ({
-        ...prev,
-        [containerId]: response.data,
-      }));
-    } catch (error) {
-      console.error(`Failed to load versions for container ${containerId}:`, error);
-    } finally {
-      setLoadingVersions(prev => ({ ...prev, [containerId]: false }));
-    }
-  }, [containerVersions, loadingVersions]);
+      setLoadingVersions((prev) => ({ ...prev, [containerId]: true }));
+      try {
+        const response = await containerService.listVersions(containerId, { published_only: true });
+        setContainerVersions((prev) => ({
+          ...prev,
+          [containerId]: response.data,
+        }));
+      } catch (error) {
+        console.error(`Failed to load versions for container ${containerId}:`, error);
+      } finally {
+        setLoadingVersions((prev) => ({ ...prev, [containerId]: false }));
+      }
+    },
+    [containerVersions, loadingVersions]
+  );
 
   const handleAddContainer = (container: Container) => {
     // Load versions for this container
@@ -80,12 +84,12 @@ export const ContainerSelector: React.FC<ContainerSelectorProps> = ({
       order: selectedContainers.length + 1,
     };
 
-    setSelectedContainers(prev => [...prev, newSelection]);
+    setSelectedContainers((prev) => [...prev, newSelection]);
     setShowAddModal(false);
   };
 
   const handleRemoveContainer = (index: number) => {
-    setSelectedContainers(prev => {
+    setSelectedContainers((prev) => {
       const updated = prev.filter((_, i) => i !== index);
       // Reorder remaining containers
       return updated.map((container, i) => ({
@@ -96,7 +100,7 @@ export const ContainerSelector: React.FC<ContainerSelectorProps> = ({
   };
 
   const handleVersionChange = (index: number, version: string) => {
-    setSelectedContainers(prev =>
+    setSelectedContainers((prev) =>
       prev.map((container, i) =>
         i === index ? { ...container, container_version: version } : container
       )
@@ -104,17 +108,15 @@ export const ContainerSelector: React.FC<ContainerSelectorProps> = ({
   };
 
   const handleVariablesChange = (index: number, variables: Record<string, any>) => {
-    setSelectedContainers(prev =>
-      prev.map((container, i) =>
-        i === index ? { ...container, variables } : container
-      )
+    setSelectedContainers((prev) =>
+      prev.map((container, i) => (i === index ? { ...container, variables } : container))
     );
   };
 
   const moveContainer = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return;
 
-    setSelectedContainers(prev => {
+    setSelectedContainers((prev) => {
       const updated = [...prev];
       const [moved] = updated.splice(fromIndex, 1);
       updated.splice(toIndex, 0, moved);
@@ -128,7 +130,7 @@ export const ContainerSelector: React.FC<ContainerSelectorProps> = ({
   };
 
   const getContainerName = (containerId: number) => {
-    const container = containers.find(c => c.id === containerId);
+    const container = containers.find((c) => c.id === containerId);
     return container?.name || `Container ${containerId}`;
   };
 
@@ -137,7 +139,7 @@ export const ContainerSelector: React.FC<ContainerSelectorProps> = ({
   };
 
   const isContainerAlreadySelected = (containerId: number) => {
-    return selectedContainers.some(sc => sc.container_id === containerId);
+    return selectedContainers.some((sc) => sc.container_id === containerId);
   };
 
   // Set default version when versions load
@@ -206,7 +208,12 @@ export const ContainerSelector: React.FC<ContainerSelectorProps> = ({
                             ↑
                           </button>
                           <button
-                            onClick={() => moveContainer(index, Math.min(selectedContainers.length - 1, index + 1))}
+                            onClick={() =>
+                              moveContainer(
+                                index,
+                                Math.min(selectedContainers.length - 1, index + 1)
+                              )
+                            }
                             disabled={index === selectedContainers.length - 1}
                             className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
                             title="Move down"
@@ -345,21 +352,15 @@ export const ContainerSelector: React.FC<ContainerSelectorProps> = ({
                         <div className="flex items-center justify-between">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center space-x-2">
-                              <h4 className="text-sm font-medium truncate">
-                                {container.name}
-                              </h4>
-                              {isSelected && (
-                                <CheckIcon className="h-4 w-4 text-green-600" />
-                              )}
+                              <h4 className="text-sm font-medium truncate">{container.name}</h4>
+                              {isSelected && <CheckIcon className="h-4 w-4 text-green-600" />}
                             </div>
                             {container.description && (
                               <p className="text-xs text-muted-foreground truncate">
                                 {container.description}
                               </p>
                             )}
-                            <p className="text-xs text-muted-foreground">
-                              by {container.author}
-                            </p>
+                            <p className="text-xs text-muted-foreground">by {container.author}</p>
                           </div>
                         </div>
                       </div>
