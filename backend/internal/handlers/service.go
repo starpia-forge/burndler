@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/burndler/burndler/internal/models"
 	"github.com/burndler/burndler/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -73,8 +72,8 @@ func (h *ServiceHandler) CreateService(c *gin.Context) {
 		return
 	}
 
-	// Get current user from context
-	user, exists := c.Get("user")
+	// Get current user ID from context
+	userIDStr, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, ErrorResponse{
 			Error:   "UNAUTHORIZED",
@@ -83,7 +82,24 @@ func (h *ServiceHandler) CreateService(c *gin.Context) {
 		return
 	}
 
-	currentUser := user.(*models.User)
+	userIDString, ok := userIDStr.(string)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "INTERNAL_ERROR",
+			Message: "Invalid user ID format in token",
+		})
+		return
+	}
+
+	// Convert user ID to uint
+	userID, err := strconv.ParseUint(userIDString, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "INTERNAL_ERROR",
+			Message: "Invalid user ID format",
+		})
+		return
+	}
 
 	// Convert to service request
 	serviceReq := services.CreateServiceRequest{
@@ -91,7 +107,7 @@ func (h *ServiceHandler) CreateService(c *gin.Context) {
 		Description: req.Description,
 	}
 
-	service, err := h.serviceService.CreateService(currentUser.ID, serviceReq)
+	service, err := h.serviceService.CreateService(uint(userID), serviceReq)
 	if err != nil {
 		if err.Error() == "name is required" {
 			c.JSON(http.StatusBadRequest, ErrorResponse{
@@ -166,8 +182,8 @@ func (h *ServiceHandler) ListServices(c *gin.Context) {
 		query.PageSize = 100
 	}
 
-	// Get current user from context
-	user, exists := c.Get("user")
+	// Get current user ID from context
+	userIDStr, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, ErrorResponse{
 			Error:   "UNAUTHORIZED",
@@ -176,19 +192,55 @@ func (h *ServiceHandler) ListServices(c *gin.Context) {
 		return
 	}
 
-	currentUser := user.(*models.User)
+	userIDString, ok := userIDStr.(string)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "INTERNAL_ERROR",
+			Message: "Invalid user ID format in token",
+		})
+		return
+	}
+
+	// Convert user ID to uint
+	userID, err := strconv.ParseUint(userIDString, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "INTERNAL_ERROR",
+			Message: "Invalid user ID format",
+		})
+		return
+	}
+
+	// Get role from context for admin check
+	role, roleExists := c.Get("role")
+	if !roleExists {
+		c.JSON(http.StatusUnauthorized, ErrorResponse{
+			Error:   "UNAUTHORIZED",
+			Message: "User role not found",
+		})
+		return
+	}
+
+	userRole, ok := role.(string)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "INTERNAL_ERROR",
+			Message: "Invalid role format in token",
+		})
+		return
+	}
 
 	// Convert to service filters
 	filters := services.ServiceFilters{
 		Active:   query.Active,
-		UserID:   currentUser.ID, // Only show user's own services
+		UserID:   uint(userID), // Only show user's own services
 		Name:     query.Name,
 		Page:     query.Page,
 		PageSize: query.PageSize,
 	}
 
 	// Admin users can see all services if user_id is specified
-	if currentUser.IsAdmin() && query.UserID > 0 {
+	if userRole == "Admin" && query.UserID > 0 {
 		filters.UserID = query.UserID
 	}
 
