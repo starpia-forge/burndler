@@ -61,11 +61,11 @@ type UpdateVersionRequest struct {
 
 // ContainerFilters represents filters for listing containers
 type ContainerFilters struct {
-	Active       *bool  `json:"active"`
-	Author       string `json:"author"`
+	Active        *bool  `json:"active"`
+	Author        string `json:"author"`
 	PublishedOnly bool   `json:"published_only"`
-	Page         int    `json:"page"`
-	PageSize     int    `json:"page_size"`
+	Page          int    `json:"page"`
+	PageSize      int    `json:"page_size"`
 }
 
 // PaginatedResponse represents a paginated response
@@ -134,7 +134,7 @@ func (s *ContainerService) GetContainerByName(name string, includeVersions bool)
 
 	if err := query.Where("name = ?", name).First(&container).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("module '%s' not found", name)
+			return nil, fmt.Errorf("container '%s' not found", name)
 		}
 		return nil, fmt.Errorf("failed to get container: %w", err)
 	}
@@ -159,7 +159,7 @@ func (s *ContainerService) ListContainers(filters ContainerFilters) (*PaginatedR
 	}
 
 	if filters.PublishedOnly {
-		query = query.Joins("JOIN module_versions ON containers.id = container_versions.container_id").
+		query = query.Joins("JOIN container_versions ON containers.id = container_versions.container_id").
 			Where("container_versions.published = ?", true).
 			Group("containers.id")
 	}
@@ -198,7 +198,7 @@ func (s *ContainerService) ListContainers(filters ContainerFilters) (*PaginatedR
 	}, nil
 }
 
-// UpdateModule updates an existing module
+// UpdateContainer updates an existing container
 func (s *ContainerService) UpdateContainer(id uint, req UpdateContainerRequest) (*models.Container, error) {
 	container, err := s.GetContainer(id, false)
 	if err != nil {
@@ -226,14 +226,14 @@ func (s *ContainerService) UpdateContainer(id uint, req UpdateContainerRequest) 
 	return container, nil
 }
 
-// DeleteModule soft deletes a module
+// DeleteContainer soft deletes a container
 func (s *ContainerService) DeleteContainer(id uint) error {
 	container, err := s.GetContainer(id, true)
 	if err != nil {
 		return err
 	}
 
-	// Check if module has published versions
+	// Check if container has published versions
 	if container.HasPublishedVersions() {
 		return fmt.Errorf("cannot delete container with published versions")
 	}
@@ -245,7 +245,7 @@ func (s *ContainerService) DeleteContainer(id uint) error {
 	return nil
 }
 
-// CreateVersion creates a new version for a module
+// CreateVersion creates a new version for a container
 func (s *ContainerService) CreateVersion(containerID uint, req CreateVersionRequest) (*models.ContainerVersion, error) {
 	// Verify container exists
 	container, err := s.GetContainer(containerID, false)
@@ -256,7 +256,7 @@ func (s *ContainerService) CreateVersion(containerID uint, req CreateVersionRequ
 	// Check if version already exists
 	var existingVersion models.ContainerVersion
 	if err := s.db.Where("container_id = ? AND version = ?", containerID, req.Version).First(&existingVersion).Error; err == nil {
-		return nil, fmt.Errorf("version '%s' already exists for module '%s'", req.Version, container.Name)
+		return nil, fmt.Errorf("version '%s' already exists for container '%s'", req.Version, container.Name)
 	}
 
 	// Validate compose content
@@ -274,13 +274,13 @@ func (s *ContainerService) CreateVersion(containerID uint, req CreateVersionRequ
 	dependenciesJSON := datatypes.JSON(dependenciesBytes)
 
 	version := &models.ContainerVersion{
-		ContainerID:     containerID,
-		Version:         req.Version,
-		ComposeContent:  req.Compose,
-		Variables:       variablesJSON,
-		ResourcePaths:   resourcePathsJSON,
-		Dependencies:    dependenciesJSON,
-		Published:       false,
+		ContainerID:    containerID,
+		Version:        req.Version,
+		ComposeContent: req.Compose,
+		Variables:      variablesJSON,
+		ResourcePaths:  resourcePathsJSON,
+		Dependencies:   dependenciesJSON,
+		Published:      false,
 	}
 
 	if err := s.db.Create(version).Error; err != nil {
@@ -295,7 +295,7 @@ func (s *ContainerService) CreateVersion(containerID uint, req CreateVersionRequ
 	return version, nil
 }
 
-// GetVersion retrieves a specific version of a module
+// GetVersion retrieves a specific version of a container
 func (s *ContainerService) GetVersion(containerID uint, version string) (*models.ContainerVersion, error) {
 	var containerVersion models.ContainerVersion
 
@@ -376,7 +376,7 @@ func (s *ContainerService) PublishVersion(containerID uint, version string) (*mo
 	return containerVersion, nil
 }
 
-// ListVersions returns all versions for a module
+// ListVersions returns all versions for a container
 func (s *ContainerService) ListVersions(containerID uint, publishedOnly bool) ([]models.ContainerVersion, error) {
 	// Verify container exists
 	if _, err := s.GetContainer(containerID, false); err != nil {
