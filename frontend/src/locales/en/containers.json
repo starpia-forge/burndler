@@ -19,7 +19,7 @@
   "searchContainers": "Search containers...",
   "filterByStatus": "Filter by status",
   "description": "Manage your Docker Compose containers and versions",
-  "confirmDelete": "Are you sure you want to delete container \"{name}\"?\n\nThis action cannot be undone.",
+  "confirmDelete": "Are you sure you want to delete container '{{name}}'?\n\nThis action cannot be undone.",
   "failedToFetch": "Failed to fetch container",
   "failedToDelete": "Failed to delete container",
   "failedToPublish": "Failed to publish version",

@@ -76,9 +76,21 @@ const ContainerDetailPage: React.FC = () => {
   const handleDelete = async () => {
     if (!container) return;
 
+    const placeholder = '__CONTAINER_NAME__';
+    const translatedTemplate = t('containers:confirmDelete', { name: placeholder });
+    const parts = translatedTemplate.split(placeholder);
+
+    const deleteMessage = (
+      <>
+        {parts[0]}
+        <span className="font-bold">{container.name}</span>
+        {parts[1]}
+      </>
+    );
+
     confirmationModal.openModal({
       title: t('containers:deleteContainerTitle'),
-      message: t('containers:confirmDelete', { name: container.name }),
+      message: deleteMessage,
       confirmLabel: t('containers:deleteContainer'),
       variant: 'danger',
       onConfirm: async () => {
