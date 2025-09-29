@@ -23,4 +23,6 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   isDeveloper: boolean;
+  isAdmin: boolean;
+  canCreateContainer: boolean;
 }
