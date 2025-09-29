@@ -88,9 +88,9 @@ export const ContainerForm: React.FC<ContainerFormProps> = ({
     try {
       const submitData = {
         name: formData.name.trim(),
-        description: formData.description.trim(),
-        author: formData.author.trim(),
-        repository: formData.repository.trim(),
+        description: formData.description?.trim(),
+        author: formData.author?.trim(),
+        repository: formData.repository?.trim(),
       };
 
       await onSubmit(submitData);
@@ -140,7 +140,7 @@ export const ContainerForm: React.FC<ContainerFormProps> = ({
             </label>
             <textarea
               id="description"
-              value={formData.description}
+              value={formData.description || ''}
               onChange={(e) => handleChange('description', e.target.value)}
               disabled={loading}
               rows={4}
@@ -152,7 +152,7 @@ export const ContainerForm: React.FC<ContainerFormProps> = ({
             )}
             <p className="mt-1 text-sm text-muted-foreground">
               {t('containers:descriptionCharacterCount', {
-                count: formData.description.length,
+                count: formData.description?.length || 0,
                 max: 500,
               })}
             </p>
@@ -166,7 +166,7 @@ export const ContainerForm: React.FC<ContainerFormProps> = ({
             <input
               type="text"
               id="author"
-              value={formData.author}
+              value={formData.author || ''}
               onChange={(e) => handleChange('author', e.target.value)}
               disabled={loading}
               className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-background text-foreground disabled:bg-muted disabled:text-muted-foreground"
@@ -174,7 +174,7 @@ export const ContainerForm: React.FC<ContainerFormProps> = ({
             />
             {errors.author && <p className="mt-1 text-sm text-red-600">{errors.author}</p>}
             <p className="mt-1 text-sm text-muted-foreground">
-              {t('containers:authorCharacterCount', { count: formData.author.length, max: 100 })}
+              {t('containers:authorCharacterCount', { count: formData.author?.length || 0, max: 100 })}
             </p>
           </div>
 
@@ -186,7 +186,7 @@ export const ContainerForm: React.FC<ContainerFormProps> = ({
             <input
               type="text"
               id="repository"
-              value={formData.repository}
+              value={formData.repository || ''}
               onChange={(e) => handleChange('repository', e.target.value)}
               disabled={loading}
               className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-background text-foreground disabled:bg-muted disabled:text-muted-foreground"
@@ -195,7 +195,7 @@ export const ContainerForm: React.FC<ContainerFormProps> = ({
             {errors.repository && <p className="mt-1 text-sm text-red-600">{errors.repository}</p>}
             <p className="mt-1 text-sm text-muted-foreground">
               {t('containers:repositoryCharacterCount', {
-                count: formData.repository.length,
+                count: formData.repository?.length || 0,
                 max: 200,
               })}
             </p>

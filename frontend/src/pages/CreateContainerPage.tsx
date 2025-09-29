@@ -5,7 +5,7 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth';
 import ContainerForm from '../components/containers/ContainerForm';
 import { useCreateContainer } from '../hooks/useCreateContainer';
-import { CreateContainerRequest } from '../types/container';
+import { CreateContainerRequest, UpdateContainerRequest } from '../types/container';
 
 const CreateContainerPage: React.FC = () => {
   const navigate = useNavigate();
@@ -13,7 +13,11 @@ const CreateContainerPage: React.FC = () => {
   const { t } = useTranslation(['containers', 'common']);
   const { createContainer, loading, error } = useCreateContainer();
 
-  const handleSubmit = async (data: CreateContainerRequest) => {
+  const handleSubmit = async (data: CreateContainerRequest | UpdateContainerRequest) => {
+    // Type guard to ensure we have CreateContainerRequest
+    if (!('name' in data)) {
+      throw new Error('Invalid data for container creation');
+    }
     const container = await createContainer(data);
     if (container) {
       navigate(`/containers/${container.id}`);
