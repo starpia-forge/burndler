@@ -59,5 +59,9 @@
     "rbacComingSoon": "Role-based access control management coming soon...",
     "settingsComingSoon": "Settings page coming soon..."
   },
-  "showingResults": "Showing {{from}} to {{to}} of {{total}} results"
+  "showingResults": "Showing {{from}} to {{to}} of {{total}} results",
+  "accessDenied": "Access Denied",
+  "networkError": "Network error. Please check your connection.",
+  "unauthorized": "You are not authorized to perform this action.",
+  "serverError": "Server error. Please try again later."
 }

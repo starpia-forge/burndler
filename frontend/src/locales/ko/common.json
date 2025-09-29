@@ -59,5 +59,9 @@
     "rbacComingSoon": "역할 기반 접근 제어 관리 기능이 곧 출시됩니다...",
     "settingsComingSoon": "설정 페이지가 곧 출시됩니다..."
   },
-  "showingResults": "{{total}} 중 {{from}}-{{to}} 표시"
+  "showingResults": "{{total}} 중 {{from}}-{{to}} 표시",
+  "accessDenied": "접근 거부",
+  "networkError": "네트워크 오류입니다. 연결을 확인해주세요.",
+  "unauthorized": "이 작업을 수행할 권한이 없습니다.",
+  "serverError": "서버 오류입니다. 나중에 다시 시도해주세요."
 }
