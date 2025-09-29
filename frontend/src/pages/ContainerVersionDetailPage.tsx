@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowLeftIcon,
-  PencilIcon,
   CubeIcon,
   ClockIcon,
   CodeBracketIcon,
@@ -19,7 +18,6 @@ import { useContainerVersions } from '../hooks/useContainerVersions';
 
 const ContainerVersionDetailPage: React.FC = () => {
   const { id, version } = useParams<{ id: string; version: string }>();
-  const navigate = useNavigate();
   const { canCreateContainer } = useAuth();
   const { t } = useTranslation(['containers', 'common']);
 

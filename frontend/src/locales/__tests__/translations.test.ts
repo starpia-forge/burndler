@@ -27,11 +27,11 @@ describe('Translation Files', () => {
       const enValues = Object.values(enTranslations);
       const koValues = Object.values(koTranslations);
 
-      enValues.forEach((value, index) => {
+      enValues.forEach((value, _index) => {
         expect(value.trim()).not.toBe('');
       });
 
-      koValues.forEach((value, index) => {
+      koValues.forEach((value, _index) => {
         expect(value.trim()).not.toBe('');
       });
     });
@@ -45,7 +45,9 @@ describe('Translation Files', () => {
       Object.entries(enTranslations).forEach(([key, value]) => {
         const matches = value.match(singleBracePattern);
         if (matches) {
-          console.warn(`Found single curly brace interpolation in English key "${key}": ${matches.join(', ')}`);
+          console.warn(
+            `Found single curly brace interpolation in English key "${key}": ${matches.join(', ')}`
+          );
           expect(matches).toBeNull();
         }
       });
@@ -58,7 +60,9 @@ describe('Translation Files', () => {
       Object.entries(koTranslations).forEach(([key, value]) => {
         const matches = value.match(singleBracePattern);
         if (matches) {
-          console.warn(`Found single curly brace interpolation in Korean key "${key}": ${matches.join(', ')}`);
+          console.warn(
+            `Found single curly brace interpolation in Korean key "${key}": ${matches.join(', ')}`
+          );
           expect(matches).toBeNull();
         }
       });
@@ -67,16 +71,16 @@ describe('Translation Files', () => {
     it('should have core interpolation variables matching between languages', () => {
       const extractVariables = (text: string): string[] => {
         const matches = text.match(/\{\{(\w+)\}\}/g);
-        return matches ? matches.map(match => match.slice(2, -2)) : [];
+        return matches ? matches.map((match) => match.slice(2, -2)) : [];
       };
 
-      Object.keys(enTranslations).forEach(key => {
+      Object.keys(enTranslations).forEach((key) => {
         const enVariables = extractVariables(enTranslations[key as keyof typeof enTranslations]);
         const koVariables = extractVariables(koTranslations[key as keyof typeof koTranslations]);
 
         // Filter out language-specific variables like 's' for pluralization
-        const coreEnVariables = enVariables.filter(v => v !== 's').sort();
-        const coreKoVariables = koVariables.filter(v => v !== 's').sort();
+        const coreEnVariables = enVariables.filter((v) => v !== 's').sort();
+        const coreKoVariables = koVariables.filter((v) => v !== 's').sort();
 
         if (coreEnVariables.length > 0 || coreKoVariables.length > 0) {
           expect(coreEnVariables).toEqual(coreKoVariables);
@@ -89,11 +93,11 @@ describe('Translation Files', () => {
     it('should not contain HTML tags in translation values', () => {
       const htmlTagPattern = /<[^>]*>/;
 
-      Object.entries(enTranslations).forEach(([key, value]) => {
+      Object.entries(enTranslations).forEach(([_key, value]) => {
         expect(htmlTagPattern.test(value)).toBe(false);
       });
 
-      Object.entries(koTranslations).forEach(([key, value]) => {
+      Object.entries(koTranslations).forEach(([_key, value]) => {
         expect(htmlTagPattern.test(value)).toBe(false);
       });
     });
@@ -104,12 +108,25 @@ describe('Translation Files', () => {
 
       // Allow common words to be duplicated
       const allowedDuplicates = [
-        'Edit', 'Delete', 'View', 'Create', 'Update', 'Cancel', 'Confirm',
-        '편집', '삭제', '보기', '생성', '수정', '취소', '확인', '버전'
+        'Edit',
+        'Delete',
+        'View',
+        'Create',
+        'Update',
+        'Cancel',
+        'Confirm',
+        '편집',
+        '삭제',
+        '보기',
+        '생성',
+        '수정',
+        '취소',
+        '확인',
+        '버전',
       ];
 
-      const enFiltered = enValues.filter(v => !allowedDuplicates.includes(v));
-      const koFiltered = koValues.filter(v => !allowedDuplicates.includes(v));
+      const enFiltered = enValues.filter((v) => !allowedDuplicates.includes(v));
+      const koFiltered = koValues.filter((v) => !allowedDuplicates.includes(v));
 
       // Check that we don't have more than 90% unique values (some duplication is acceptable)
       const enUniqueRatio = new Set(enFiltered).size / enFiltered.length;
