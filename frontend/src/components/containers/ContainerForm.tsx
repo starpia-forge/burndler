@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CreateContainerRequest } from '../../types/container';
+import { CreateContainerRequest, UpdateContainerRequest, Container } from '../../types/container';
 
 interface ContainerFormProps {
-  onSubmit: (data: CreateContainerRequest) => Promise<void>;
+  onSubmit: (data: CreateContainerRequest | UpdateContainerRequest) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
   title?: string;
   submitLabel?: string;
+  initialData?: Container;
+  isEditMode?: boolean;
 }
 
 export const ContainerForm: React.FC<ContainerFormProps> = ({
@@ -16,6 +18,8 @@ export const ContainerForm: React.FC<ContainerFormProps> = ({
   loading = false,
   title,
   submitLabel,
+  initialData,
+  isEditMode = false,
 }) => {
   const [formData, setFormData] = useState<CreateContainerRequest>({
     name: '',
@@ -23,11 +27,25 @@ export const ContainerForm: React.FC<ContainerFormProps> = ({
     author: '',
     repository: '',
   });
+
+  // Load initial data for edit mode
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      setFormData({
+        name: initialData.name,
+        description: initialData.description || '',
+        author: initialData.author || '',
+        repository: initialData.repository || '',
+      });
+    }
+  }, [isEditMode, initialData]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { t } = useTranslation(['containers', 'common']);
 
-  const finalTitle = title || t('containers:createContainer');
-  const finalSubmitLabel = submitLabel || t('containers:createContainer');
+  const finalTitle =
+    title || (isEditMode ? t('containers:editContainer') : t('containers:createContainer'));
+  const finalSubmitLabel =
+    submitLabel || (isEditMode ? t('containers:updateContainer') : t('containers:createContainer'));
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -68,14 +86,16 @@ export const ContainerForm: React.FC<ContainerFormProps> = ({
     }
 
     try {
-      await onSubmit({
+      const submitData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         author: formData.author.trim(),
         repository: formData.repository.trim(),
-      });
+      };
+
+      await onSubmit(submitData);
     } catch (error) {
-      console.error('Failed to create container:', error);
+      console.error(`Failed to ${isEditMode ? 'update' : 'create'} container:`, error);
     }
   };
 
@@ -196,7 +216,11 @@ export const ContainerForm: React.FC<ContainerFormProps> = ({
               disabled={loading}
               className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? t('containers:creating') : finalSubmitLabel}
+              {loading
+                ? isEditMode
+                  ? t('containers:updating')
+                  : t('containers:creating')
+                : finalSubmitLabel}
             </button>
           </div>
         </form>

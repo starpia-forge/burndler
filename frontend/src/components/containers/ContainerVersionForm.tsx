@@ -74,21 +74,21 @@ services:
 
   const handleVersionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setFormData(prev => ({ ...prev, version: value }));
+    setFormData((prev) => ({ ...prev, version: value }));
 
     // Clear validation error when user types
     if (validationErrors.version) {
-      setValidationErrors(prev => ({ ...prev, version: '' }));
+      setValidationErrors((prev) => ({ ...prev, version: '' }));
     }
   };
 
   const handleComposeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
-    setFormData(prev => ({ ...prev, compose: value }));
+    setFormData((prev) => ({ ...prev, compose: value }));
 
     // Clear validation error when user types
     if (validationErrors.compose) {
-      setValidationErrors(prev => ({ ...prev, compose: '' }));
+      setValidationErrors((prev) => ({ ...prev, compose: '' }));
     }
   };
 
@@ -103,7 +103,10 @@ services:
 
       {/* Version */}
       <div>
-        <label htmlFor="version" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label
+          htmlFor="version"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
           {t('containers:versionNumber')} <span className="text-red-500">*</span>
         </label>
         <div className="mt-1">
@@ -121,7 +124,9 @@ services:
             disabled={loading}
           />
           {validationErrors.version && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.version}</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {validationErrors.version}
+            </p>
           )}
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
             {t('containers:versionCharacterCount', {
@@ -134,7 +139,10 @@ services:
 
       {/* Docker Compose YAML */}
       <div>
-        <label htmlFor="compose" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label
+          htmlFor="compose"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
           {t('containers:dockerComposeYaml')} <span className="text-red-500">*</span>
         </label>
         <div className="mt-1">
@@ -152,7 +160,9 @@ services:
             disabled={loading}
           />
           {validationErrors.compose && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{validationErrors.compose}</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {validationErrors.compose}
+            </p>
           )}
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
             {t('containers:composeCharacterCount', {

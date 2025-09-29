@@ -12,10 +12,7 @@ import {
   LinkIcon,
 } from '@heroicons/react/24/outline';
 import { Container, ContainerVersion } from '../types/container';
-import {
-  StatusBadge,
-  getContainerVersionStatus,
-} from '../components/common/StatusBadge';
+import { StatusBadge, getContainerVersionStatus } from '../components/common/StatusBadge';
 import { useAuth } from '../hooks/useAuth';
 import containerService from '../services/containerService';
 import { useContainerVersions } from '../hooks/useContainerVersions';

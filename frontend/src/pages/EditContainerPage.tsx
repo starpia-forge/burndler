@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeftIcon, CubeIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth';
 import { Container } from '../types/container';
-import { useCreateContainerVersion } from '../hooks/useCreateContainerVersion';
-import { CreateVersionRequest } from '../types/container';
-import ContainerVersionForm from '../components/containers/ContainerVersionForm';
+import { useUpdateContainer } from '../hooks/useUpdateContainer';
+import { UpdateContainerRequest } from '../types/container';
+import ContainerForm from '../components/containers/ContainerForm';
 import containerService from '../services/containerService';
 
-const CreateContainerVersionPage: React.FC = () => {
+const EditContainerPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { canCreateContainer } = useAuth();
   const { t } = useTranslation(['containers', 'common']);
 
   const containerId = id ? parseInt(id, 10) : 0;
-  const { createVersion, loading, error } = useCreateContainerVersion();
+  const { updateContainer, loading, error } = useUpdateContainer();
 
   const [container, setContainer] = useState<Container | null>(null);
   const [containerLoading, setContainerLoading] = useState(true);
@@ -33,7 +33,11 @@ const CreateContainerVersionPage: React.FC = () => {
         const containerData = await containerService.getContainer(containerId, false);
         setContainer(containerData);
       } catch (error: any) {
-        setContainerError(error.message || t('containers:failedToFetch'));
+        if (error.status === 404) {
+          setContainerError(t('containers:containerNotFound'));
+        } else {
+          setContainerError(error.message || t('containers:failedToFetch'));
+        }
       } finally {
         setContainerLoading(false);
       }
@@ -42,9 +46,9 @@ const CreateContainerVersionPage: React.FC = () => {
     fetchContainer();
   }, [containerId, t]);
 
-  const handleSubmit = async (data: CreateVersionRequest) => {
-    const version = await createVersion(containerId, data);
-    if (version) {
+  const handleSubmit = async (data: UpdateContainerRequest) => {
+    const updatedContainer = await updateContainer(containerId, data);
+    if (updatedContainer) {
       navigate(`/containers/${containerId}`);
     }
   };
@@ -138,33 +142,36 @@ const CreateContainerVersionPage: React.FC = () => {
             </Link>
           </div>
 
-          <div className="flex items-start space-x-4">
-            <div className="flex-shrink-0">
-              <CubeIcon className="h-8 w-8 text-blue-500 dark:text-blue-400" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {t('containers:createVersionTitle')}
-              </h1>
-              <p className="mt-1 text-gray-600 dark:text-gray-400">
-                {t('containers:createVersionDescription', { containerName: container.name })}
-              </p>
-            </div>
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {t('containers:editContainerTitle')}
+            </h1>
+            <p className="mt-1 text-gray-600 dark:text-gray-400">
+              {t('containers:editContainerDescription', { containerName: container.name })}
+            </p>
           </div>
         </div>
 
+        {/* Error display */}
+        {error && (
+          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4">
+            <p className="text-red-700 dark:text-red-400">{error}</p>
+          </div>
+        )}
+
         {/* Form */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-          <ContainerVersionForm
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            loading={loading}
-            error={error}
-          />
-        </div>
+        <ContainerForm
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          loading={loading}
+          initialData={container}
+          isEditMode={true}
+          title={t('containers:editContainerTitle')}
+          submitLabel={t('containers:updateContainer')}
+        />
       </div>
     </div>
   );
 };
 
-export default CreateContainerVersionPage;
+export default EditContainerPage;

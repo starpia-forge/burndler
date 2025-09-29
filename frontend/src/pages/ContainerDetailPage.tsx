@@ -21,6 +21,8 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import containerService from '../services/containerService';
 import { useContainerVersions } from '../hooks/useContainerVersions';
+import { useConfirmationModal } from '../hooks/useConfirmationModal';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 
 const ContainerDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -44,6 +46,8 @@ const ContainerDetailPage: React.FC = () => {
     containerId,
     autoFetch: true,
   });
+
+  const confirmationModal = useConfirmationModal();
 
   // Fetch container details
   useEffect(() => {
@@ -72,16 +76,21 @@ const ContainerDetailPage: React.FC = () => {
   const handleDelete = async () => {
     if (!container) return;
 
-    const confirmed = window.confirm(t('containers:confirmDelete', { name: container.name }));
-
-    if (confirmed) {
-      try {
-        await containerService.deleteContainer(containerId);
-        navigate('/containers');
-      } catch (error: any) {
-        setError(error.message || t('containers:failedToDelete'));
-      }
-    }
+    confirmationModal.openModal({
+      title: t('containers:deleteContainerTitle'),
+      message: t('containers:confirmDelete', { name: container.name }),
+      confirmLabel: t('containers:deleteContainer'),
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await containerService.deleteContainer(containerId);
+          navigate('/containers');
+        } catch (error: any) {
+          setError(error.message || t('containers:failedToDelete'));
+          throw error; // Re-throw to keep modal open on error
+        }
+      },
+    });
   };
 
   const handleCreateVersion = () => {
@@ -361,6 +370,19 @@ const ContainerDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        onClose={confirmationModal.closeModal}
+        onConfirm={confirmationModal.handleConfirm}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        confirmLabel={confirmationModal.confirmLabel}
+        cancelLabel={confirmationModal.cancelLabel}
+        variant={confirmationModal.variant}
+        isLoading={confirmationModal.isLoading}
+      />
     </div>
   );
 };

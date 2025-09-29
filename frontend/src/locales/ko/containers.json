@@ -121,5 +121,11 @@
   "variables": "변수",
   "resourcePaths": "리소스 경로",
   "dependencies": "의존성",
-  "publishVersion": "버전 배포"
+  "publishVersion": "버전 배포",
+  "editContainerTitle": "컨테이너 편집",
+  "editContainerDescription": "{containerName} 컨테이너의 정보를 수정합니다.",
+  "updateContainer": "컨테이너 수정",
+  "updating": "수정 중...",
+  "updateFailed": "컨테이너 수정에 실패했습니다. 다시 시도해주세요.",
+  "updateSuccess": "컨테이너가 성공적으로 수정되었습니다."
 }
