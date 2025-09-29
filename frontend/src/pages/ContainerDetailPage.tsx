@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeftIcon,
   PencilIcon,
@@ -25,6 +26,7 @@ const ContainerDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isDeveloper } = useAuth();
+  const { t } = useTranslation(['containers', 'common']);
 
   const [container, setContainer] = useState<Container | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,7 +56,7 @@ const ContainerDetailPage: React.FC = () => {
         const containerData = await containerService.getContainer(containerId, false);
         setContainer(containerData);
       } catch (error: any) {
-        setError(error.message || 'Failed to fetch container');
+        setError(error.message || t('containers:failedToFetch'));
       } finally {
         setLoading(false);
       }
@@ -70,16 +72,14 @@ const ContainerDetailPage: React.FC = () => {
   const handleDelete = async () => {
     if (!container) return;
 
-    const confirmed = window.confirm(
-      `Are you sure you want to delete container "${container.name}"?\n\nThis action cannot be undone.`
-    );
+    const confirmed = window.confirm(t('containers:confirmDelete', { name: container.name }));
 
     if (confirmed) {
       try {
         await containerService.deleteContainer(containerId);
         navigate('/containers');
       } catch (error: any) {
-        setError(error.message || 'Failed to delete container');
+        setError(error.message || t('containers:failedToDelete'));
       }
     }
   };
@@ -92,7 +92,7 @@ const ContainerDetailPage: React.FC = () => {
     try {
       await publishVersion(version.version);
     } catch (error: any) {
-      setError(error.message || 'Failed to publish version');
+      setError(error.message || t('containers:failedToPublish'));
     }
   };
 
@@ -129,7 +129,7 @@ const ContainerDetailPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4">
             <h3 className="text-lg font-medium text-red-800 dark:text-red-300 mb-2">
-              Error loading container
+              {t('containers:errorLoading')}
             </h3>
             <p className="text-red-700 dark:text-red-400">{error}</p>
             <div className="mt-4">
@@ -138,7 +138,7 @@ const ContainerDetailPage: React.FC = () => {
                 className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"
               >
                 <ArrowLeftIcon className="h-4 w-4 mr-2" />
-                Back to Containers
+                {t('containers:backToContainers')}
               </Link>
             </div>
           </div>
@@ -164,7 +164,7 @@ const ContainerDetailPage: React.FC = () => {
                 className="inline-flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               >
                 <ArrowLeftIcon className="h-4 w-4 mr-1" />
-                Back to Containers
+                {t('containers:backToContainers')}
               </Link>
             </div>
 
@@ -175,14 +175,14 @@ const ContainerDetailPage: React.FC = () => {
                   className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   <PencilIcon className="h-4 w-4 mr-2" />
-                  Edit Container
+                  {t('containers:editContainer')}
                 </button>
                 <button
                   onClick={handleDelete}
                   className="inline-flex items-center px-4 py-2 border border-red-300 dark:border-red-600 rounded-md shadow-sm text-sm font-medium text-red-700 dark:text-red-300 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
                   <TrashIcon className="h-4 w-4 mr-2" />
-                  Delete Container
+                  {t('containers:deleteContainer')}
                 </button>
               </div>
             )}
@@ -219,19 +219,25 @@ const ContainerDetailPage: React.FC = () => {
             <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                 <UserIcon className="h-4 w-4" />
-                <span>Author: {container.author || 'Unknown'}</span>
+                <span>
+                  {t('containers:author')}: {container.author || t('containers:unknown')}
+                </span>
               </div>
 
               {container.repository && (
                 <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                   <LinkIcon className="h-4 w-4" />
-                  <span className="truncate">Repository: {container.repository}</span>
+                  <span className="truncate">
+                    {t('containers:repository')}: {container.repository}
+                  </span>
                 </div>
               )}
 
               <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                 <ClockIcon className="h-4 w-4" />
-                <span>Updated: {formatDate(container.updated_at)}</span>
+                <span>
+                  {t('containers:updated')}: {formatDate(container.updated_at)}
+                </span>
               </div>
             </div>
           </div>
@@ -242,9 +248,14 @@ const ContainerDetailPage: React.FC = () => {
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Versions</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {t('containers:versions')}
+                </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {versions.length} total versions ({publishedVersions.length} published)
+                  {t('containers:totalVersions', {
+                    count: versions.length,
+                    published: publishedVersions.length,
+                  })}
                 </p>
               </div>
 
@@ -254,7 +265,7 @@ const ContainerDetailPage: React.FC = () => {
                   className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
                 >
                   <PlusIcon className="h-4 w-4 mr-2" />
-                  Create Version
+                  {t('containers:createVersion')}
                 </button>
               )}
             </div>
@@ -289,9 +300,12 @@ const ContainerDetailPage: React.FC = () => {
                           <StatusBadge status={getContainerVersionStatus(version)} size="sm" />
                         </div>
                         <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                          Created {formatDate(version.created_at)}
+                          {t('containers:created')} {formatDate(version.created_at)}
                           {version.published_at && (
-                            <span> • Published {formatDate(version.published_at)}</span>
+                            <span>
+                              {' '}
+                              • {t('containers:published')} {formatDate(version.published_at)}
+                            </span>
                           )}
                         </p>
                       </div>
@@ -302,7 +316,7 @@ const ContainerDetailPage: React.FC = () => {
                           className="inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
                         >
                           <EyeIcon className="h-3 w-3 mr-1" />
-                          View
+                          {t('containers:view')}
                         </Link>
 
                         {isDeveloper && !version.published && (
@@ -310,7 +324,7 @@ const ContainerDetailPage: React.FC = () => {
                             onClick={() => handlePublishVersion(version)}
                             className="inline-flex items-center px-3 py-1 border border-transparent rounded-md text-xs font-medium text-white bg-blue-600 hover:bg-blue-700"
                           >
-                            Publish
+                            {t('containers:publish')}
                           </button>
                         )}
                       </div>
@@ -320,14 +334,14 @@ const ContainerDetailPage: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-500 dark:text-gray-400">No versions created yet.</p>
+                <p className="text-gray-500 dark:text-gray-400">{t('containers:noVersionsYet')}</p>
                 {isDeveloper && status !== 'deleted' && (
                   <button
                     onClick={handleCreateVersion}
                     className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
                   >
                     <PlusIcon className="h-4 w-4 mr-2" />
-                    Create First Version
+                    {t('containers:createFirstVersion')}
                   </button>
                 )}
               </div>
@@ -340,7 +354,7 @@ const ContainerDetailPage: React.FC = () => {
                   onClick={refetchVersions}
                   className="mt-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                 >
-                  Try again
+                  {t('containers:tryAgain')}
                 </button>
               </div>
             )}

@@ -43,12 +43,13 @@ export const ServiceDetailPage: React.FC = () => {
       setService(serviceData);
 
       // Convert service containers to form state for editing
-      const containerFormData: ServiceContainerFormState[] = serviceData.containers?.map(sc => ({
-        container_id: sc.container_id,
-        container_version: sc.container_version,
-        variables: sc.variables || {},
-        order: sc.order,
-      })) || [];
+      const containerFormData: ServiceContainerFormState[] =
+        serviceData.containers?.map((sc) => ({
+          container_id: sc.container_id,
+          container_version: sc.container_version,
+          variables: sc.variables || {},
+          order: sc.order,
+        })) || [];
       setSelectedContainers(containerFormData);
     } catch (error: any) {
       console.error('Failed to load service:', error);
@@ -260,9 +261,7 @@ export const ServiceDetailPage: React.FC = () => {
           <div className="bg-background rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-foreground">
-                  Edit Service Containers
-                </h2>
+                <h2 className="text-xl font-semibold text-foreground">Edit Service Containers</h2>
                 <button
                   onClick={() => setEditMode(null)}
                   className="text-muted-foreground hover:text-foreground"

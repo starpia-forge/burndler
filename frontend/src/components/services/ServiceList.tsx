@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Service } from '../../types/service';
 import { ServiceCard } from './ServiceCard';
 import { PlusIcon } from '@heroicons/react/24/outline';
@@ -22,15 +23,13 @@ export const ServiceList: React.FC<ServiceListProps> = ({
   className = '',
 }) => {
   const { isDeveloper } = useAuth();
+  const { t } = useTranslation(['services']);
 
   if (loading) {
     return (
       <div className={`space-y-4 ${className}`}>
         {[...Array(3)].map((_, index) => (
-          <div
-            key={index}
-            className="h-32 bg-card rounded-lg border border-border animate-pulse"
-          />
+          <div key={index} className="h-32 bg-card rounded-lg border border-border animate-pulse" />
         ))}
       </div>
     );
@@ -43,13 +42,9 @@ export const ServiceList: React.FC<ServiceListProps> = ({
           <div className="h-16 w-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
             <PlusIcon className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-medium text-foreground mb-2">
-            No services found
-          </h3>
+          <h3 className="text-lg font-medium text-foreground mb-2">{t('noServicesFound')}</h3>
           <p className="text-muted-foreground mb-6">
-            {isDeveloper
-              ? 'Get started by creating your first service.'
-              : 'No services are available to view.'}
+            {isDeveloper ? t('getStarted') : t('noServicesAvailable')}
           </p>
           {isDeveloper && onCreate && (
             <button
@@ -57,7 +52,7 @@ export const ServiceList: React.FC<ServiceListProps> = ({
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <PlusIcon className="h-4 w-4 mr-2" />
-              Create Service
+              {t('createService')}
             </button>
           )}
         </div>

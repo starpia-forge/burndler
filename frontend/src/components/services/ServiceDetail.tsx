@@ -68,13 +68,13 @@ export const ServiceDetail: React.FC<ServiceDetailProps> = ({
     );
 
     if (confirmed) {
-      setRemovingContainerIds(prev => new Set(prev).add(containerId));
+      setRemovingContainerIds((prev) => new Set(prev).add(containerId));
       try {
         await onRemoveContainer(containerId);
       } catch (error) {
         console.error('Failed to remove container:', error);
       } finally {
-        setRemovingContainerIds(prev => {
+        setRemovingContainerIds((prev) => {
           const newSet = new Set(prev);
           newSet.delete(containerId);
           return newSet;
@@ -115,9 +115,7 @@ export const ServiceDetail: React.FC<ServiceDetailProps> = ({
               </div>
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl font-bold text-foreground truncate">
-                {service.name}
-              </h1>
+              <h1 className="text-2xl font-bold text-foreground truncate">{service.name}</h1>
               {service.description && (
                 <p className="mt-2 text-muted-foreground">{service.description}</p>
               )}
@@ -190,9 +188,7 @@ export const ServiceDetail: React.FC<ServiceDetailProps> = ({
       {/* Containers Section */}
       <div className="bg-card rounded-lg border border-border p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-foreground">
-            Containers ({containerCount})
-          </h2>
+          <h2 className="text-lg font-semibold text-foreground">Containers ({containerCount})</h2>
           {isDeveloper && status !== 'deleted' && onAddContainer && (
             <button
               onClick={onAddContainer}
@@ -226,7 +222,8 @@ export const ServiceDetail: React.FC<ServiceDetailProps> = ({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center space-x-2">
                       <span className="text-sm font-medium text-foreground">
-                        {serviceContainer.container?.name || `Container ${serviceContainer.container_id}`}
+                        {serviceContainer.container?.name ||
+                          `Container ${serviceContainer.container_id}`}
                       </span>
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                         v{serviceContainer.container_version}

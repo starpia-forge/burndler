@@ -32,5 +32,32 @@
   "language": {
     "english": "English",
     "korean": "한국어"
-  }
+  },
+  "navigation": {
+    "dashboard": "대시보드",
+    "containers": "컨테이너",
+    "services": "서비스",
+    "packageBuilder": "패키지 빌더",
+    "lintReports": "린트 보고서",
+    "buildHistory": "빌드 기록",
+    "cliTools": "CLI 도구",
+    "rbacManager": "RBAC 관리자",
+    "settings": "설정"
+  },
+  "roles": {
+    "developer": "개발자",
+    "engineer": "엔지니어"
+  },
+  "version": {
+    "short": "v0.1",
+    "full": "v0.1.0"
+  },
+  "pages": {
+    "lintReportsComingSoon": "린트 보고서 기능이 곧 출시됩니다...",
+    "buildHistoryComingSoon": "빌드 기록 기능이 곧 출시됩니다...",
+    "cliToolsComingSoon": "CLI 도구 문서가 곧 출시됩니다...",
+    "rbacComingSoon": "역할 기반 접근 제어 관리 기능이 곧 출시됩니다...",
+    "settingsComingSoon": "설정 페이지가 곧 출시됩니다..."
+  },
+  "showingResults": "{{total}} 중 {{from}}-{{to}} 표시"
 }

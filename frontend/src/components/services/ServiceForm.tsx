@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Service, CreateServiceRequest, UpdateServiceRequest } from '../../types/service';
 
 interface ServiceFormProps {
@@ -23,10 +24,11 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
     description: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { t } = useTranslation(['services']);
 
   const isEditing = !!service;
-  const finalTitle = title || (isEditing ? 'Edit Service' : 'Create Service');
-  const finalSubmitLabel = submitLabel || (isEditing ? 'Update Service' : 'Create Service');
+  const finalTitle = title || (isEditing ? t('editService') : t('createService'));
+  const finalSubmitLabel = submitLabel || (isEditing ? t('editService') : t('createService'));
 
   useEffect(() => {
     if (service) {
@@ -41,15 +43,15 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Service name is required';
+      newErrors.name = t('nameRequired');
     } else if (formData.name.length < 2) {
-      newErrors.name = 'Service name must be at least 2 characters';
+      newErrors.name = t('nameMinLength');
     } else if (formData.name.length > 100) {
-      newErrors.name = 'Service name must be less than 100 characters';
+      newErrors.name = t('nameMaxLength');
     }
 
     if (formData.description.length > 500) {
-      newErrors.description = 'Description must be less than 500 characters';
+      newErrors.description = t('descriptionMaxLength');
     }
 
     setErrors(newErrors);
@@ -81,9 +83,9 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
   };
 
   const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -96,7 +98,8 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
           {/* Service Name */}
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
-              Service Name {!isEditing && <span className="text-red-500">*</span>}
+              {t('serviceName')}{' '}
+              {!isEditing && <span className="text-red-500">{t('required')}</span>}
             </label>
             <input
               type="text"
@@ -105,22 +108,18 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
               onChange={(e) => handleChange('name', e.target.value)}
               disabled={isEditing || loading}
               className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-background text-foreground disabled:bg-muted disabled:text-muted-foreground"
-              placeholder="Enter service name"
+              placeholder={t('enterServiceName')}
             />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-            )}
+            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
             {isEditing && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                Service name cannot be changed after creation
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground">{t('nameCannotBeChanged')}</p>
             )}
           </div>
 
           {/* Description */}
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-foreground mb-2">
-              Description
+              {t('common:description')}
             </label>
             <textarea
               id="description"
@@ -129,13 +128,13 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
               disabled={loading}
               rows={4}
               className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-background text-foreground resize-vertical"
-              placeholder="Enter service description (optional)"
+              placeholder={t('enterDescription')}
             />
             {errors.description && (
               <p className="mt-1 text-sm text-red-600">{errors.description}</p>
             )}
             <p className="mt-1 text-sm text-muted-foreground">
-              {formData.description.length}/500 characters
+              {t('charactersCount', { count: formData.description.length })}
             </p>
           </div>
 
@@ -147,14 +146,14 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
               disabled={loading}
               className="px-4 py-2 border border-border rounded-md shadow-sm text-sm font-medium text-foreground bg-background hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={loading}
               className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Saving...' : finalSubmitLabel}
+              {loading ? t('saving') : finalSubmitLabel}
             </button>
           </div>
         </form>

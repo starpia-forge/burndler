@@ -150,27 +150,24 @@ export function useServices(options: UseServicesOptions = {}): UseServicesReturn
   }, [fetchServices]);
 
   // Delete service and update local state
-  const deleteService = useCallback(
-    async (id: number) => {
-      try {
-        await serviceService.deleteService(id);
+  const deleteService = useCallback(async (id: number) => {
+    try {
+      await serviceService.deleteService(id);
 
-        // Remove from local state
-        setState((prev) => ({
-          ...prev,
-          services: prev.services.filter((service) => service.id !== id),
-        }));
-      } catch (error: any) {
-        const apiError = error as ApiError;
-        setState((prev) => ({
-          ...prev,
-          error: apiError.message || 'Failed to delete service',
-        }));
-        throw error; // Re-throw for component error handling
-      }
-    },
-    []
-  );
+      // Remove from local state
+      setState((prev) => ({
+        ...prev,
+        services: prev.services.filter((service) => service.id !== id),
+      }));
+    } catch (error: any) {
+      const apiError = error as ApiError;
+      setState((prev) => ({
+        ...prev,
+        error: apiError.message || 'Failed to delete service',
+      }));
+      throw error; // Re-throw for component error handling
+    }
+  }, []);
 
   // Refresh single service
   const refreshService = useCallback(async (id: number) => {
@@ -178,9 +175,7 @@ export function useServices(options: UseServicesOptions = {}): UseServicesReturn
       const updatedService = await serviceService.getService(id);
       setState((prev) => ({
         ...prev,
-        services: prev.services.map((service) =>
-          service.id === id ? updatedService : service
-        ),
+        services: prev.services.map((service) => (service.id === id ? updatedService : service)),
       }));
     } catch (error: any) {
       // If service not found (404), remove from list
@@ -259,11 +254,7 @@ export function useServiceSearch(services: Service[], searchTerm: string) {
 }
 
 // Helper hook for sorting services
-export function useServiceSort(
-  services: Service[],
-  sortBy: string,
-  sortDirection: 'asc' | 'desc'
-) {
+export function useServiceSort(services: Service[], sortBy: string, sortDirection: 'asc' | 'desc') {
   return useMemo(() => {
     const sortedServices = [...services].sort((a, b) => {
       let aValue: any;

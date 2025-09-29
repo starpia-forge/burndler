@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  PlusIcon,
-  MagnifyingGlassIcon,
-  ArrowPathIcon,
-} from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
+import { PlusIcon, MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { ServiceList, ServiceForm } from '../components/services';
 import { Service, CreateServiceRequest, UpdateServiceRequest } from '../types/service';
 import { useServices } from '../hooks/useServices';
@@ -14,6 +11,7 @@ import serviceService from '../services/serviceService';
 export const ServicesPage: React.FC = () => {
   const navigate = useNavigate();
   const { isDeveloper } = useAuth();
+  const { t } = useTranslation(['services', 'common']);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -85,10 +83,8 @@ export const ServicesPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Services</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage containerized services and their configurations
-          </p>
+          <h1 className="text-2xl font-bold text-foreground">{t('services:title')}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t('services:description')}</p>
         </div>
 
         <div className="flex items-center space-x-3">
@@ -98,7 +94,7 @@ export const ServicesPage: React.FC = () => {
             className="inline-flex items-center px-3 py-2 border border-border rounded-md shadow-sm text-sm font-medium text-foreground bg-background hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
             <ArrowPathIcon className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('services:refresh')}
           </button>
 
           {isDeveloper && (
@@ -107,7 +103,7 @@ export const ServicesPage: React.FC = () => {
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <PlusIcon className="h-4 w-4 mr-2" />
-              Create Service
+              {t('services:createService')}
             </button>
           )}
         </div>
@@ -116,13 +112,10 @@ export const ServicesPage: React.FC = () => {
       {/* Filters */}
       <div className="bg-card rounded-lg border border-border p-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-foreground">Filters</h3>
+          <h3 className="text-sm font-medium text-foreground">{t('services:filters')}</h3>
           {hasActiveFilters && (
-            <button
-              onClick={clearFilters}
-              className="text-xs text-blue-600 hover:text-blue-700"
-            >
-              Clear all
+            <button onClick={clearFilters} className="text-xs text-blue-600 hover:text-blue-700">
+              {t('services:clearAll')}
             </button>
           )}
         </div>
@@ -131,7 +124,7 @@ export const ServicesPage: React.FC = () => {
           {/* Search */}
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">
-              Search
+              {t('common:search')}
             </label>
             <div className="relative">
               <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -139,7 +132,7 @@ export const ServicesPage: React.FC = () => {
                 type="text"
                 value={filters.search || ''}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Search services..."
+                placeholder={t('services:searchPlaceholder')}
                 className="w-full pl-10 pr-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-background text-foreground"
               />
             </div>
@@ -148,23 +141,23 @@ export const ServicesPage: React.FC = () => {
           {/* Status Filter */}
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">
-              Status
+              {t('services:status')}
             </label>
             <select
               value={filters.active === undefined ? 'all' : filters.active.toString()}
               onChange={(e) => handleActiveFilterChange(e.target.value)}
               className="w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-background text-foreground"
             >
-              <option value="all">All Services</option>
-              <option value="true">Active</option>
-              <option value="false">Inactive</option>
+              <option value="all">{t('services:allServices')}</option>
+              <option value="true">{t('services:active')}</option>
+              <option value="false">{t('services:inactive')}</option>
             </select>
           </div>
 
           {/* Page Size */}
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">
-              Items per page
+              {t('services:itemsPerPage')}
             </label>
             <select
               value={filters.page_size || 10}
@@ -185,7 +178,7 @@ export const ServicesPage: React.FC = () => {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex">
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error</h3>
+              <h3 className="text-sm font-medium text-red-800">{t('services:error')}</h3>
               <div className="mt-2 text-sm text-red-700">
                 <p>{error}</p>
               </div>
@@ -194,7 +187,7 @@ export const ServicesPage: React.FC = () => {
                   onClick={handleRefresh}
                   className="text-sm bg-red-100 text-red-800 rounded-md px-3 py-1 hover:bg-red-200"
                 >
-                  Try again
+                  {t('services:tryAgain')}
                 </button>
               </div>
             </div>
@@ -215,9 +208,11 @@ export const ServicesPage: React.FC = () => {
       {pagination && pagination.total_pages > 1 && (
         <div className="flex items-center justify-between border-t border-border pt-4">
           <div className="text-sm text-muted-foreground">
-            Showing {((pagination.page - 1) * pagination.page_size) + 1} to{' '}
-            {Math.min(pagination.page * pagination.page_size, pagination.total)} of{' '}
-            {pagination.total} results
+            {t('common:showingResults', {
+              from: (pagination.page - 1) * pagination.page_size + 1,
+              to: Math.min(pagination.page * pagination.page_size, pagination.total),
+              total: pagination.total,
+            })}
           </div>
           <div className="flex items-center space-x-2">
             <button
@@ -225,7 +220,7 @@ export const ServicesPage: React.FC = () => {
               disabled={pagination.page <= 1}
               className="px-3 py-1 border border-border rounded-md text-sm text-foreground bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Previous
+              {t('services:previous')}
             </button>
 
             <div className="flex items-center space-x-1">
@@ -253,7 +248,7 @@ export const ServicesPage: React.FC = () => {
               disabled={pagination.page >= pagination.total_pages}
               className="px-3 py-1 border border-border rounded-md text-sm text-foreground bg-background hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Next
+              {t('services:next')}
             </button>
           </div>
         </div>
@@ -267,8 +262,8 @@ export const ServicesPage: React.FC = () => {
               onSubmit={handleCreateService}
               onCancel={() => setShowCreateForm(false)}
               loading={isCreating}
-              title="Create New Service"
-              submitLabel="Create Service"
+              title={t('services:createNewService')}
+              submitLabel={t('services:createService')}
             />
           </div>
         </div>
