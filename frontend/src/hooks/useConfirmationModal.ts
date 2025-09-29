@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 interface ConfirmationModalState {
   isOpen: boolean;
   title: string;
-  message: string;
+  message: React.ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: 'danger' | 'warning' | 'info';
@@ -14,7 +14,7 @@ interface ConfirmationModalState {
 interface UseConfirmationModalReturn {
   isOpen: boolean;
   title: string;
-  message: string;
+  message: React.ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: 'danger' | 'warning' | 'info';
@@ -26,7 +26,7 @@ interface UseConfirmationModalReturn {
 
 interface ConfirmationModalConfig {
   title: string;
-  message: string;
+  message: React.ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: 'danger' | 'warning' | 'info';
