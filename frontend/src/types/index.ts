@@ -65,6 +65,7 @@ export interface Build {
 
 // Re-export all types
 export * from './auth';
+export * from './configuration';
 export * from './container';
 export * from './service';
 export * from './setup';

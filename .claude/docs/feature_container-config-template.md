@@ -623,7 +623,7 @@ curl -X POST http://localhost:8080/api/v1/containers/1/versions/1/configuration 
 
 **예상 기간**: 2-3주
 
-### Task 2.1: 설정 UI 스키마 구조 정의
+### Task 2.1: 설정 UI 스키마 구조 정의 (완료)
 
 **목적**: 백엔드에서 정의한 UI 스키마를 프론트엔드에서 렌더링할 수 있도록 TypeScript 타입을 정의합니다.
 
