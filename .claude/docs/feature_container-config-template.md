@@ -999,7 +999,7 @@ export const ConfigurationField: React.FC<ConfigurationFieldProps> = ({
 
 ---
 
-### Task 2.3: 파일 구조 시각화 컴포넌트
+### Task 2.3: 파일 구조 시각화 컴포넌트 (완료)
 
 **목적**: 설정에 따라 포함될 파일들을 트리 구조로 시각화합니다.
 

@@ -67,6 +67,7 @@ export interface Build {
 export * from './auth';
 export * from './configuration';
 export * from './container';
+export * from './fileStructure';
 export * from './service';
 export * from './setup';
 export * from './theme';
