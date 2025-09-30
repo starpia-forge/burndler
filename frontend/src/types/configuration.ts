@@ -62,3 +62,7 @@ export interface DependencyRule {
   targetValue?: any;
   message?: string;
 }
+
+export interface ValidationErrors {
+  [key: string]: string;
+}
