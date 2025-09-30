@@ -14,12 +14,13 @@ import (
 
 // App contains all application dependencies
 type App struct {
-	Config   *config.Config
-	DB       *gorm.DB
-	Storage  storage.Storage
-	Merger   *services.Merger
-	Linter   *services.Linter
-	Packager *services.Packager
+	Config         *config.Config
+	DB             *gorm.DB
+	Storage        storage.Storage
+	Merger         *services.Merger
+	Linter         *services.Linter
+	Packager       *services.Packager
+	TemplateEngine *services.TemplateEngine
 }
 
 // New creates and initializes a new App instance
