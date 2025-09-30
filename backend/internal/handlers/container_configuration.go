@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/burndler/burndler/internal/models"
+	"github.com/burndler/burndler/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -116,4 +117,61 @@ func (h *ContainerConfigurationHandler) DeleteConfiguration(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Configuration deleted successfully"})
+}
+
+// ValidateConfiguration validates configuration values against dependency rules
+func (h *ContainerConfigurationHandler) ValidateConfiguration(c *gin.Context) {
+	serviceID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	containerID, _ := strconv.ParseUint(c.Param("container_id"), 10, 64)
+
+	var req struct {
+		Values map[string]interface{} `json:"values"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Load service container
+	var serviceContainer models.ServiceContainer
+	if err := h.db.Where("service_id = ? AND container_id = ?", serviceID, containerID).
+		First(&serviceContainer).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Service container not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve service container"})
+		return
+	}
+
+	// Load container configuration
+	var config models.ContainerConfiguration
+	if err := h.db.Where("container_version_id = ?", serviceContainer.ContainerVersionID).
+		First(&config).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Container configuration not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve configuration"})
+		return
+	}
+
+	// Parse dependency rules
+	var rules []services.DependencyRule
+	if len(config.DependencyRules) > 0 {
+		if err := json.Unmarshal(config.DependencyRules, &rules); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse dependency rules"})
+			return
+		}
+	}
+
+	// Validate configuration
+	checker := services.NewDependencyChecker()
+	errors := checker.ValidateConfiguration(rules, req.Values)
+
+	c.JSON(http.StatusOK, gin.H{
+		"valid":  len(errors) == 0,
+		"errors": errors,
+	})
 }

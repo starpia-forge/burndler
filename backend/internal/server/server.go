@@ -160,6 +160,9 @@ func (s *Server) setupRouter() {
 	serviceRoutes.POST("/:id/validate", serviceHandler.ValidateService)
 	serviceRoutes.POST("/:id/build", middleware.RequireRole("Developer"), serviceHandler.BuildService)
 
+	// Service container configuration validation
+	serviceRoutes.POST("/:id/containers/:container_id/validate", configHandler.ValidateConfiguration)
+
 	// Serve static files if enabled
 	if s.config.ServeStaticFiles {
 		s.setupStaticFileServing()

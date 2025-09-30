@@ -1530,7 +1530,7 @@ func (dc *DependencyChecker) getNestedValue(
 
 ---
 
-### Task 3.2: 의존성 검증 API
+### Task 3.2: 의존성 검증 API (완료)
 
 **목적**: 프론트엔드에서 실시간 검증을 위한 API 엔드포인트를 구현합니다.
 
