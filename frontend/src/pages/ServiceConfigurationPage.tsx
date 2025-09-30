@@ -145,6 +145,8 @@ export const ServiceConfigurationPage: React.FC = () => {
                 initialValues={values}
                 onChange={handleValuesChange}
                 onValidate={handleValidate}
+                serviceId={serviceId}
+                containerId={containerId}
               />
 
               {/* Action Buttons */}

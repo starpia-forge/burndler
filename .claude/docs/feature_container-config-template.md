@@ -1600,7 +1600,7 @@ api.POST("/services/:service_id/containers/:container_id/validate",
 
 ---
 
-### Task 3.3: 프론트엔드 실시간 검증
+### Task 3.3: 프론트엔드 실시간 검증 (완료)
 
 **목적**: 사용자가 설정을 변경할 때마다 실시간으로 의존성을 검증합니다.
 
@@ -1711,10 +1711,10 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
 ```
 
 **검증 기준**:
-- [ ] 설정 변경 시 자동으로 검증 실행
-- [ ] 검증 결과가 실시간으로 표시됨
-- [ ] 디바운싱이 정상 동작 (과도한 API 호출 방지)
-- [ ] 오류 메시지가 사용자 친화적
+- [x] 설정 변경 시 자동으로 검증 실행
+- [x] 검증 결과가 실시간으로 표시됨
+- [x] 디바운싱이 정상 동작 (과도한 API 호출 방지)
+- [x] 오류 메시지가 사용자 친화적
 
 ---
 

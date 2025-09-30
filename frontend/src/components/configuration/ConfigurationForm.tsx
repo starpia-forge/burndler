@@ -6,12 +6,15 @@ import {
   ValidationErrors,
 } from '../../types/configuration';
 import { ConfigurationSection } from './ConfigurationSection';
+import { useDependencyValidation } from '../../hooks/useDependencyValidation';
 
 interface ConfigurationFormProps {
   schema: UISchema;
   initialValues?: ConfigurationValues;
   onChange: (values: ConfigurationValues) => void;
   onValidate?: (errors: ValidationErrors) => void;
+  serviceId?: string;
+  containerId?: string;
 }
 
 // Field validation function
@@ -90,9 +93,18 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
   initialValues = {},
   onChange,
   onValidate,
+  serviceId,
+  containerId,
 }) => {
   const [values, setValues] = useState<ConfigurationValues>(initialValues);
   const [errors, setErrors] = useState<ValidationErrors>({});
+
+  // Dependency validation (real-time API-based validation)
+  const { validationResult, isValidating } = useDependencyValidation(
+    serviceId,
+    containerId,
+    values
+  );
 
   const handleFieldChange = useCallback(
     (key: string, value: any) => {
@@ -142,6 +154,29 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
 
   return (
     <div className="configuration-form space-y-6">
+      {/* Validation status indicator */}
+      {isValidating && (
+        <div className="validation-indicator text-sm text-muted-foreground flex items-center space-x-2">
+          <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+          <span>검증 중...</span>
+        </div>
+      )}
+
+      {/* Dependency validation errors */}
+      {!validationResult.valid && validationResult.errors.length > 0 && (
+        <div className="validation-errors bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <h4 className="font-semibold text-red-800 dark:text-red-200 mb-2">설정 오류</h4>
+          <ul className="list-disc list-inside space-y-1">
+            {validationResult.errors.map((error, idx) => (
+              <li key={idx} className="text-sm text-red-700 dark:text-red-300">
+                <span className="font-medium">{error.field}:</span> {error.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Configuration sections */}
       {schema.sections.map((section) => {
         const shouldShow = evaluateCondition(section.condition);
 

@@ -66,3 +66,15 @@ export interface DependencyRule {
 export interface ValidationErrors {
   [key: string]: string;
 }
+
+// Dependency validation types (from backend API)
+export interface DependencyValidationError {
+  field: string;
+  message: string;
+  rule: string;
+}
+
+export interface ValidationResult {
+  valid: boolean;
+  errors: DependencyValidationError[];
+}
