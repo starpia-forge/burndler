@@ -61,14 +61,16 @@ func New() (*App, error) {
 	merger := services.NewMerger()
 	linter := services.NewLinter()
 	packager := services.NewPackager(store)
+	templateEngine := services.NewTemplateEngine()
 
 	return &App{
-		Config:   cfg,
-		DB:       db,
-		Storage:  store,
-		Merger:   merger,
-		Linter:   linter,
-		Packager: packager,
+		Config:         cfg,
+		DB:             db,
+		Storage:        store,
+		Merger:         merger,
+		Linter:         linter,
+		Packager:       packager,
+		TemplateEngine: templateEngine,
 	}, nil
 }
 
@@ -107,14 +109,16 @@ func NewWithConfig(cfg *config.Config) (*App, error) {
 	merger := services.NewMerger()
 	linter := services.NewLinter()
 	packager := services.NewPackager(store)
+	templateEngine := services.NewTemplateEngine()
 
 	return &App{
-		Config:   cfg,
-		DB:       db,
-		Storage:  store,
-		Merger:   merger,
-		Linter:   linter,
-		Packager: packager,
+		Config:         cfg,
+		DB:             db,
+		Storage:        store,
+		Merger:         merger,
+		Linter:         linter,
+		Packager:       packager,
+		TemplateEngine: templateEngine,
 	}, nil
 }
 

@@ -71,6 +71,15 @@ Standard development workflow:
 - `make test-integration` - Run integration tests (requires database)
 - `make build` - Build all components for production
 
+### ⚠️ Make Command Execution Rule
+
+**ALL `make` commands MUST be executed from project root**.
+
+The Makefile exists ONLY at project root. Always run:
+```bash
+cd <Project Root Directory> && make <command>
+```
+
 ## Architectural Rules & Constraints
 
 ### Compose/Packaging (STRICT)

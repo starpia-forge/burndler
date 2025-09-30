@@ -80,6 +80,7 @@ func (s *Server) setupRouter() {
 	packageHandler := handlers.NewPackageHandler(s.packager, s.db)
 	containerHandler := handlers.NewContainerHandler(s.containerService, s.db)
 	serviceHandler := handlers.NewServiceHandler(s.serviceService, s.db)
+	configHandler := handlers.NewContainerConfigurationHandler(s.db)
 
 	// API v1 routes
 	v1 := s.router.Group("/api/v1")
@@ -134,6 +135,12 @@ func (s *Server) setupRouter() {
 	containers.GET("/:id/versions/:version", containerHandler.GetVersion)
 	containers.PUT("/:id/versions/:version", middleware.RequireRole("Developer"), containerHandler.UpdateVersion)
 	containers.POST("/:id/versions/:version/publish", middleware.RequireRole("Developer"), containerHandler.PublishVersion)
+
+	// Container configuration management
+	containers.POST("/:id/versions/:version/configuration", middleware.RequireRole("Developer"), configHandler.CreateConfiguration)
+	containers.GET("/:id/versions/:version/configuration", configHandler.GetConfiguration)
+	containers.PUT("/:id/versions/:version/configuration", middleware.RequireRole("Developer"), configHandler.UpdateConfiguration)
+	containers.DELETE("/:id/versions/:version/configuration", middleware.RequireRole("Developer"), configHandler.DeleteConfiguration)
 
 	// Service management
 	serviceRoutes := protected.Group("/services")
