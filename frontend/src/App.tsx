@@ -12,6 +12,7 @@ import CreateContainerVersionPage from './pages/CreateContainerVersionPage';
 import ContainerVersionDetailPage from './pages/ContainerVersionDetailPage';
 import ServicesPage from './pages/ServicesPage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
+import { ServiceConfigurationPage } from './pages/ServiceConfigurationPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import SetupGuard from './components/SetupGuard';
 import PlaceholderPage from './components/PlaceholderPage';
@@ -170,6 +171,18 @@ function App() {
                       <ProtectedRoute>
                         <DashboardLayout>
                           <ServiceDetailPage />
+                        </DashboardLayout>
+                      </ProtectedRoute>
+                    </SetupGuard>
+                  }
+                />
+                <Route
+                  path="/services/:serviceId/containers/:containerId/configure"
+                  element={
+                    <SetupGuard>
+                      <ProtectedRoute>
+                        <DashboardLayout>
+                          <ServiceConfigurationPage />
                         </DashboardLayout>
                       </ProtectedRoute>
                     </SetupGuard>

@@ -4,3 +4,4 @@ export { default as ContainersPage } from './ContainersPage';
 export { default as ContainerDetailPage } from './ContainerDetailPage';
 export { default as ServicesPage } from './ServicesPage';
 export { default as ServiceDetailPage } from './ServiceDetailPage';
+export { ServiceConfigurationPage } from './ServiceConfigurationPage';

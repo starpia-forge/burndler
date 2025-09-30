@@ -1173,7 +1173,7 @@ export const FileTreeNode: React.FC<FileTreeNodeProps> = ({ node, level }) => {
 
 ---
 
-### Task 2.4: 설정 페이지 통합
+### Task 2.4: 설정 페이지 통합 (완료)
 
 **목적**: 설정 폼과 파일 구조 뷰어를 하나의 페이지에 통합합니다.
 
