@@ -53,7 +53,7 @@ func (dc *DependencyChecker) validateRule(
 	values map[string]interface{},
 ) *ValidationError {
 	// 1. Evaluate condition
-	conditionMet, err := dc.evaluateCondition(rule.Condition, values)
+	conditionMet, err := dc.EvaluateCondition(rule.Condition, values)
 	if err != nil {
 		return &ValidationError{
 			Field:   rule.Field,
@@ -133,7 +133,8 @@ func (dc *DependencyChecker) validateConflicts(
 // evaluateCondition evaluates a simple boolean condition expression
 // Supports: ==, !=, >, <, >=, <=
 // Format: "{{.FieldName}} operator value" or "{{.Nested.Field}} operator value"
-func (dc *DependencyChecker) evaluateCondition(
+// EvaluateCondition evaluates a template condition expression
+func (dc *DependencyChecker) EvaluateCondition(
 	condition string,
 	values map[string]interface{},
 ) (bool, error) {

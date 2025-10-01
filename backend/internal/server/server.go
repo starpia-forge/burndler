@@ -23,16 +23,17 @@ import (
 
 // Server represents the HTTP server
 type Server struct {
-	config        *config.Config
-	db            *gorm.DB
-	storage       storage.Storage
-	merger        *services.Merger
-	linter        *services.Linter
-	packager      *services.Packager
+	config           *config.Config
+	db               *gorm.DB
+	storage          storage.Storage
+	merger           *services.Merger
+	linter           *services.Linter
+	packager         *services.Packager
 	authService      *services.AuthService
 	setupService     *services.SetupService
 	containerService *services.ContainerService
 	serviceService   *services.ServiceService
+	buildService     *services.BuildService
 	router           *gin.Engine
 }
 
@@ -42,17 +43,19 @@ func New(cfg *config.Config, db *gorm.DB, storage storage.Storage, merger *servi
 	setupService := services.NewSetupService(db, cfg)
 	containerService := services.NewContainerService(db, storage, linter)
 	serviceService := services.NewServiceService(db, storage)
+	buildService := services.NewBuildService(db, storage)
 	s := &Server{
-		config:        cfg,
-		db:            db,
-		storage:       storage,
-		merger:        merger,
-		linter:        linter,
-		packager:      packager,
+		config:           cfg,
+		db:               db,
+		storage:          storage,
+		merger:           merger,
+		linter:           linter,
+		packager:         packager,
 		authService:      authService,
 		setupService:     setupService,
 		containerService: containerService,
 		serviceService:   serviceService,
+		buildService:     buildService,
 	}
 	s.setupRouter()
 	return s
@@ -79,7 +82,7 @@ func (s *Server) setupRouter() {
 	composeHandler := handlers.NewComposeHandler(s.merger, s.linter)
 	packageHandler := handlers.NewPackageHandler(s.packager, s.db)
 	containerHandler := handlers.NewContainerHandler(s.containerService, s.db)
-	serviceHandler := handlers.NewServiceHandler(s.serviceService, s.db)
+	serviceHandler := handlers.NewServiceHandler(s.serviceService, s.buildService, s.db)
 	configHandler := handlers.NewContainerConfigurationHandler(s.db)
 
 	// API v1 routes

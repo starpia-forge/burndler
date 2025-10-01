@@ -275,7 +275,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 	checker := NewDependencyChecker()
 
 	t.Run("empty condition - always true", func(t *testing.T) {
-		result, err := checker.evaluateCondition("", map[string]interface{}{})
+		result, err := checker.EvaluateCondition("", map[string]interface{}{})
 		require.NoError(t, err)
 		assert.True(t, result)
 	})
@@ -288,7 +288,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 			},
 		}
 
-		result, err := checker.evaluateCondition(condition, values)
+		result, err := checker.EvaluateCondition(condition, values)
 		require.NoError(t, err)
 		assert.True(t, result)
 	})
@@ -301,7 +301,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 			},
 		}
 
-		result, err := checker.evaluateCondition(condition, values)
+		result, err := checker.EvaluateCondition(condition, values)
 		require.NoError(t, err)
 		assert.False(t, result)
 	})
@@ -312,7 +312,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 			"Debug": true,
 		}
 
-		result, err := checker.evaluateCondition(condition, values)
+		result, err := checker.EvaluateCondition(condition, values)
 		require.NoError(t, err)
 		assert.True(t, result)
 	})
@@ -323,7 +323,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 			"Port": 8080,
 		}
 
-		result, err := checker.evaluateCondition(condition, values)
+		result, err := checker.EvaluateCondition(condition, values)
 		require.NoError(t, err)
 		assert.True(t, result)
 	})
@@ -334,7 +334,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 			"Count": 10,
 		}
 
-		result, err := checker.evaluateCondition(condition, values)
+		result, err := checker.EvaluateCondition(condition, values)
 		require.NoError(t, err)
 		assert.True(t, result)
 	})
@@ -345,7 +345,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 			"Count": 10,
 		}
 
-		result, err := checker.evaluateCondition(condition, values)
+		result, err := checker.EvaluateCondition(condition, values)
 		require.NoError(t, err)
 		assert.True(t, result)
 	})
@@ -356,7 +356,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 			"Count": 3,
 		}
 
-		result, err := checker.evaluateCondition(condition, values)
+		result, err := checker.EvaluateCondition(condition, values)
 		require.NoError(t, err)
 		assert.True(t, result)
 	})
@@ -367,7 +367,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 			"Count": 5,
 		}
 
-		result, err := checker.evaluateCondition(condition, values)
+		result, err := checker.EvaluateCondition(condition, values)
 		require.NoError(t, err)
 		assert.True(t, result)
 	})
@@ -378,7 +378,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 			"Environment": "production",
 		}
 
-		result, err := checker.evaluateCondition(condition, values)
+		result, err := checker.EvaluateCondition(condition, values)
 		require.NoError(t, err)
 		assert.True(t, result)
 	})
@@ -389,7 +389,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 			"Environment": "production",
 		}
 
-		result, err := checker.evaluateCondition(condition, values)
+		result, err := checker.EvaluateCondition(condition, values)
 		require.NoError(t, err)
 		assert.True(t, result)
 	})
@@ -402,7 +402,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 			},
 		}
 
-		result, err := checker.evaluateCondition(condition, values)
+		result, err := checker.EvaluateCondition(condition, values)
 		require.NoError(t, err)
 		assert.True(t, result)
 	})
@@ -419,7 +419,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 			},
 		}
 
-		result, err := checker.evaluateCondition(condition, values)
+		result, err := checker.EvaluateCondition(condition, values)
 		require.NoError(t, err)
 		assert.True(t, result)
 	})
@@ -428,7 +428,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 		condition := "{{.MissingField}} == true"
 		values := map[string]interface{}{}
 
-		result, err := checker.evaluateCondition(condition, values)
+		result, err := checker.EvaluateCondition(condition, values)
 		require.NoError(t, err)
 		assert.False(t, result)
 	})
@@ -437,7 +437,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 		condition := ".Field == true"
 		values := map[string]interface{}{}
 
-		_, err := checker.evaluateCondition(condition, values)
+		_, err := checker.EvaluateCondition(condition, values)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid condition format")
 	})
@@ -446,7 +446,7 @@ func TestDependencyChecker_EvaluateCondition(t *testing.T) {
 		condition := "{{.Field}} true"
 		values := map[string]interface{}{}
 
-		_, err := checker.evaluateCondition(condition, values)
+		_, err := checker.EvaluateCondition(condition, values)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "no valid operator")
 	})

@@ -32,7 +32,8 @@ func setupServiceHandlerTest(t *testing.T) (*gorm.DB, *ServiceHandler) {
 	assert.NoError(t, err)
 
 	serviceService := services.NewServiceService(db, nil)
-	handler := NewServiceHandler(serviceService, db)
+	buildService := services.NewBuildService(db, nil)
+	handler := NewServiceHandler(serviceService, buildService, db)
 
 	return db, handler
 }

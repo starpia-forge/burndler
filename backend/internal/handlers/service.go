@@ -1,9 +1,13 @@
 package handlers
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/burndler/burndler/internal/models"
 	"github.com/burndler/burndler/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -12,13 +16,15 @@ import (
 // ServiceHandler handles service-related HTTP endpoints
 type ServiceHandler struct {
 	serviceService *services.ServiceService
+	buildService   *services.BuildService
 	db             *gorm.DB
 }
 
 // NewServiceHandler creates a new service handler
-func NewServiceHandler(serviceService *services.ServiceService, db *gorm.DB) *ServiceHandler {
+func NewServiceHandler(serviceService *services.ServiceService, buildService *services.BuildService, db *gorm.DB) *ServiceHandler {
 	return &ServiceHandler{
 		serviceService: serviceService,
+		buildService:   buildService,
 		db:             db,
 	}
 }
@@ -583,9 +589,66 @@ func (h *ServiceHandler) BuildService(c *gin.Context) {
 		return
 	}
 
-	// TODO: Implement actual build logic
-	// For now, return a success response
+	// Load service for build name
+	service, err := h.serviceService.GetService(uint(id), false)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "INTERNAL_ERROR",
+			Message: "Failed to load service",
+		})
+		return
+	}
+
+	// Get user ID from context
+	userIDInterface, _ := c.Get("user_id")
+	userIDStr, _ := userIDInterface.(string)
+	userID, _ := strconv.ParseUint(userIDStr, 10, 32)
+
+	// Create build record
+	serviceID := uint(id)
+	build := &models.Build{
+		Name:      fmt.Sprintf("%s-build", service.Name),
+		Status:    "queued",
+		UserID:    uint(userID),
+		ServiceID: &serviceID,
+	}
+
+	if err := h.db.Create(build).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "DB_ERROR",
+			Message: "Failed to create build record",
+		})
+		return
+	}
+
+	// Start async build
+	go h.processBuild(build)
+
 	c.JSON(http.StatusAccepted, gin.H{
-		"message": "Service build initiated",
+		"build_id": build.ID.String(),
+		"status":   build.Status,
 	})
+}
+
+// processBuild handles async build execution
+func (h *ServiceHandler) processBuild(build *models.Build) {
+	// Update status to building
+	build.Status = "building"
+	build.Progress = 10
+	h.db.Save(build)
+
+	// Execute build pipeline
+	ctx := context.Background()
+	err := h.buildService.ExecuteBuild(ctx, build.ID.String())
+
+	if err != nil {
+		// Error already handled in ExecuteBuild
+		return
+	}
+
+	// Update completion timestamp
+	now := time.Now()
+	build.CompletedAt = &now
+	build.Progress = 100
+	h.db.Save(build)
 }

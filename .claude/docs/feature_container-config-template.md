@@ -1724,7 +1724,7 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
 
 **예상 기간**: 2주
 
-### Task 4.1: 빌드 프로세스 확장
+### Task 4.1: 빌드 프로세스 확장 (완료)
 
 **목적**: 기존 빌드 프로세스에 템플릿 렌더링 단계를 추가합니다.
 
@@ -1955,10 +1955,10 @@ func (bs *BuildService) updateBuildStatus(build *models.Build) error {
 - `backend/internal/services/build_service.go` (확장)
 
 **검증 기준**:
-- [ ] 빌드 프로세스가 새로운 단계를 포함함
-- [ ] 템플릿 렌더링이 정상 동작함
-- [ ] 변수 해결이 올바른 우선순위로 동작함
-- [ ] 기존 빌드 기능에 영향 없음
+- [x] 빌드 프로세스가 새로운 단계를 포함함
+- [x] 템플릿 렌더링이 정상 동작함
+- [x] 변수 해결이 올바른 우선순위로 동작함
+- [x] 기존 빌드 기능에 영향 없음
 
 ---
 
