@@ -1962,7 +1962,7 @@ func (bs *BuildService) updateBuildStatus(build *models.Build) error {
 
 ---
 
-### Task 4.2: 에셋 해결 및 패키징
+### Task 4.2: 에셋 해결 및 패키징 (완료)
 
 **목적**: 조건부 에셋을 해결하고 인스톨러에 포함시킵니다.
 
@@ -2036,9 +2036,13 @@ func (bs *BuildService) generateDownloadURL(storagePath string) (string, error) 
 ```
 
 **검증 기준**:
-- [ ] 조건부 에셋이 올바르게 포함/제외됨
-- [ ] 임베디드 에셋이 인스톨러에 포함됨
-- [ ] 다운로드 에셋의 URL이 생성됨
+- [x] 조건부 에셋이 올바르게 포함/제외됨
+- [x] 임베디드 에셋이 인스톨러에 포함됨
+- [x] 다운로드 에셋의 URL이 생성됨
+- [x] 리소스 파일이 tar 아카이브에 포함됨
+- [x] 리소스 파일의 checksum이 계산되어 manifest에 포함됨
+- [x] PackageManifest에 DownloadAssets 필드 추가됨
+- [x] 모든 테스트 통과
 
 ---
 

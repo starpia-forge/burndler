@@ -47,7 +47,16 @@ type BuildContext struct {
 	ResolvedVariables map[uint]map[string]interface{}
 	RenderedFiles     map[string]string
 	RenderedAssets    map[string][]byte
+	DownloadAssets    []DownloadAssetInfo
 	TempDirectory     string
+}
+
+// DownloadAssetInfo represents an asset that should be downloaded during installation
+type DownloadAssetInfo struct {
+	FilePath    string `json:"file_path"`
+	DownloadURL string `json:"download_url"`
+	Checksum    string `json:"checksum"`
+	FileSize    int64  `json:"file_size"`
 }
 
 // ExecuteBuild executes the full build pipeline
@@ -74,6 +83,7 @@ func (bs *BuildService) ExecuteBuild(ctx context.Context, buildID string) error 
 		ResolvedVariables: make(map[uint]map[string]interface{}),
 		RenderedFiles:     make(map[string]string),
 		RenderedAssets:    make(map[string][]byte),
+		DownloadAssets:    make([]DownloadAssetInfo, 0),
 	}
 
 	// Execute build stages
@@ -253,9 +263,24 @@ func (bs *BuildService) resolveAssets(ctx context.Context, buildCtx *BuildContex
 				buildCtx.RenderedAssets[namespacedPath] = content
 
 			case "download":
-				// For download type, just track in manifest
-				// This will be handled in packaging stage
-				continue
+				// Track download asset for manifest
+				namespacedPath := bs.applyNamespace(asset.FilePath, containerID, buildCtx.Service)
+
+				// Generate download URL from storage path
+				downloadURL := asset.DownloadURL
+				if downloadURL == "" {
+					// If no download URL is set, use the storage path as reference
+					downloadURL = fmt.Sprintf("/api/v1/assets/download?path=%s", asset.StoragePath)
+				}
+
+				downloadInfo := DownloadAssetInfo{
+					FilePath:    namespacedPath,
+					DownloadURL: downloadURL,
+					Checksum:    asset.Checksum,
+					FileSize:    asset.FileSize,
+				}
+
+				buildCtx.DownloadAssets = append(buildCtx.DownloadAssets, downloadInfo)
 			}
 		}
 	}
@@ -348,17 +373,30 @@ func (bs *BuildService) lintCompose(ctx context.Context, buildCtx *BuildContext)
 
 // packageInstaller creates the final installer package
 func (bs *BuildService) packageInstaller(ctx context.Context, buildCtx *BuildContext) error {
-	// Prepare resources
-	resources := []Resource{}
+	// Prepare resource files
+	resourceFiles := make([]ResourceFile, 0)
 
-	// Add rendered files and assets as resources
-	// For now, we'll create a simple package with just the compose file
-	// Full resource inclusion will be implemented in Task 4.2
+	// Add rendered template files
+	for path, content := range buildCtx.RenderedFiles {
+		resourceFiles = append(resourceFiles, ResourceFile{
+			Path:    filepath.Join("resources", path),
+			Content: []byte(content),
+		})
+	}
+
+	// Add rendered assets
+	for path, content := range buildCtx.RenderedAssets {
+		resourceFiles = append(resourceFiles, ResourceFile{
+			Path:    filepath.Join("resources", path),
+			Content: content,
+		})
+	}
 
 	packageReq := &PackageRequest{
-		Name:      fmt.Sprintf("%s-%s", buildCtx.Service.Name, buildCtx.Build.ID.String()),
-		Compose:   buildCtx.Build.ComposeYAML,
-		Resources: resources,
+		Name:           fmt.Sprintf("%s-%s", buildCtx.Service.Name, buildCtx.Build.ID.String()),
+		Compose:        buildCtx.Build.ComposeYAML,
+		Resources:      resourceFiles,
+		DownloadAssets: buildCtx.DownloadAssets,
 	}
 
 	url, err := bs.packager.CreatePackage(ctx, packageReq)

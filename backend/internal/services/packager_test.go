@@ -81,7 +81,8 @@ func TestPackager_CreatePackage(t *testing.T) {
 services:
   web:
     image: nginx:latest`,
-		Resources: []Resource{},
+		Resources:      []ResourceFile{},
+		DownloadAssets: []DownloadAssetInfo{},
 	}
 
 	packagePath, err := packager.CreatePackage(ctx, req)
@@ -112,7 +113,8 @@ func TestPackager_CreatePackage_StorageError(t *testing.T) {
 services:
   web:
     image: nginx:latest`,
-		Resources: []Resource{},
+		Resources:      []ResourceFile{},
+		DownloadAssets: []DownloadAssetInfo{},
 	}
 
 	packagePath, err := packager.CreatePackage(ctx, req)
@@ -122,4 +124,50 @@ services:
 
 	// Even on error, we might get a partial path
 	_ = packagePath
+}
+
+// Test CreatePackage with resources and download assets
+func TestPackager_CreatePackage_WithResources(t *testing.T) {
+	mockStorage := &MockStorage{}
+	packager := NewPackager(mockStorage)
+
+	ctx := context.Background()
+	req := &PackageRequest{
+		Name: "test-package",
+		Compose: `version: '3'
+services:
+  web:
+    image: nginx:latest`,
+		Resources: []ResourceFile{
+			{
+				Path:    "resources/service_1/container1/config.yaml",
+				Content: []byte("test: config"),
+			},
+			{
+				Path:    "resources/service_1/container2/data.json",
+				Content: []byte("{\"key\": \"value\"}"),
+			},
+		},
+		DownloadAssets: []DownloadAssetInfo{
+			{
+				FilePath:    "resources/service_1/container1/large-file.bin",
+				DownloadURL: "https://example.com/download/large-file.bin",
+				Checksum:    "abc123def456",
+				FileSize:    1024000,
+			},
+		},
+	}
+
+	packagePath, err := packager.CreatePackage(ctx, req)
+	if err != nil {
+		t.Fatalf("CreatePackage failed: %v", err)
+	}
+
+	if packagePath == "" {
+		t.Error("Expected non-empty package path")
+	}
+
+	if !mockStorage.UploadCalled {
+		t.Error("Expected storage Upload to be called")
+	}
 }

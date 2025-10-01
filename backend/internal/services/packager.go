@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -27,26 +29,27 @@ func NewPackager(storage storage.Storage) *Packager {
 
 // PackageRequest represents a package creation request
 type PackageRequest struct {
-	Name      string     `json:"name"`
-	Compose   string     `json:"compose"`
-	Resources []Resource `json:"resources"`
+	Name           string              `json:"name"`
+	Compose        string              `json:"compose"`
+	Resources      []ResourceFile      `json:"resources"`
+	DownloadAssets []DownloadAssetInfo `json:"download_assets"`
 }
 
-// Resource represents a static resource to include
-type Resource struct {
-	Module  string   `json:"module"`
-	Version string   `json:"version"`
-	Files   []string `json:"files"`
+// ResourceFile represents a file resource to include in the package
+type ResourceFile struct {
+	Path    string `json:"path"`
+	Content []byte `json:"content"`
 }
 
 // PackageManifest represents the manifest.json content
 type PackageManifest struct {
-	Name      string            `json:"name"`
-	Version   string            `json:"version"`
-	CreatedAt time.Time         `json:"created_at"`
-	Images    []ImageInfo       `json:"images"`
-	Resources []ResourceInfo    `json:"resources"`
-	Checksums map[string]string `json:"checksums"`
+	Name           string              `json:"name"`
+	Version        string              `json:"version"`
+	CreatedAt      time.Time           `json:"created_at"`
+	Images         []ImageInfo         `json:"images"`
+	Resources      []string            `json:"resources"`
+	DownloadAssets []DownloadAssetInfo `json:"download_assets"`
+	Checksums      map[string]string   `json:"checksums"`
 }
 
 // ImageInfo represents Docker image metadata
@@ -57,13 +60,6 @@ type ImageInfo struct {
 	File   string `json:"file"`
 }
 
-// ResourceInfo represents static resource metadata
-type ResourceInfo struct {
-	Module  string   `json:"module"`
-	Version string   `json:"version"`
-	Files   []string `json:"files"`
-}
-
 // CreatePackage builds an offline installer package
 func (p *Packager) CreatePackage(ctx context.Context, req *PackageRequest) (string, error) {
 	buildID := uuid.New().String()
@@ -71,12 +67,13 @@ func (p *Packager) CreatePackage(ctx context.Context, req *PackageRequest) (stri
 
 	// Create manifest
 	manifest := PackageManifest{
-		Name:      req.Name,
-		Version:   "1.0.0",
-		CreatedAt: time.Now(),
-		Images:    []ImageInfo{},
-		Resources: []ResourceInfo{},
-		Checksums: make(map[string]string),
+		Name:           req.Name,
+		Version:        "1.0.0",
+		CreatedAt:      time.Now(),
+		Images:         []ImageInfo{},
+		Resources:      []string{},
+		DownloadAssets: req.DownloadAssets,
+		Checksums:      make(map[string]string),
 	}
 
 	// Create tar.gz buffer
@@ -107,9 +104,19 @@ func (p *Packager) CreatePackage(ctx context.Context, req *PackageRequest) (stri
 		return "", fmt.Errorf("failed to add verify.sh: %w", err)
 	}
 
-	// Add resources
+	// Add resource files
 	for _, resource := range req.Resources {
-		manifest.Resources = append(manifest.Resources, ResourceInfo(resource))
+		// Add file to tar
+		if err := p.addFileToTar(tarWriter, resource.Path, resource.Content); err != nil {
+			return "", fmt.Errorf("failed to add resource %s: %w", resource.Path, err)
+		}
+
+		// Calculate checksum
+		checksum := p.calculateChecksum(resource.Content)
+		manifest.Checksums[resource.Path] = checksum
+
+		// Track in manifest
+		manifest.Resources = append(manifest.Resources, resource.Path)
 	}
 
 	// Add manifest.json
@@ -162,6 +169,12 @@ func (p *Packager) addFileToTar(tw *tar.Writer, name string, content []byte) err
 	}
 
 	return nil
+}
+
+// calculateChecksum calculates SHA256 checksum of content
+func (p *Packager) calculateChecksum(content []byte) string {
+	hash := sha256.Sum256(content)
+	return hex.EncodeToString(hash[:])
 }
 
 // generateEnvExample creates a template .env file

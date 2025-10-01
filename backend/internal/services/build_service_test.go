@@ -40,7 +40,7 @@ func TestNewBuildService(t *testing.T) {
 	db, buildService := setupBuildServiceTest(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	}()
 
 	assert.NotNil(t, buildService)
@@ -56,7 +56,7 @@ func TestBuildService_ResolveVariables(t *testing.T) {
 	db, buildService := setupBuildServiceTest(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	}()
 
 	// Create test data
@@ -115,7 +115,7 @@ func TestBuildService_ApplyNamespace(t *testing.T) {
 	db, buildService := setupBuildServiceTest(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	}()
 
 	// Create test data
@@ -142,7 +142,7 @@ func TestBuildService_ValidateConfiguration(t *testing.T) {
 	db, buildService := setupBuildServiceTest(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	}()
 
 	// Create test user
@@ -208,7 +208,7 @@ func TestBuildService_ValidateConfiguration_InactiveService(t *testing.T) {
 	db, buildService := setupBuildServiceTest(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	}()
 
 	// Create inactive service
@@ -231,7 +231,7 @@ func TestBuildService_ValidateConfiguration_NoContainers(t *testing.T) {
 	db, buildService := setupBuildServiceTest(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	}()
 
 	// Create active service with no containers
@@ -255,7 +255,7 @@ func TestBuildService_UpdateBuildStatus(t *testing.T) {
 	db, buildService := setupBuildServiceTest(t)
 	defer func() {
 		sqlDB, _ := db.DB()
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	}()
 
 	// Create test user
