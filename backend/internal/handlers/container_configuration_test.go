@@ -21,11 +21,13 @@ func setupConfigTestDB(t *testing.T) *gorm.DB {
 	require.NoError(t, err)
 
 	err = db.AutoMigrate(
+		&models.Service{},
 		&models.Container{},
 		&models.ContainerVersion{},
 		&models.ContainerConfiguration{},
 		&models.ContainerFile{},
 		&models.ContainerAsset{},
+		&models.ServiceConfiguration{},
 	)
 	require.NoError(t, err)
 

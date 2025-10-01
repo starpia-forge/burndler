@@ -166,6 +166,10 @@ func (s *Server) setupRouter() {
 	// Service container configuration validation
 	serviceRoutes.POST("/:id/containers/:container_id/validate", configHandler.ValidateConfiguration)
 
+	// Service configuration export/import
+	serviceRoutes.GET("/:id/configuration/export", configHandler.ExportServiceConfiguration)
+	serviceRoutes.POST("/:id/configuration/import", middleware.RequireRole("Developer"), configHandler.ImportServiceConfiguration)
+
 	// Serve static files if enabled
 	if s.config.ServeStaticFiles {
 		s.setupStaticFileServing()

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { ConfigurationForm } from '../components/configuration/ConfigurationForm';
+import { ConfigurationActions } from '../components/configuration/ConfigurationActions';
 import { FileStructureViewer } from '../components/configuration/FileStructureViewer';
 import { useFileStructureResolver } from '../hooks/useFileStructureResolver';
 import { UISchema, ConfigurationValues, ValidationErrors } from '../types/configuration';
@@ -92,6 +93,11 @@ export const ServiceConfigurationPage: React.FC = () => {
     navigate(-1);
   };
 
+  const handleImportComplete = () => {
+    // Reload the page to fetch updated configuration
+    window.location.reload();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -136,7 +142,12 @@ export const ServiceConfigurationPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Configuration Panel */}
         <div className="config-panel">
-          <h2 className="text-xl font-semibold text-foreground mb-4">설정</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-foreground">설정</h2>
+            {serviceId && (
+              <ConfigurationActions serviceId={serviceId} onImportComplete={handleImportComplete} />
+            )}
+          </div>
 
           {schema && (
             <div className="bg-card border border-border rounded-lg p-6">

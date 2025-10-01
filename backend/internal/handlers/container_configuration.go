@@ -175,3 +175,130 @@ func (h *ContainerConfigurationHandler) ValidateConfiguration(c *gin.Context) {
 		"errors": errors,
 	})
 }
+
+// ExportServiceConfiguration exports all service configurations as JSON
+func (h *ContainerConfigurationHandler) ExportServiceConfiguration(c *gin.Context) {
+	serviceID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+
+	// Load all service configurations for this service
+	var configs []models.ServiceConfiguration
+	if err := h.db.Where("service_id = ?", serviceID).
+		Preload("Container").
+		Find(&configs).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load configurations"})
+		return
+	}
+
+	// Build export structure
+	export := make(map[string]interface{})
+	export["version"] = "1.0"
+	export["service_id"] = serviceID
+
+	containerConfigs := make(map[string]interface{})
+	for _, config := range configs {
+		var values map[string]interface{}
+		if len(config.ConfigurationValues) > 0 {
+			if err := json.Unmarshal(config.ConfigurationValues, &values); err != nil {
+				continue // Skip invalid JSON
+			}
+		}
+		containerConfigs[config.Container.Name] = values
+	}
+	export["containers"] = containerConfigs
+
+	c.JSON(http.StatusOK, export)
+}
+
+// ImportServiceConfiguration imports configurations from JSON
+func (h *ContainerConfigurationHandler) ImportServiceConfiguration(c *gin.Context) {
+	serviceID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+
+	var importData struct {
+		Version    string                            `json:"version"`
+		Containers map[string]map[string]interface{} `json:"containers"`
+	}
+
+	if err := c.ShouldBindJSON(&importData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validate version
+	if importData.Version != "1.0" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Unsupported export version"})
+		return
+	}
+
+	// Verify service exists
+	var service models.Service
+	if err := h.db.First(&service, serviceID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Service not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load service"})
+		return
+	}
+
+	// Import configurations
+	importedCount := 0
+	skippedContainers := []string{}
+
+	for containerName, values := range importData.Containers {
+		// Find container by name
+		var container models.Container
+		if err := h.db.Where("name = ?", containerName).First(&container).Error; err != nil {
+			skippedContainers = append(skippedContainers, containerName)
+			continue // Skip unknown containers
+		}
+
+		// Update or create service configuration
+		valuesJSON, err := json.Marshal(values)
+		if err != nil {
+			skippedContainers = append(skippedContainers, containerName)
+			continue
+		}
+
+		// Check if configuration exists
+		var existingConfig models.ServiceConfiguration
+		err = h.db.Where("service_id = ? AND container_id = ?", serviceID, container.ID).
+			First(&existingConfig).Error
+
+		if err == gorm.ErrRecordNotFound {
+			// Create new configuration
+			config := &models.ServiceConfiguration{
+				ServiceID:           uint(serviceID),
+				ContainerID:         container.ID,
+				ConfigurationValues: valuesJSON,
+			}
+			if err := h.db.Create(config).Error; err != nil {
+				skippedContainers = append(skippedContainers, containerName)
+				continue
+			}
+		} else if err == nil {
+			// Update existing configuration
+			if err := h.db.Model(&existingConfig).
+				Update("configuration_values", valuesJSON).Error; err != nil {
+				skippedContainers = append(skippedContainers, containerName)
+				continue
+			}
+		} else {
+			// Database error
+			skippedContainers = append(skippedContainers, containerName)
+			continue
+		}
+
+		importedCount++
+	}
+
+	response := gin.H{
+		"message":  "Configuration imported successfully",
+		"imported": importedCount,
+	}
+
+	if len(skippedContainers) > 0 {
+		response["skipped"] = skippedContainers
+	}
+
+	c.JSON(http.StatusOK, response)
+}
