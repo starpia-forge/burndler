@@ -63,8 +63,9 @@ type UserResponse struct {
 
 // ErrorResponse represents an error response
 type ErrorResponse struct {
-	Error   string `json:"error"`
-	Message string `json:"message,omitempty"`
+	Error   string            `json:"error"`
+	Message string            `json:"message,omitempty"`
+	Details map[string]string `json:"details,omitempty"`
 }
 
 // Login handles user authentication

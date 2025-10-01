@@ -166,6 +166,10 @@ func (s *Server) setupRouter() {
 	// Service container configuration validation
 	serviceRoutes.POST("/:id/containers/:container_id/validate", configHandler.ValidateConfiguration)
 
+	// Service container configuration (Get and Save)
+	serviceRoutes.GET("/:id/containers/:container_id/configuration", configHandler.GetServiceContainerConfiguration)
+	serviceRoutes.PUT("/:id/containers/:container_id/configuration", middleware.RequireRole("Developer"), configHandler.SaveServiceContainerConfiguration)
+
 	// Service configuration export/import
 	serviceRoutes.GET("/:id/configuration/export", configHandler.ExportServiceConfiguration)
 	serviceRoutes.POST("/:id/configuration/import", middleware.RequireRole("Developer"), configHandler.ImportServiceConfiguration)

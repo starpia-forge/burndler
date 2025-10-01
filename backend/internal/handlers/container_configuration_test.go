@@ -28,6 +28,7 @@ func setupConfigTestDB(t *testing.T) *gorm.DB {
 		&models.ContainerFile{},
 		&models.ContainerAsset{},
 		&models.ServiceConfiguration{},
+		&models.ServiceContainer{},
 	)
 	require.NoError(t, err)
 

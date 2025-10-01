@@ -6,7 +6,10 @@ import { ConfigurationActions } from '../components/configuration/ConfigurationA
 import { FileStructureViewer } from '../components/configuration/FileStructureViewer';
 import { useFileStructureResolver } from '../hooks/useFileStructureResolver';
 import { UISchema, ConfigurationValues, ValidationErrors } from '../types/configuration';
-// import api from '../services/api'; // TODO: Uncomment when backend API is ready
+import {
+  getServiceContainerConfiguration,
+  saveServiceContainerConfiguration,
+} from '../services/configurationService';
 
 export const ServiceConfigurationPage: React.FC = () => {
   const { serviceId, containerId } = useParams<{ serviceId: string; containerId: string }>();
@@ -29,16 +32,9 @@ export const ServiceConfigurationPage: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        // TODO: Replace with actual API endpoint when backend is ready
-        // const response = await api.get(
-        //   `/api/v1/services/${serviceId}/containers/${containerId}/configuration`
-        // );
-        // setSchema(response.data.ui_schema);
-        // setValues(response.data.current_values || {});
-
-        // Placeholder: Empty schema for now
-        setSchema({ sections: [] });
-        setValues({});
+        const response = await getServiceContainerConfiguration(serviceId!, containerId!);
+        setSchema(response.ui_schema);
+        setValues(response.current_values || {});
       } catch (err: any) {
         console.error('Failed to load configuration:', err);
         setError(err.message || 'Failed to load configuration');
@@ -70,13 +66,7 @@ export const ServiceConfigurationPage: React.FC = () => {
     try {
       setSaving(true);
 
-      // TODO: Replace with actual API endpoint when backend is ready
-      // await api.put(
-      //   `/api/v1/services/${serviceId}/containers/${containerId}/configuration`,
-      //   {
-      //     configuration_values: values,
-      //   }
-      // );
+      await saveServiceContainerConfiguration(serviceId!, containerId!, values);
 
       alert('설정이 저장되었습니다');
       // Optionally navigate back

@@ -176,6 +176,209 @@ func (h *ContainerConfigurationHandler) ValidateConfiguration(c *gin.Context) {
 	})
 }
 
+// GetServiceContainerConfiguration retrieves configuration for a specific container in a service
+func (h *ContainerConfigurationHandler) GetServiceContainerConfiguration(c *gin.Context) {
+	serviceID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	containerID, _ := strconv.ParseUint(c.Param("container_id"), 10, 64)
+
+	// Load service container to get version
+	var serviceContainer models.ServiceContainer
+	if err := h.db.Where("service_id = ? AND container_id = ?", serviceID, containerID).
+		First(&serviceContainer).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			NotFound(c, "Service container")
+			return
+		}
+		InternalError(c, "Failed to retrieve service container")
+		return
+	}
+
+	// Load container configuration (UI schema and dependency rules)
+	var containerConfig models.ContainerConfiguration
+	if err := h.db.Where("container_version_id = ?", serviceContainer.ContainerVersionID).
+		Preload("Files").
+		Preload("Assets").
+		First(&containerConfig).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			NotFound(c, "Container configuration")
+			return
+		}
+		InternalError(c, "Failed to retrieve container configuration")
+		return
+	}
+
+	// Load service configuration (current values)
+	var serviceConfig models.ServiceConfiguration
+	currentValues := make(map[string]interface{})
+	err := h.db.Where("service_id = ? AND container_id = ?", serviceID, containerID).
+		First(&serviceConfig).Error
+
+	if err == nil && len(serviceConfig.ConfigurationValues) > 0 {
+		if err := json.Unmarshal(serviceConfig.ConfigurationValues, &currentValues); err != nil {
+			InternalError(c, "Failed to parse configuration values")
+			return
+		}
+	} else if err != nil && err != gorm.ErrRecordNotFound {
+		InternalError(c, "Failed to retrieve service configuration")
+		return
+	}
+
+	// Parse UI schema and dependency rules
+	var uiSchema map[string]interface{}
+	var dependencyRules []services.DependencyRule
+
+	if len(containerConfig.UISchema) > 0 {
+		if err := json.Unmarshal(containerConfig.UISchema, &uiSchema); err != nil {
+			InternalError(c, "Failed to parse UI schema")
+			return
+		}
+	}
+
+	if len(containerConfig.DependencyRules) > 0 {
+		if err := json.Unmarshal(containerConfig.DependencyRules, &dependencyRules); err != nil {
+			InternalError(c, "Failed to parse dependency rules")
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"ui_schema":        uiSchema,
+		"dependency_rules": dependencyRules,
+		"current_values":   currentValues,
+		"files":            containerConfig.Files,
+		"assets":           containerConfig.Assets,
+	})
+}
+
+// SaveServiceContainerConfiguration saves configuration values for a specific container in a service
+func (h *ContainerConfigurationHandler) SaveServiceContainerConfiguration(c *gin.Context) {
+	serviceID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	containerID, _ := strconv.ParseUint(c.Param("container_id"), 10, 64)
+
+	var req struct {
+		ConfigurationValues map[string]interface{} `json:"configuration_values"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		BadRequest(c, err.Error())
+		return
+	}
+
+	// Verify service exists
+	var service models.Service
+	if err := h.db.First(&service, serviceID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			NotFound(c, "Service")
+			return
+		}
+		InternalError(c, "Failed to retrieve service")
+		return
+	}
+
+	// Verify container exists
+	var container models.Container
+	if err := h.db.First(&container, containerID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			NotFound(c, "Container")
+			return
+		}
+		InternalError(c, "Failed to retrieve container")
+		return
+	}
+
+	// Load service container to get version
+	var serviceContainer models.ServiceContainer
+	if err := h.db.Where("service_id = ? AND container_id = ?", serviceID, containerID).
+		First(&serviceContainer).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			NotFound(c, "Service container")
+			return
+		}
+		InternalError(c, "Failed to retrieve service container")
+		return
+	}
+
+	// Load container configuration for validation
+	var containerConfig models.ContainerConfiguration
+	if err := h.db.Where("container_version_id = ?", serviceContainer.ContainerVersionID).
+		First(&containerConfig).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			NotFound(c, "Container configuration")
+			return
+		}
+		InternalError(c, "Failed to retrieve container configuration")
+		return
+	}
+
+	// Validate against dependency rules
+	var rules []services.DependencyRule
+	if len(containerConfig.DependencyRules) > 0 {
+		if err := json.Unmarshal(containerConfig.DependencyRules, &rules); err != nil {
+			InternalError(c, "Failed to parse dependency rules")
+			return
+		}
+	}
+
+	checker := services.NewDependencyChecker()
+	validationErrors := checker.ValidateConfiguration(rules, req.ConfigurationValues)
+
+	if len(validationErrors) > 0 {
+		var errors []ValidationErrorItem
+		for _, valErr := range validationErrors {
+			errors = append(errors, ValidationErrorItem{
+				Field:   valErr.Field,
+				Message: valErr.Message,
+			})
+		}
+		ValidationErrors(c, errors)
+		return
+	}
+
+	// Marshal configuration values
+	valuesJSON, err := json.Marshal(req.ConfigurationValues)
+	if err != nil {
+		InternalError(c, "Failed to encode configuration values")
+		return
+	}
+
+	// Check if configuration exists
+	var existingConfig models.ServiceConfiguration
+	err = h.db.Where("service_id = ? AND container_id = ?", serviceID, containerID).
+		First(&existingConfig).Error
+
+	switch err {
+	case gorm.ErrRecordNotFound:
+		// Create new configuration
+		config := &models.ServiceConfiguration{
+			ServiceID:           uint(serviceID),
+			ContainerID:         container.ID,
+			ConfigurationValues: valuesJSON,
+		}
+		if err := h.db.Create(config).Error; err != nil {
+			InternalError(c, "Failed to create configuration")
+			return
+		}
+		c.JSON(http.StatusCreated, gin.H{
+			"message": "Configuration saved successfully",
+			"config":  config,
+		})
+	case nil:
+		// Update existing configuration
+		if err := h.db.Model(&existingConfig).
+			Update("configuration_values", valuesJSON).Error; err != nil {
+			InternalError(c, "Failed to update configuration")
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Configuration updated successfully",
+			"config":  existingConfig,
+		})
+	default:
+		InternalError(c, "Failed to retrieve service configuration")
+		return
+	}
+}
+
 // ExportServiceConfiguration exports all service configurations as JSON
 func (h *ContainerConfigurationHandler) ExportServiceConfiguration(c *gin.Context) {
 	serviceID, _ := strconv.ParseUint(c.Param("id"), 10, 64)

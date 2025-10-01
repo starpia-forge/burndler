@@ -78,3 +78,26 @@ export interface ValidationResult {
   valid: boolean;
   errors: DependencyValidationError[];
 }
+
+// Container files and assets types
+export interface ContainerFile {
+  id: number;
+  container_configuration_id: number;
+  path: string;
+  template: string;
+  format: 'yaml' | 'json' | 'env' | 'text';
+  condition?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContainerAsset {
+  id: number;
+  container_configuration_id: number;
+  path: string;
+  source_url: string;
+  checksum: string;
+  condition?: string;
+  created_at: string;
+  updated_at: string;
+}
