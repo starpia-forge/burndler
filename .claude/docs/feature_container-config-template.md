@@ -2383,9 +2383,18 @@ export const ConfigurationActions: React.FC<ConfigurationActionsProps> = ({
 ```
 
 **검증 기준**:
-- [ ] 설정을 JSON으로 내보낼 수 있음
-- [ ] JSON 파일을 가져와서 설정 복원 가능
-- [ ] 버전 호환성 체크가 동작함
+- [x] 설정을 JSON으로 내보낼 수 있음
+- [x] JSON 파일을 가져와서 설정 복원 가능
+- [x] 버전 호환성 체크가 동작함
+
+**구현 세부사항**:
+- Backend: ExportServiceConfiguration, ImportServiceConfiguration handlers 구현
+- Routes: GET /api/v1/services/:id/configuration/export, POST /api/v1/services/:id/configuration/import (Developer only)
+- Frontend: ConfigurationActions 컴포넌트 생성 및 ServiceConfigurationPage 통합
+- Export format: version 1.0, service_id, containers map
+- Validation: version checking, container existence, upsert logic
+- Testing: 6 unit tests covering export/import scenarios, all passing
+- Linting: 0 errors
 
 ---
 
