@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"text/template"
 
 	"gopkg.in/yaml.v3"
@@ -15,10 +14,10 @@ type TemplateEngine struct {
 	funcMap template.FuncMap
 }
 
-// NewTemplateEngine creates a new template engine with standard functions
+// NewTemplateEngine creates a new template engine with extended functions
 func NewTemplateEngine() *TemplateEngine {
 	return &TemplateEngine{
-		funcMap: getTemplateFuncMap(),
+		funcMap: GetExtendedTemplateFuncMap(),
 	}
 }
 
@@ -124,29 +123,5 @@ func (te *TemplateEngine) Render(templateContent string, format string, variable
 	}
 }
 
-// getTemplateFuncMap returns template helper functions
-func getTemplateFuncMap() template.FuncMap {
-	return template.FuncMap{
-		// String functions
-		"upper":   strings.ToUpper,
-		"lower":   strings.ToLower,
-		"trim":    strings.TrimSpace,
-		"replace": strings.ReplaceAll,
-
-		// Default value function
-		"default": func(defaultVal, val interface{}) interface{} {
-			if val == nil || val == "" {
-				return defaultVal
-			}
-			return val
-		},
-
-		// Math functions
-		"add": func(a, b int) int { return a + b },
-		"sub": func(a, b int) int { return a - b },
-
-		// Conditional functions
-		"eq": func(a, b interface{}) bool { return a == b },
-		"ne": func(a, b interface{}) bool { return a != b },
-	}
-}
+// Deprecated: getTemplateFuncMap is replaced by GetExtendedTemplateFuncMap in template_functions.go
+// All template functions are now centralized in template_functions.go

@@ -732,3 +732,172 @@ func TestTemplateEngine_ErrorMessages(t *testing.T) {
 		assert.Contains(t, errorMsg, "invalid json")
 	})
 }
+
+// Test Extended Template Functions Integration
+func TestTemplateEngine_ExtendedFunctions_YAML(t *testing.T) {
+	engine := NewTemplateEngine()
+
+	t.Run("YAML with contains and hasPrefix", func(t *testing.T) {
+		template := `
+config:
+  enabled: {{ contains .url "https" }}
+  secure: {{ hasPrefix .url "https://" }}
+  name: {{ .name }}
+`
+		variables := map[string]interface{}{
+			"url":  "https://example.com",
+			"name": "test-service",
+		}
+
+		result, err := engine.RenderYAML(template, variables)
+		require.NoError(t, err)
+		assert.Contains(t, result, "enabled: true")
+		assert.Contains(t, result, "secure: true")
+	})
+
+	t.Run("YAML with uuid and timestamp", func(t *testing.T) {
+		template := `
+metadata:
+  id: {{ uuid }}
+  timestamp: {{ timestamp }}
+`
+		variables := map[string]interface{}{}
+
+		result, err := engine.RenderYAML(template, variables)
+		require.NoError(t, err)
+		assert.Contains(t, result, "id:")
+		assert.Contains(t, result, "timestamp:")
+	})
+
+	t.Run("YAML with hash and base64encode", func(t *testing.T) {
+		template := `
+credentials:
+  password_hash: {{ hash .password }}
+  token: {{ base64encode .token }}
+`
+		variables := map[string]interface{}{
+			"password": "secret123",
+			"token":    "mytoken",
+		}
+
+		result, err := engine.RenderYAML(template, variables)
+		require.NoError(t, err)
+		assert.Contains(t, result, "password_hash:")
+		assert.Contains(t, result, "token: bXl0b2tlbg==")
+	})
+
+	t.Run("YAML with math functions", func(t *testing.T) {
+		template := `
+resources:
+  cpu: {{ mul .cores 1000 }}
+  memory: {{ add .base_memory .extra_memory }}
+  replicas: {{ sub .max_replicas .current_replicas }}
+`
+		variables := map[string]interface{}{
+			"cores":            2,
+			"base_memory":      1024,
+			"extra_memory":     512,
+			"max_replicas":     10,
+			"current_replicas": 3,
+		}
+
+		result, err := engine.RenderYAML(template, variables)
+		require.NoError(t, err)
+		assert.Contains(t, result, "cpu: 2000")
+		assert.Contains(t, result, "memory: 1536")
+		assert.Contains(t, result, "replicas: 7")
+	})
+}
+
+func TestTemplateEngine_ExtendedFunctions_JSON(t *testing.T) {
+	engine := NewTemplateEngine()
+
+	t.Run("JSON with split and join", func(t *testing.T) {
+		template := `{
+  "path": "{{ .path }}",
+  "first": "{{ index (split .path "/") 0 }}",
+  "combined": "{{ join (split .path "/") "-" }}"
+}`
+		variables := map[string]interface{}{
+			"path": "var/log/app",
+		}
+
+		result, err := engine.RenderJSON(template, variables)
+		require.NoError(t, err)
+		assert.Contains(t, result, `"path": "var/log/app"`)
+		assert.Contains(t, result, `"first": "var"`)
+		assert.Contains(t, result, `"combined": "var-log-app"`)
+	})
+
+	t.Run("JSON with localIP", func(t *testing.T) {
+		template := `{
+  "host": "{{ localIP }}"
+}`
+		variables := map[string]interface{}{}
+
+		result, err := engine.RenderJSON(template, variables)
+		require.NoError(t, err)
+		assert.Contains(t, result, `"host":`)
+	})
+}
+
+func TestTemplateEngine_ExtendedFunctions_Env(t *testing.T) {
+	engine := NewTemplateEngine()
+
+	t.Run("ENV with now function", func(t *testing.T) {
+		template := `# Generated at {{ now }}
+APP_NAME={{ .app_name }}
+APP_ID={{ uuid }}
+`
+		variables := map[string]interface{}{
+			"app_name": "test-app",
+		}
+
+		result, err := engine.RenderEnv(template, variables)
+		require.NoError(t, err)
+		assert.Contains(t, result, "# Generated at")
+		assert.Contains(t, result, "APP_NAME=test-app")
+		assert.Contains(t, result, "APP_ID=")
+	})
+}
+
+func TestTemplateEngine_ComplexScenario_WithExtendedFunctions(t *testing.T) {
+	engine := NewTemplateEngine()
+
+	t.Run("complex docker-compose style YAML", func(t *testing.T) {
+		template := `
+version: '3.8'
+services:
+  {{ .service_name }}:
+    image: {{ .image }}:{{ default "latest" .tag }}
+    environment:
+      - SERVICE_ID={{ uuid }}
+      - SERVICE_NAME={{ .service_name | upper }}
+      - TIMESTAMP={{ timestamp }}
+      - API_KEY_HASH={{ hash .api_key }}
+    ports:
+      - "{{ .port }}:{{ .port }}"
+    networks:
+      - {{ join .networks "_" }}
+    labels:
+      app.name: {{ .service_name }}
+      app.secure: {{ hasPrefix .image "secure-" }}
+`
+		variables := map[string]interface{}{
+			"service_name": "web-api",
+			"image":        "secure-nginx",
+			"tag":          "",
+			"api_key":      "secret123",
+			"port":         8080,
+			"networks":     []string{"frontend", "backend"},
+		}
+
+		result, err := engine.RenderYAML(template, variables)
+		require.NoError(t, err)
+		assert.Contains(t, result, "web-api:")
+		assert.Contains(t, result, "image: secure-nginx:latest")
+		assert.Contains(t, result, "SERVICE_NAME=WEB-API")
+		assert.Contains(t, result, "frontend_backend")
+		assert.Contains(t, result, "app.secure: true")
+	})
+}

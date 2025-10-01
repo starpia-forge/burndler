@@ -2052,7 +2052,7 @@ func (bs *BuildService) generateDownloadURL(storagePath string) (string, error) 
 
 **예상 기간**: 2-3주
 
-### Task 5.1: 템플릿 함수 확장
+### Task 5.1: 템플릿 함수 확장 (완료)
 
 **목적**: 템플릿에서 사용할 수 있는 고급 함수를 추가합니다.
 
@@ -2196,9 +2196,17 @@ func NewTemplateEngine() *TemplateEngine {
 ```
 
 **검증 기준**:
-- [ ] 모든 새 함수가 템플릿에서 동작함
-- [ ] 보안 관련 함수가 안전하게 동작함
-- [ ] 단위 테스트 통과
+- [x] 모든 새 함수가 템플릿에서 동작함
+- [x] 보안 관련 함수가 안전하게 동작함 (crypto/rand 사용, 환경변수 화이트리스트)
+- [x] 단위 테스트 100% 통과
+- [x] 통합 테스트 추가 및 통과
+- [x] Linting 검증 완료
+- [x] 총 26개의 템플릿 함수 추가됨:
+  - String: contains, hasPrefix, hasSuffix, split, join (기존 5개 유지)
+  - Math: mul, div, mod (기존 add, sub, eq, ne, default 유지)
+  - Utility: env (화이트리스트), uuid, timestamp, now
+  - Security: generatePassword, hash, base64encode, base64decode
+  - Network: randomPort, localIP
 
 ---
 
