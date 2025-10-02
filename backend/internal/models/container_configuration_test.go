@@ -43,19 +43,10 @@ func TestContainerConfiguration_TableName(t *testing.T) {
 func TestContainerConfiguration_Create(t *testing.T) {
 	db := setupTestDB(t)
 
-	// Create a container version first
+	// Create a container
 	container := &Container{Name: "test-container"}
 	if err := db.Create(container).Error; err != nil {
 		t.Fatalf("failed to create container: %v", err)
-	}
-
-	version := &ContainerVersion{
-		ContainerID:    container.ID,
-		Version:        "v1.0.0",
-		ComposeContent: "test",
-	}
-	if err := db.Create(version).Error; err != nil {
-		t.Fatalf("failed to create container version: %v", err)
 	}
 
 	// Create ContainerConfiguration
@@ -75,9 +66,11 @@ func TestContainerConfiguration_Create(t *testing.T) {
 	dependencyRulesJSON, _ := json.Marshal(dependencyRules)
 
 	config := &ContainerConfiguration{
-		ContainerVersionID: version.ID,
-		UISchema:           datatypes.JSON(uiSchemaJSON),
-		DependencyRules:    datatypes.JSON(dependencyRulesJSON),
+		ContainerID:     container.ID,
+		Name:            "default",
+		MinimumVersion:  "v0.1.0",
+		UISchema:        datatypes.JSON(uiSchemaJSON),
+		DependencyRules: datatypes.JSON(dependencyRulesJSON),
 	}
 
 	if err := db.Create(config).Error; err != nil {
@@ -100,32 +93,29 @@ func TestContainerConfiguration_Create(t *testing.T) {
 func TestContainerConfiguration_UniqueConstraint(t *testing.T) {
 	db := setupTestDB(t)
 
-	// Create a container version
+	// Create a container
 	container := &Container{Name: "test-container"}
 	db.Create(container)
 
-	version := &ContainerVersion{
-		ContainerID:    container.ID,
-		Version:        "v1.0.0",
-		ComposeContent: "test",
-	}
-	db.Create(version)
-
 	// Create first configuration
 	config1 := &ContainerConfiguration{
-		ContainerVersionID: version.ID,
-		UISchema:           datatypes.JSON([]byte(`{}`)),
-		DependencyRules:    datatypes.JSON([]byte(`{}`)),
+		ContainerID:     container.ID,
+		Name:            "default",
+		MinimumVersion:  "v0.1.0",
+		UISchema:        datatypes.JSON([]byte(`{}`)),
+		DependencyRules: datatypes.JSON([]byte(`{}`)),
 	}
 	if err := db.Create(config1).Error; err != nil {
 		t.Fatalf("failed to create first configuration: %v", err)
 	}
 
-	// Try to create duplicate configuration
+	// Try to create duplicate configuration with same (ContainerID, Name)
 	config2 := &ContainerConfiguration{
-		ContainerVersionID: version.ID,
-		UISchema:           datatypes.JSON([]byte(`{}`)),
-		DependencyRules:    datatypes.JSON([]byte(`{}`)),
+		ContainerID:     container.ID,
+		Name:            "default", // Same name
+		MinimumVersion:  "v0.2.0",
+		UISchema:        datatypes.JSON([]byte(`{}`)),
+		DependencyRules: datatypes.JSON([]byte(`{}`)),
 	}
 	err := db.Create(config2).Error
 	if err == nil {
@@ -143,27 +133,29 @@ func TestContainerFile_TableName(t *testing.T) {
 func TestContainerFile_Create(t *testing.T) {
 	db := setupTestDB(t)
 
-	// Create a container version
+	// Create container and configuration
 	container := &Container{Name: "test-container"}
 	db.Create(container)
 
-	version := &ContainerVersion{
-		ContainerID:    container.ID,
-		Version:        "v1.0.0",
-		ComposeContent: "test",
+	config := &ContainerConfiguration{
+		ContainerID:     container.ID,
+		Name:            "default",
+		MinimumVersion:  "v0.1.0",
+		UISchema:        datatypes.JSON([]byte(`{}`)),
+		DependencyRules: datatypes.JSON([]byte(`{}`)),
 	}
-	db.Create(version)
+	db.Create(config)
 
 	// Create ContainerFile
 	file := &ContainerFile{
-		ContainerVersionID: version.ID,
-		FilePath:           "config/app.yaml",
-		FileType:           "template",
-		StoragePath:        "/storage/path/file.yaml",
-		TemplateFormat:     "yaml",
-		DisplayCondition:   "{{.Database.Enabled}}",
-		IsDirectory:        false,
-		Description:        "Application configuration",
+		ContainerConfigurationID: config.ID,
+		FilePath:                 "config/app.yaml",
+		FileType:                 "template",
+		StoragePath:              "/storage/path/file.yaml",
+		TemplateFormat:           "yaml",
+		DisplayCondition:         "{{.Database.Enabled}}",
+		IsDirectory:              false,
+		Description:              "Application configuration",
 	}
 
 	if err := db.Create(file).Error; err != nil {
@@ -201,31 +193,33 @@ func TestContainerAsset_TableName(t *testing.T) {
 func TestContainerAsset_Create(t *testing.T) {
 	db := setupTestDB(t)
 
-	// Create a container version
+	// Create container and configuration
 	container := &Container{Name: "test-container"}
 	db.Create(container)
 
-	version := &ContainerVersion{
-		ContainerID:    container.ID,
-		Version:        "v1.0.0",
-		ComposeContent: "test",
+	config := &ContainerConfiguration{
+		ContainerID:     container.ID,
+		Name:            "default",
+		MinimumVersion:  "v0.1.0",
+		UISchema:        datatypes.JSON([]byte(`{}`)),
+		DependencyRules: datatypes.JSON([]byte(`{}`)),
 	}
-	db.Create(version)
+	db.Create(config)
 
 	// Create ContainerAsset
 	asset := &ContainerAsset{
-		ContainerVersionID: version.ID,
-		OriginalFileName:   "database.tar.gz",
-		FilePath:           "data/database.tar.gz",
-		AssetType:          "data",
-		MimeType:           "application/gzip",
-		FileSize:           1024000,
-		Checksum:           "abc123def456",
-		Compressed:         true,
-		IncludeCondition:   "{{.Database.Enabled}}",
-		StorageType:        "embedded",
-		StoragePath:        "/storage/assets/database.tar.gz",
-		DownloadURL:        "",
+		ContainerConfigurationID: config.ID,
+		OriginalFileName:         "database.tar.gz",
+		FilePath:                 "data/database.tar.gz",
+		AssetType:                "data",
+		MimeType:                 "application/gzip",
+		FileSize:                 1024000,
+		Checksum:                 "abc123def456",
+		Compressed:               true,
+		IncludeCondition:         "{{.Database.Enabled}}",
+		StorageType:              "embedded",
+		StoragePath:              "/storage/assets/database.tar.gz",
+		DownloadURL:              "",
 	}
 
 	if err := db.Create(asset).Error; err != nil {
@@ -321,52 +315,47 @@ func TestServiceConfiguration_Create(t *testing.T) {
 func TestContainerConfiguration_Relationships(t *testing.T) {
 	db := setupTestDB(t)
 
-	// Create container and version
+	// Create container
 	container := &Container{Name: "test-container"}
 	db.Create(container)
 
-	version := &ContainerVersion{
-		ContainerID:    container.ID,
-		Version:        "v1.0.0",
-		ComposeContent: "test",
-	}
-	db.Create(version)
-
 	// Create configuration with files and assets
 	config := &ContainerConfiguration{
-		ContainerVersionID: version.ID,
-		UISchema:           datatypes.JSON([]byte(`{}`)),
-		DependencyRules:    datatypes.JSON([]byte(`{}`)),
+		ContainerID:     container.ID,
+		Name:            "default",
+		MinimumVersion:  "v0.1.0",
+		UISchema:        datatypes.JSON([]byte(`{}`)),
+		DependencyRules: datatypes.JSON([]byte(`{}`)),
 	}
 	db.Create(config)
 
 	// Create files
 	file1 := &ContainerFile{
-		ContainerVersionID: version.ID,
-		FilePath:           "config/app1.yaml",
-		FileType:           "template",
-		StoragePath:        "/storage/app1.yaml",
+		ContainerConfigurationID: config.ID,
+		FilePath:                 "config/app1.yaml",
+		FileType:                 "template",
+		StoragePath:              "/storage/app1.yaml",
 	}
 	db.Create(file1)
 
 	file2 := &ContainerFile{
-		ContainerVersionID: version.ID,
-		FilePath:           "config/app2.yaml",
-		FileType:           "static",
-		StoragePath:        "/storage/app2.yaml",
+		ContainerConfigurationID: config.ID,
+		FilePath:                 "config/app2.yaml",
+		FileType:                 "static",
+		StoragePath:              "/storage/app2.yaml",
 	}
 	db.Create(file2)
 
 	// Create assets
 	asset1 := &ContainerAsset{
-		ContainerVersionID: version.ID,
-		OriginalFileName:   "data1.tar.gz",
-		FilePath:           "data/data1.tar.gz",
-		AssetType:          "data",
-		FileSize:           1000,
-		Checksum:           "abc123",
-		StorageType:        "embedded",
-		StoragePath:        "/storage/data1.tar.gz",
+		ContainerConfigurationID: config.ID,
+		OriginalFileName:         "data1.tar.gz",
+		FilePath:                 "data/data1.tar.gz",
+		AssetType:                "data",
+		FileSize:                 1000,
+		Checksum:                 "abc123",
+		StorageType:              "embedded",
+		StoragePath:              "/storage/data1.tar.gz",
 	}
 	db.Create(asset1)
 
@@ -389,16 +378,9 @@ func TestContainerConfiguration_Relationships(t *testing.T) {
 func TestJSONBFieldsMarshaling(t *testing.T) {
 	db := setupTestDB(t)
 
-	// Create container version
+	// Create container
 	container := &Container{Name: "test-container"}
 	db.Create(container)
-
-	version := &ContainerVersion{
-		ContainerID:    container.ID,
-		Version:        "v1.0.0",
-		ComposeContent: "test",
-	}
-	db.Create(version)
 
 	// Create configuration with complex JSONB data
 	uiSchema := map[string]interface{}{
@@ -419,9 +401,11 @@ func TestJSONBFieldsMarshaling(t *testing.T) {
 	uiSchemaJSON, _ := json.Marshal(uiSchema)
 
 	config := &ContainerConfiguration{
-		ContainerVersionID: version.ID,
-		UISchema:           datatypes.JSON(uiSchemaJSON),
-		DependencyRules:    datatypes.JSON([]byte(`{"rules":[]}`)),
+		ContainerID:     container.ID,
+		Name:            "default",
+		MinimumVersion:  "v0.1.0",
+		UISchema:        datatypes.JSON(uiSchemaJSON),
+		DependencyRules: datatypes.JSON([]byte(`{"rules":[]}`)),
 	}
 	db.Create(config)
 
@@ -466,22 +450,17 @@ func TestContainerFile_IndexCreation(t *testing.T) {
 func TestTimestampsAutoUpdate(t *testing.T) {
 	db := setupTestDB(t)
 
-	// Create container version
+	// Create container
 	container := &Container{Name: "test-container"}
 	db.Create(container)
 
-	version := &ContainerVersion{
-		ContainerID:    container.ID,
-		Version:        "v1.0.0",
-		ComposeContent: "test",
-	}
-	db.Create(version)
-
 	// Create configuration
 	config := &ContainerConfiguration{
-		ContainerVersionID: version.ID,
-		UISchema:           datatypes.JSON([]byte(`{}`)),
-		DependencyRules:    datatypes.JSON([]byte(`{}`)),
+		ContainerID:     container.ID,
+		Name:            "default",
+		MinimumVersion:  "v0.1.0",
+		UISchema:        datatypes.JSON([]byte(`{}`)),
+		DependencyRules: datatypes.JSON([]byte(`{}`)),
 	}
 	db.Create(config)
 
@@ -500,5 +479,283 @@ func TestTimestampsAutoUpdate(t *testing.T) {
 
 	if !config.CreatedAt.Equal(createdAt) {
 		t.Error("expected CreatedAt to remain unchanged after update")
+	}
+}
+
+// ===== Phase 1.1: New tests for Container-level Configuration structure =====
+
+// TestContainerConfiguration_BelongsToContainer tests that ContainerConfiguration
+// belongs to Container (not ContainerVersion) with Name field
+func TestContainerConfiguration_BelongsToContainer(t *testing.T) {
+	db := setupTestDB(t)
+
+	// Create container
+	container := &Container{Name: "test-container"}
+	if err := db.Create(container).Error; err != nil {
+		t.Fatalf("failed to create container: %v", err)
+	}
+
+	// Create configuration at Container level with Name
+	config := &ContainerConfiguration{
+		ContainerID:    container.ID,
+		Name:           "default",
+		Description:    "Default configuration",
+		MinimumVersion: "v0.1.0",
+		UISchema:       datatypes.JSON([]byte(`{}`)),
+		DependencyRules: datatypes.JSON([]byte(`{}`)),
+	}
+
+	if err := db.Create(config).Error; err != nil {
+		t.Fatalf("failed to create container configuration: %v", err)
+	}
+
+	if config.ID == 0 {
+		t.Error("expected ID to be set after creation")
+	}
+
+	// Verify relationship
+	var loaded ContainerConfiguration
+	err := db.Preload("Container").First(&loaded, config.ID).Error
+	if err != nil {
+		t.Fatalf("failed to load configuration with container: %v", err)
+	}
+
+	if loaded.Container.ID != container.ID {
+		t.Errorf("expected Container ID %d, got %d", container.ID, loaded.Container.ID)
+	}
+
+	if loaded.Name != "default" {
+		t.Errorf("expected Name 'default', got '%s'", loaded.Name)
+	}
+}
+
+// TestContainerConfiguration_RequiresMinimumVersion tests that MinimumVersion is required
+func TestContainerConfiguration_RequiresMinimumVersion(t *testing.T) {
+	db := setupTestDB(t)
+
+	container := &Container{Name: "test-container"}
+	db.Create(container)
+
+	// Try to create configuration without MinimumVersion
+	config := &ContainerConfiguration{
+		ContainerID:     container.ID,
+		Name:            "config1",
+		UISchema:        datatypes.JSON([]byte(`{}`)),
+		DependencyRules: datatypes.JSON([]byte(`{}`)),
+		// MinimumVersion is missing
+	}
+
+	err := db.Create(config).Error
+	if err == nil {
+		t.Error("expected error when creating configuration without MinimumVersion")
+	}
+}
+
+// TestContainerConfiguration_UniqueNamePerContainer tests that (ContainerID, Name) is unique
+func TestContainerConfiguration_UniqueNamePerContainer(t *testing.T) {
+	db := setupTestDB(t)
+
+	container := &Container{Name: "test-container"}
+	db.Create(container)
+
+	// Create first configuration
+	config1 := &ContainerConfiguration{
+		ContainerID:     container.ID,
+		Name:            "default",
+		MinimumVersion:  "v0.1.0",
+		UISchema:        datatypes.JSON([]byte(`{}`)),
+		DependencyRules: datatypes.JSON([]byte(`{}`)),
+	}
+	if err := db.Create(config1).Error; err != nil {
+		t.Fatalf("failed to create first configuration: %v", err)
+	}
+
+	// Try to create duplicate configuration with same Container + Name
+	config2 := &ContainerConfiguration{
+		ContainerID:     container.ID,
+		Name:            "default", // Same name
+		MinimumVersion:  "v0.2.0",
+		UISchema:        datatypes.JSON([]byte(`{}`)),
+		DependencyRules: datatypes.JSON([]byte(`{}`)),
+	}
+	err := db.Create(config2).Error
+	if err == nil {
+		t.Error("expected unique constraint violation for (container_id, name)")
+	}
+
+	// But different name should work
+	config3 := &ContainerConfiguration{
+		ContainerID:     container.ID,
+		Name:            "advanced", // Different name
+		MinimumVersion:  "v0.2.0",
+		UISchema:        datatypes.JSON([]byte(`{}`)),
+		DependencyRules: datatypes.JSON([]byte(`{}`)),
+	}
+	if err := db.Create(config3).Error; err != nil {
+		t.Errorf("failed to create configuration with different name: %v", err)
+	}
+}
+
+// TestContainerVersion_CanReferenceConfiguration tests that ContainerVersion
+// can reference ContainerConfiguration via nullable ConfigurationID
+func TestContainerVersion_CanReferenceConfiguration(t *testing.T) {
+	db := setupTestDB(t)
+
+	// Create container
+	container := &Container{Name: "test-container"}
+	db.Create(container)
+
+	// Create configuration
+	config := &ContainerConfiguration{
+		ContainerID:     container.ID,
+		Name:            "default",
+		MinimumVersion:  "v0.1.0",
+		UISchema:        datatypes.JSON([]byte(`{}`)),
+		DependencyRules: datatypes.JSON([]byte(`{}`)),
+	}
+	db.Create(config)
+
+	// Create version WITH configuration reference
+	version1 := &ContainerVersion{
+		ContainerID:     container.ID,
+		Version:         "v0.1.0",
+		ComposeContent:  "test",
+		ConfigurationID: &config.ID,
+	}
+	if err := db.Create(version1).Error; err != nil {
+		t.Fatalf("failed to create version with configuration: %v", err)
+	}
+
+	// Create version WITHOUT configuration (nullable)
+	version2 := &ContainerVersion{
+		ContainerID:     container.ID,
+		Version:         "v0.0.5",
+		ComposeContent:  "test",
+		ConfigurationID: nil,
+	}
+	if err := db.Create(version2).Error; err != nil {
+		t.Fatalf("failed to create version without configuration: %v", err)
+	}
+
+	// Load version with configuration
+	var loaded ContainerVersion
+	err := db.Preload("Configuration").First(&loaded, version1.ID).Error
+	if err != nil {
+		t.Fatalf("failed to load version with configuration: %v", err)
+	}
+
+	if loaded.Configuration == nil {
+		t.Fatal("expected Configuration to be loaded")
+	}
+
+	if loaded.Configuration.ID != config.ID {
+		t.Errorf("expected Configuration ID %d, got %d", config.ID, loaded.Configuration.ID)
+	}
+
+	// Load version without configuration
+	var loaded2 ContainerVersion
+	err = db.Preload("Configuration").First(&loaded2, version2.ID).Error
+	if err != nil {
+		t.Fatalf("failed to load version without configuration: %v", err)
+	}
+
+	if loaded2.Configuration != nil {
+		t.Error("expected Configuration to be nil for version without configuration")
+	}
+}
+
+// TestContainerFile_BelongsToConfiguration tests that ContainerFile
+// belongs to ContainerConfiguration (not ContainerVersion)
+func TestContainerFile_BelongsToConfiguration(t *testing.T) {
+	db := setupTestDB(t)
+
+	// Create container and configuration
+	container := &Container{Name: "test-container"}
+	db.Create(container)
+
+	config := &ContainerConfiguration{
+		ContainerID:     container.ID,
+		Name:            "default",
+		MinimumVersion:  "v0.1.0",
+		UISchema:        datatypes.JSON([]byte(`{}`)),
+		DependencyRules: datatypes.JSON([]byte(`{}`)),
+	}
+	db.Create(config)
+
+	// Create file belonging to configuration
+	file := &ContainerFile{
+		ContainerConfigurationID: config.ID,
+		FilePath:                 "config/app.yaml",
+		FileType:                 "template",
+		StoragePath:              "/storage/app.yaml",
+	}
+
+	if err := db.Create(file).Error; err != nil {
+		t.Fatalf("failed to create container file: %v", err)
+	}
+
+	// Load configuration with files
+	var loaded ContainerConfiguration
+	err := db.Preload("Files").First(&loaded, config.ID).Error
+	if err != nil {
+		t.Fatalf("failed to load configuration with files: %v", err)
+	}
+
+	if len(loaded.Files) != 1 {
+		t.Errorf("expected 1 file, got %d", len(loaded.Files))
+	}
+
+	if loaded.Files[0].FilePath != "config/app.yaml" {
+		t.Errorf("expected FilePath 'config/app.yaml', got '%s'", loaded.Files[0].FilePath)
+	}
+}
+
+// TestContainerAsset_BelongsToConfiguration tests that ContainerAsset
+// belongs to ContainerConfiguration (not ContainerVersion)
+func TestContainerAsset_BelongsToConfiguration(t *testing.T) {
+	db := setupTestDB(t)
+
+	// Create container and configuration
+	container := &Container{Name: "test-container"}
+	db.Create(container)
+
+	config := &ContainerConfiguration{
+		ContainerID:     container.ID,
+		Name:            "default",
+		MinimumVersion:  "v0.1.0",
+		UISchema:        datatypes.JSON([]byte(`{}`)),
+		DependencyRules: datatypes.JSON([]byte(`{}`)),
+	}
+	db.Create(config)
+
+	// Create asset belonging to configuration
+	asset := &ContainerAsset{
+		ContainerConfigurationID: config.ID,
+		OriginalFileName:         "data.tar.gz",
+		FilePath:                 "data/data.tar.gz",
+		AssetType:                "data",
+		FileSize:                 1000,
+		Checksum:                 "abc123",
+		StorageType:              "embedded",
+		StoragePath:              "/storage/data.tar.gz",
+	}
+
+	if err := db.Create(asset).Error; err != nil {
+		t.Fatalf("failed to create container asset: %v", err)
+	}
+
+	// Load configuration with assets
+	var loaded ContainerConfiguration
+	err := db.Preload("Assets").First(&loaded, config.ID).Error
+	if err != nil {
+		t.Fatalf("failed to load configuration with assets: %v", err)
+	}
+
+	if len(loaded.Assets) != 1 {
+		t.Errorf("expected 1 asset, got %d", len(loaded.Assets))
+	}
+
+	if loaded.Assets[0].OriginalFileName != "data.tar.gz" {
+		t.Errorf("expected OriginalFileName 'data.tar.gz', got '%s'", loaded.Assets[0].OriginalFileName)
 	}
 }

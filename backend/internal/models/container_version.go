@@ -16,6 +16,7 @@ type ContainerVersion struct {
 	Variables       datatypes.JSON `gorm:"type:text" json:"variables"`
 	ResourcePaths   datatypes.JSON `gorm:"type:text" json:"resource_paths"`
 	Dependencies    datatypes.JSON `gorm:"type:text" json:"dependencies"`
+	ConfigurationID *uint          `gorm:"index" json:"configuration_id,omitempty"`
 	Published       bool           `gorm:"default:false" json:"published"`
 	PublishedAt     *time.Time     `json:"published_at"`
 	CreatedAt       time.Time      `json:"created_at"`
@@ -23,7 +24,8 @@ type ContainerVersion struct {
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relationships
-	Container Container `gorm:"foreignKey:ContainerID" json:"container,omitempty"`
+	Container     Container                `gorm:"foreignKey:ContainerID" json:"container,omitempty"`
+	Configuration *ContainerConfiguration `gorm:"foreignKey:ConfigurationID" json:"configuration,omitempty"`
 }
 
 // TableName specifies the table name for ContainerVersion model

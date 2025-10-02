@@ -21,11 +21,15 @@ func NewContainerConfigurationHandler(db *gorm.DB) *ContainerConfigurationHandle
 }
 
 // CreateConfiguration creates a new container configuration
+// DEPRECATED: This handler will be replaced in Phase 3 with Container-level configuration API
 func (h *ContainerConfigurationHandler) CreateConfiguration(c *gin.Context) {
 	containerID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	versionID, _ := strconv.ParseUint(c.Param("version"), 10, 64)
 
 	var req struct {
+		Name            string          `json:"name"`
+		Description     string          `json:"description"`
+		MinimumVersion  string          `json:"minimum_version"`
 		UISchema        json.RawMessage `json:"ui_schema"`
 		DependencyRules json.RawMessage `json:"dependency_rules"`
 	}
@@ -35,17 +39,34 @@ func (h *ContainerConfigurationHandler) CreateConfiguration(c *gin.Context) {
 		return
 	}
 
-	// Verify container version exists
-	var version models.ContainerVersion
-	if err := h.db.Where("id = ? AND container_id = ?", versionID, containerID).First(&version).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Container version not found"})
+	// Verify container exists
+	var container models.Container
+	if err := h.db.First(&container, containerID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Container not found"})
 		return
 	}
 
+	// Set defaults
+	if req.Name == "" {
+		req.Name = "default"
+	}
+	if req.MinimumVersion == "" {
+		// Get version from version ID
+		var version models.ContainerVersion
+		if err := h.db.First(&version, versionID).Error; err == nil {
+			req.MinimumVersion = version.Version
+		} else {
+			req.MinimumVersion = "v0.1.0"
+		}
+	}
+
 	config := &models.ContainerConfiguration{
-		ContainerVersionID: uint(versionID),
-		UISchema:           datatypes.JSON(req.UISchema),
-		DependencyRules:    datatypes.JSON(req.DependencyRules),
+		ContainerID:     uint(containerID),
+		Name:            req.Name,
+		Description:     req.Description,
+		MinimumVersion:  req.MinimumVersion,
+		UISchema:        datatypes.JSON(req.UISchema),
+		DependencyRules: datatypes.JSON(req.DependencyRules),
 	}
 
 	if err := h.db.Create(config).Error; err != nil {
@@ -53,18 +74,34 @@ func (h *ContainerConfigurationHandler) CreateConfiguration(c *gin.Context) {
 		return
 	}
 
+	// Update version to reference this configuration
+	_ = h.db.Model(&models.ContainerVersion{}).Where("id = ?", versionID).Update("configuration_id", config.ID).Error
+	// Ignore error - this is for backward compatibility with old handlers (will be removed in Phase 3)
+
 	c.JSON(http.StatusCreated, config)
 }
 
 // GetConfiguration retrieves a container configuration
+// DEPRECATED: This handler will be replaced in Phase 3 with Container-level configuration API
 func (h *ContainerConfigurationHandler) GetConfiguration(c *gin.Context) {
 	versionID, _ := strconv.ParseUint(c.Param("version"), 10, 64)
 
+	// Load version to get configuration_id
+	var version models.ContainerVersion
+	if err := h.db.First(&version, versionID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Version not found"})
+		return
+	}
+
+	if version.ConfigurationID == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Configuration not found"})
+		return
+	}
+
 	var config models.ContainerConfiguration
-	if err := h.db.Where("container_version_id = ?", versionID).
-		Preload("Files").
+	if err := h.db.Preload("Files").
 		Preload("Assets").
-		First(&config).Error; err != nil {
+		First(&config, *version.ConfigurationID).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Configuration not found"})
 			return
@@ -77,6 +114,7 @@ func (h *ContainerConfigurationHandler) GetConfiguration(c *gin.Context) {
 }
 
 // UpdateConfiguration updates a container configuration
+// DEPRECATED: This handler will be replaced in Phase 3 with Container-level configuration API
 func (h *ContainerConfigurationHandler) UpdateConfiguration(c *gin.Context) {
 	versionID, _ := strconv.ParseUint(c.Param("version"), 10, 64)
 
@@ -90,8 +128,20 @@ func (h *ContainerConfigurationHandler) UpdateConfiguration(c *gin.Context) {
 		return
 	}
 
+	// Load version to get configuration_id
+	var version models.ContainerVersion
+	if err := h.db.First(&version, versionID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Version not found"})
+		return
+	}
+
+	if version.ConfigurationID == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Configuration not found"})
+		return
+	}
+
 	var config models.ContainerConfiguration
-	if err := h.db.Where("container_version_id = ?", versionID).First(&config).Error; err != nil {
+	if err := h.db.First(&config, *version.ConfigurationID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Configuration not found"})
 		return
 	}
@@ -108,10 +158,30 @@ func (h *ContainerConfigurationHandler) UpdateConfiguration(c *gin.Context) {
 }
 
 // DeleteConfiguration deletes a container configuration
+// DEPRECATED: This handler will be replaced in Phase 3 with Container-level configuration API
 func (h *ContainerConfigurationHandler) DeleteConfiguration(c *gin.Context) {
 	versionID, _ := strconv.ParseUint(c.Param("version"), 10, 64)
 
-	if err := h.db.Where("container_version_id = ?", versionID).Delete(&models.ContainerConfiguration{}).Error; err != nil {
+	// Load version to get configuration_id
+	var version models.ContainerVersion
+	if err := h.db.First(&version, versionID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Version not found"})
+		return
+	}
+
+	if version.ConfigurationID == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Configuration not found"})
+		return
+	}
+
+	// Remove configuration reference from version
+	if err := h.db.Model(&version).Update("configuration_id", nil).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update version"})
+		return
+	}
+
+	// Delete configuration
+	if err := h.db.Delete(&models.ContainerConfiguration{}, *version.ConfigurationID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete configuration"})
 		return
 	}
@@ -145,9 +215,26 @@ func (h *ContainerConfigurationHandler) ValidateConfiguration(c *gin.Context) {
 		return
 	}
 
+	// Load container version to get configuration ID
+	var version models.ContainerVersion
+	if err := h.db.First(&version, serviceContainer.ContainerVersionID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Container version not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve version"})
+		return
+	}
+
+	// Check if version has a configuration
+	if version.ConfigurationID == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Container configuration not found"})
+		return
+	}
+
 	// Load container configuration
 	var config models.ContainerConfiguration
-	if err := h.db.Where("container_version_id = ?", serviceContainer.ContainerVersionID).
+	if err := h.db.Where("id = ?", *version.ConfigurationID).
 		First(&config).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Container configuration not found"})
@@ -193,9 +280,26 @@ func (h *ContainerConfigurationHandler) GetServiceContainerConfiguration(c *gin.
 		return
 	}
 
+	// Load container version to get configuration ID
+	var version models.ContainerVersion
+	if err := h.db.First(&version, serviceContainer.ContainerVersionID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			NotFound(c, "Container version")
+			return
+		}
+		InternalError(c, "Failed to retrieve container version")
+		return
+	}
+
+	// Check if version has a configuration
+	if version.ConfigurationID == nil {
+		NotFound(c, "Container configuration")
+		return
+	}
+
 	// Load container configuration (UI schema and dependency rules)
 	var containerConfig models.ContainerConfiguration
-	if err := h.db.Where("container_version_id = ?", serviceContainer.ContainerVersionID).
+	if err := h.db.Where("id = ?", *version.ConfigurationID).
 		Preload("Files").
 		Preload("Assets").
 		First(&containerConfig).Error; err != nil {
@@ -298,9 +402,26 @@ func (h *ContainerConfigurationHandler) SaveServiceContainerConfiguration(c *gin
 		return
 	}
 
+	// Load container version to get configuration ID
+	var version models.ContainerVersion
+	if err := h.db.First(&version, serviceContainer.ContainerVersionID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			NotFound(c, "Container version")
+			return
+		}
+		InternalError(c, "Failed to retrieve container version")
+		return
+	}
+
+	// Check if version has a configuration
+	if version.ConfigurationID == nil {
+		NotFound(c, "Container configuration")
+		return
+	}
+
 	// Load container configuration for validation
 	var containerConfig models.ContainerConfiguration
-	if err := h.db.Where("container_version_id = ?", serviceContainer.ContainerVersionID).
+	if err := h.db.Where("id = ?", *version.ConfigurationID).
 		First(&containerConfig).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			NotFound(c, "Container configuration")

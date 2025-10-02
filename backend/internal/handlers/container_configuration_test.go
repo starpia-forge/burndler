@@ -87,7 +87,7 @@ func TestContainerConfigurationHandler_CreateConfiguration(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		require.NoError(t, err)
 		assert.NotZero(t, response.ID)
-		assert.Equal(t, version.ID, response.ContainerVersionID)
+		assert.Equal(t, container.ID, response.ContainerID)
 	})
 
 	t.Run("container version not found", func(t *testing.T) {
@@ -155,30 +155,36 @@ func TestContainerConfigurationHandler_GetConfiguration(t *testing.T) {
 		uiSchemaJSON, _ := json.Marshal(uiSchema)
 
 		config := &models.ContainerConfiguration{
-			ContainerVersionID: version.ID,
-			UISchema:           datatypes.JSON(uiSchemaJSON),
-			DependencyRules:    datatypes.JSON([]byte(`{"rules":[]}`)),
+			ContainerID:     container.ID,
+			Name:            "default",
+			MinimumVersion:  "v0.1.0",
+			UISchema:        datatypes.JSON(uiSchemaJSON),
+			DependencyRules: datatypes.JSON([]byte(`{"rules":[]}`)),
 		}
 		require.NoError(t, db.Create(config).Error)
 
+		// Link version to configuration
+		version.ConfigurationID = &config.ID
+		require.NoError(t, db.Save(version).Error)
+
 		// Create files and assets
 		file := &models.ContainerFile{
-			ContainerVersionID: version.ID,
-			FilePath:           "config/app.yaml",
-			FileType:           "template",
-			StoragePath:        "/storage/app.yaml",
+			ContainerConfigurationID: config.ID,
+			FilePath:                 "config/app.yaml",
+			FileType:                 "template",
+			StoragePath:              "/storage/app.yaml",
 		}
 		require.NoError(t, db.Create(file).Error)
 
 		asset := &models.ContainerAsset{
-			ContainerVersionID: version.ID,
-			OriginalFileName:   "data.tar.gz",
-			FilePath:           "data/data.tar.gz",
-			AssetType:          "data",
-			FileSize:           1000,
-			Checksum:           "abc123",
-			StorageType:        "embedded",
-			StoragePath:        "/storage/data.tar.gz",
+			ContainerConfigurationID: config.ID,
+			OriginalFileName:         "data.tar.gz",
+			FilePath:                 "data/data.tar.gz",
+			AssetType:                "data",
+			FileSize:                 1000,
+			Checksum:                 "abc123",
+			StorageType:              "embedded",
+			StoragePath:              "/storage/data.tar.gz",
 		}
 		require.NoError(t, db.Create(asset).Error)
 
@@ -238,11 +244,17 @@ func TestContainerConfigurationHandler_UpdateConfiguration(t *testing.T) {
 		require.NoError(t, db.Create(version).Error)
 
 		config := &models.ContainerConfiguration{
-			ContainerVersionID: version.ID,
-			UISchema:           datatypes.JSON([]byte(`{"fields":[]}`)),
-			DependencyRules:    datatypes.JSON([]byte(`{"rules":[]}`)),
+			ContainerID:     container.ID,
+			Name:            "default",
+			MinimumVersion:  "v0.1.0",
+			UISchema:        datatypes.JSON([]byte(`{"fields":[]}`)),
+			DependencyRules: datatypes.JSON([]byte(`{"rules":[]}`)),
 		}
 		require.NoError(t, db.Create(config).Error)
+
+		// Link version to configuration
+		version.ConfigurationID = &config.ID
+		require.NoError(t, db.Save(version).Error)
 
 		// Prepare update request
 		reqBody := map[string]interface{}{
@@ -321,9 +333,11 @@ func TestContainerConfigurationHandler_DeleteConfiguration(t *testing.T) {
 		require.NoError(t, db.Create(version).Error)
 
 		config := &models.ContainerConfiguration{
-			ContainerVersionID: version.ID,
-			UISchema:           datatypes.JSON([]byte(`{}`)),
-			DependencyRules:    datatypes.JSON([]byte(`{}`)),
+			ContainerID:     container.ID,
+			Name:            "default",
+			MinimumVersion:  "v0.1.0",
+			UISchema:        datatypes.JSON([]byte(`{}`)),
+			DependencyRules: datatypes.JSON([]byte(`{}`)),
 		}
 		require.NoError(t, db.Create(config).Error)
 
@@ -340,7 +354,7 @@ func TestContainerConfigurationHandler_DeleteConfiguration(t *testing.T) {
 
 		// Verify deletion
 		var count int64
-		db.Model(&models.ContainerConfiguration{}).Where("container_version_id = ?", version.ID).Count(&count)
+		db.Model(&models.ContainerConfiguration{}).Where("container_id = ? AND name = ?", container.ID, "default").Count(&count)
 		assert.Equal(t, int64(0), count)
 	})
 
@@ -415,11 +429,17 @@ func TestContainerConfigurationHandler_ValidateConfiguration(t *testing.T) {
 		rulesJSON, _ := json.Marshal(rules)
 
 		config := &models.ContainerConfiguration{
-			ContainerVersionID: version.ID,
-			UISchema:           datatypes.JSON(`{}`),
-			DependencyRules:    datatypes.JSON(rulesJSON),
+			ContainerID:     container.ID,
+			Name:            "default",
+			MinimumVersion:  "v0.1.0",
+			UISchema:        datatypes.JSON(`{}`),
+			DependencyRules: datatypes.JSON(rulesJSON),
 		}
 		require.NoError(t, db.Create(config).Error)
+
+		// Link version to configuration
+		version.ConfigurationID = &config.ID
+		require.NoError(t, db.Save(version).Error)
 
 		serviceContainer := &models.ServiceContainer{
 			ServiceID:          service.ID,
@@ -491,11 +511,17 @@ func TestContainerConfigurationHandler_ValidateConfiguration(t *testing.T) {
 		rulesJSON, _ := json.Marshal(rules)
 
 		config := &models.ContainerConfiguration{
-			ContainerVersionID: version.ID,
-			UISchema:           datatypes.JSON(`{}`),
-			DependencyRules:    datatypes.JSON(rulesJSON),
+			ContainerID:     container.ID,
+			Name:            "default",
+			MinimumVersion:  "v0.1.0",
+			UISchema:        datatypes.JSON(`{}`),
+			DependencyRules: datatypes.JSON(rulesJSON),
 		}
 		require.NoError(t, db.Create(config).Error)
+
+		// Link version to configuration
+		version.ConfigurationID = &config.ID
+		require.NoError(t, db.Save(version).Error)
 
 		serviceContainer := &models.ServiceContainer{
 			ServiceID:          service.ID,
@@ -665,11 +691,17 @@ func TestContainerConfigurationHandler_ValidateConfiguration(t *testing.T) {
 		require.NoError(t, db.Create(version).Error)
 
 		config := &models.ContainerConfiguration{
-			ContainerVersionID: version.ID,
-			UISchema:           datatypes.JSON(`{}`),
-			DependencyRules:    datatypes.JSON(`invalid json`),
+			ContainerID:     container.ID,
+			Name:            "default",
+			MinimumVersion:  "v0.1.0",
+			UISchema:        datatypes.JSON(`{}`),
+			DependencyRules: datatypes.JSON(`invalid json`),
 		}
 		require.NoError(t, db.Create(config).Error)
+
+		// Link version to configuration
+		version.ConfigurationID = &config.ID
+		require.NoError(t, db.Save(version).Error)
 
 		serviceContainer := &models.ServiceContainer{
 			ServiceID:          service.ID,
@@ -724,11 +756,17 @@ func TestContainerConfigurationHandler_ValidateConfiguration(t *testing.T) {
 		require.NoError(t, db.Create(version).Error)
 
 		config := &models.ContainerConfiguration{
-			ContainerVersionID: version.ID,
-			UISchema:           datatypes.JSON(`{}`),
-			DependencyRules:    datatypes.JSON(`[]`),
+			ContainerID:     container.ID,
+			Name:            "default",
+			MinimumVersion:  "v0.1.0",
+			UISchema:        datatypes.JSON(`{}`),
+			DependencyRules: datatypes.JSON(`[]`),
 		}
 		require.NoError(t, db.Create(config).Error)
+
+		// Link version to configuration
+		version.ConfigurationID = &config.ID
+		require.NoError(t, db.Save(version).Error)
 
 		serviceContainer := &models.ServiceContainer{
 			ServiceID:          service.ID,

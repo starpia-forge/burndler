@@ -56,11 +56,17 @@ func TestGetServiceContainerConfiguration(t *testing.T) {
 
 	// Create container configuration
 	containerConfig := &models.ContainerConfiguration{
-		ContainerVersionID: version.ID,
-		UISchema:           datatypes.JSON(uiSchemaJSON),
-		DependencyRules:    datatypes.JSON(depRulesJSON),
+		ContainerID:     container.ID,
+		Name:            "default",
+		MinimumVersion:  "v0.1.0",
+		UISchema:        datatypes.JSON(uiSchemaJSON),
+		DependencyRules: datatypes.JSON(depRulesJSON),
 	}
 	require.NoError(t, db.Create(containerConfig).Error)
+
+	// Link version to configuration
+	version.ConfigurationID = &containerConfig.ID
+	require.NoError(t, db.Save(version).Error)
 
 	// Create service container
 	serviceContainer := &models.ServiceContainer{
@@ -154,10 +160,16 @@ func TestGetServiceContainerConfiguration_NoCurrentValues(t *testing.T) {
 	uiSchemaJSON, _ := json.Marshal(uiSchema)
 
 	containerConfig := &models.ContainerConfiguration{
-		ContainerVersionID: version.ID,
-		UISchema:           datatypes.JSON(uiSchemaJSON),
+		ContainerID:    container.ID,
+		Name:           "default",
+		MinimumVersion: "v0.1.0",
+		UISchema:       datatypes.JSON(uiSchemaJSON),
 	}
 	require.NoError(t, db.Create(containerConfig).Error)
+
+	// Link version to configuration
+	version.ConfigurationID = &containerConfig.ID
+	require.NoError(t, db.Save(version).Error)
 
 	serviceContainer := &models.ServiceContainer{
 		ServiceID:          service.ID,
@@ -207,9 +219,11 @@ func TestSaveServiceContainerConfiguration_Create(t *testing.T) {
 
 	// Create container configuration without dependency rules
 	containerConfig := &models.ContainerConfiguration{
-		ContainerVersionID: version.ID,
-		UISchema:           datatypes.JSON([]byte(`{"sections":[]}`)),
-		DependencyRules:    datatypes.JSON([]byte(`[]`)),
+		ContainerID:     container.ID,
+		Name:            "default",
+		MinimumVersion:  "v0.1.0",
+		UISchema:        datatypes.JSON([]byte(`{"sections":[]}`)),
+		DependencyRules: datatypes.JSON([]byte(`[]`)),
 	}
 	require.NoError(t, db.Create(containerConfig).Error)
 
@@ -283,9 +297,11 @@ func TestSaveServiceContainerConfiguration_Update(t *testing.T) {
 	require.NoError(t, db.Create(version).Error)
 
 	containerConfig := &models.ContainerConfiguration{
-		ContainerVersionID: version.ID,
-		UISchema:           datatypes.JSON([]byte(`{"sections":[]}`)),
-		DependencyRules:    datatypes.JSON([]byte(`[]`)),
+		ContainerID:     container.ID,
+		Name:            "default",
+		MinimumVersion:  "v0.1.0",
+		UISchema:        datatypes.JSON([]byte(`{"sections":[]}`)),
+		DependencyRules: datatypes.JSON([]byte(`[]`)),
 	}
 	require.NoError(t, db.Create(containerConfig).Error)
 
@@ -382,9 +398,11 @@ func TestSaveServiceContainerConfiguration_ValidationError(t *testing.T) {
 	depRulesJSON, _ := json.Marshal(depRules)
 
 	containerConfig := &models.ContainerConfiguration{
-		ContainerVersionID: version.ID,
-		UISchema:           datatypes.JSON([]byte(`{"sections":[]}`)),
-		DependencyRules:    datatypes.JSON(depRulesJSON),
+		ContainerID:     container.ID,
+		Name:            "default",
+		MinimumVersion:  "v0.1.0",
+		UISchema:        datatypes.JSON([]byte(`{"sections":[]}`)),
+		DependencyRules: datatypes.JSON(depRulesJSON),
 	}
 	require.NoError(t, db.Create(containerConfig).Error)
 
