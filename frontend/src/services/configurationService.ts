@@ -93,3 +93,100 @@ export const importServiceConfiguration = async (
   const response = await api.post(`/services/${serviceId}/configuration/import`, data);
   return response.data;
 };
+
+// ============================================================================
+// Container-Level Configuration Management (Phase 6)
+// ============================================================================
+
+export interface ContainerConfiguration {
+  id: number;
+  container_id: number;
+  name: string;
+  minimum_version: string;
+  ui_schema?: UISchema;
+  dependency_rules?: DependencyRule[];
+  files?: ContainerFile[];
+  assets?: ContainerAsset[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CreateContainerConfigurationRequest {
+  name: string;
+  minimum_version: string;
+  ui_schema?: UISchema;
+  dependency_rules?: DependencyRule[];
+}
+
+export interface UpdateContainerConfigurationRequest {
+  minimum_version?: string;
+  ui_schema?: UISchema;
+  dependency_rules?: DependencyRule[];
+}
+
+/**
+ * List all configurations for a container
+ */
+export const listContainerConfigurations = async (
+  containerId: string
+): Promise<ContainerConfiguration[]> => {
+  const response = await api.get<ContainerConfiguration[]>(
+    `/containers/${containerId}/configurations`
+  );
+  return response.data;
+};
+
+/**
+ * Create a new configuration for a container
+ */
+export const createContainerConfiguration = async (
+  containerId: string,
+  data: CreateContainerConfigurationRequest
+): Promise<ContainerConfiguration> => {
+  const response = await api.post<ContainerConfiguration>(
+    `/containers/${containerId}/configurations`,
+    data
+  );
+  return response.data;
+};
+
+/**
+ * Get a specific configuration by name
+ */
+export const getContainerConfiguration = async (
+  containerId: string,
+  name: string
+): Promise<ContainerConfiguration> => {
+  const response = await api.get<ContainerConfiguration>(
+    `/containers/${containerId}/configurations/${name}`
+  );
+  return response.data;
+};
+
+/**
+ * Update a configuration
+ */
+export const updateContainerConfiguration = async (
+  containerId: string,
+  name: string,
+  data: UpdateContainerConfigurationRequest
+): Promise<ContainerConfiguration> => {
+  const response = await api.put<ContainerConfiguration>(
+    `/containers/${containerId}/configurations/${name}`,
+    data
+  );
+  return response.data;
+};
+
+/**
+ * Delete a configuration
+ */
+export const deleteContainerConfiguration = async (
+  containerId: string,
+  name: string
+): Promise<{ message: string }> => {
+  const response = await api.delete<{ message: string }>(
+    `/containers/${containerId}/configurations/${name}`
+  );
+  return response.data;
+};

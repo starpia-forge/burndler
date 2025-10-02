@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import containerService from '../services/containerService';
-import api from '../services/api';
+import { createContainerConfiguration } from '../services/configurationService';
 import { CreateContainerRequest, Container } from '../types/container';
 import { UISchema, DependencyRule } from '../types/configuration';
 import { TemplateFileData } from '../components/configuration/TemplateFilesManager';
@@ -45,65 +45,33 @@ export const useCreateContainerWithConfig = () => {
       });
 
       // Step 3: Create Configuration (if provided)
+      // Using Container-level configuration API (Phase 6)
       if (data.uiSchema && data.dependencyRules) {
         setProgress('Configuration 템플릿 생성 중...');
-        await api.post(`/containers/${container.id}/versions/${version.id}/configuration`, {
+        await createContainerConfiguration(container.id.toString(), {
+          name: 'default',
+          minimum_version: version.version,
           ui_schema: data.uiSchema,
           dependency_rules: data.dependencyRules,
         });
       }
 
-      // Step 4: Upload Template Files (if provided)
-      if (data.templateFiles && data.templateFiles.length > 0) {
-        setProgress(`템플릿 파일 업로드 중 (${data.templateFiles.length}개)...`);
+      // TODO: File and Asset upload endpoints need to be implemented in backend
+      // The model migration changed FK from ContainerVersionID to ContainerConfigurationID,
+      // but the actual file/asset upload handlers haven't been created yet.
+      // This will be implemented in a future phase.
 
-        for (const file of data.templateFiles) {
-          await api.post(`/containers/${container.id}/versions/${version.id}/files`, {
-            file_path: file.file_path,
-            file_type: file.file_type,
-            template_format: file.template_format,
-            template_content: file.template_content,
-            display_condition: file.display_condition,
-            description: file.description,
-          });
-        }
-      }
+      // Step 4: Upload Template Files (if provided) - DISABLED until backend endpoints are ready
+      // if (data.templateFiles && data.templateFiles.length > 0) {
+      //   setProgress(`템플릿 파일 업로드 중 (${data.templateFiles.length}개)...`);
+      //   // Need: POST /containers/:id/configurations/:name/files
+      // }
 
-      // Step 5: Upload Assets (if provided)
-      if (data.assets && data.assets.length > 0) {
-        setProgress(`에셋 업로드 중 (${data.assets.length}개)...`);
-
-        for (const asset of data.assets) {
-          if (asset.storage_type === 'embedded' && asset.file_content) {
-            // Upload file as multipart/form-data
-            const formData = new FormData();
-            formData.append('file', asset.file_content);
-            formData.append('file_path', asset.file_path);
-            formData.append('asset_type', asset.asset_type);
-            formData.append('storage_type', asset.storage_type);
-            if (asset.include_condition)
-              formData.append('include_condition', asset.include_condition);
-            if (asset.description) formData.append('description', asset.description);
-
-            await api.post(`/containers/${container.id}/versions/${version.id}/assets`, formData, {
-              headers: {
-                'Content-Type': 'multipart/form-data',
-              },
-            });
-          } else if (asset.storage_type === 'download') {
-            // For download type, just send metadata
-            await api.post(`/containers/${container.id}/versions/${version.id}/assets`, {
-              original_file_name: asset.original_file_name,
-              file_path: asset.file_path,
-              asset_type: asset.asset_type,
-              storage_type: asset.storage_type,
-              source_url: asset.source_url,
-              include_condition: asset.include_condition,
-              description: asset.description,
-            });
-          }
-        }
-      }
+      // Step 5: Upload Assets (if provided) - DISABLED until backend endpoints are ready
+      // if (data.assets && data.assets.length > 0) {
+      //   setProgress(`에셋 업로드 중 (${data.assets.length}개)...`);
+      //   // Need: POST /containers/:id/configurations/:name/assets
+      // }
 
       setProgress('완료!');
       setLoading(false);
