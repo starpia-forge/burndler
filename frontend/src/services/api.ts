@@ -71,23 +71,23 @@ class ApiClient {
   }
 
   // Generic HTTP methods for other services
-  async get(url: string) {
-    const response = await this.client.get(url);
+  async get<T = any>(url: string, config?: any) {
+    const response = await this.client.get<T>(url, config);
     return response.data;
   }
 
-  async post(url: string, data?: any) {
-    const response = await this.client.post(url, data);
+  async post<T = any>(url: string, data?: any) {
+    const response = await this.client.post<T>(url, data);
     return response.data;
   }
 
-  async put(url: string, data?: any) {
-    const response = await this.client.put(url, data);
+  async put<T = any>(url: string, data?: any) {
+    const response = await this.client.put<T>(url, data);
     return response.data;
   }
 
-  async delete(url: string) {
-    const response = await this.client.delete(url);
+  async delete<T = any>(url: string) {
+    const response = await this.client.delete<T>(url);
     return response.data;
   }
 }

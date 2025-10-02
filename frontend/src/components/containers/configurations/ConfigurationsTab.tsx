@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useContainerConfigurations } from '../../../hooks/useContainerConfigurations';
-import { ContainerConfiguration, CreateContainerConfigurationRequest } from '../../../services/configurationService';
+import {
+  ContainerConfiguration,
+  CreateContainerConfigurationRequest,
+} from '../../../services/configurationService';
 import { ContainerVersion } from '../../../types/container';
 import { ConfigurationListPanel } from './ConfigurationListPanel';
 import { VersionAssignmentPanel } from './VersionAssignmentPanel';
@@ -18,12 +21,19 @@ interface ConfigurationsTabProps {
 
 type ModalMode = 'create' | 'edit' | null;
 
-export function ConfigurationsTab({ containerId, versions, onVersionUpdate }: ConfigurationsTabProps) {
+export function ConfigurationsTab({
+  containerId,
+  versions,
+  onVersionUpdate,
+}: ConfigurationsTabProps) {
   const [selectedConfig, setSelectedConfig] = useState<ContainerConfiguration | null>(null);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [editingConfig, setEditingConfig] = useState<ContainerConfiguration | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [toastMessage, setToastMessage] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
 
   const confirmationModal = useConfirmationModal();
 

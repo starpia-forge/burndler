@@ -36,10 +36,9 @@ export const getServiceContainerConfiguration = async (
   serviceId: string,
   containerId: string
 ): Promise<ServiceContainerConfigurationResponse> => {
-  const response = await api.get<ServiceContainerConfigurationResponse>(
+  return await api.get<ServiceContainerConfigurationResponse>(
     `/services/${serviceId}/containers/${containerId}/configuration`
   );
-  return response.data;
 };
 
 /**
@@ -50,13 +49,12 @@ export const saveServiceContainerConfiguration = async (
   containerId: string,
   values: ConfigurationValues
 ): Promise<SaveConfigurationResponse> => {
-  const response = await api.put<SaveConfigurationResponse>(
+  return await api.put<SaveConfigurationResponse>(
     `/services/${serviceId}/containers/${containerId}/configuration`,
     {
       configuration_values: values,
     }
   );
-  return response.data;
 };
 
 /**
@@ -103,6 +101,7 @@ export interface ContainerConfiguration {
   container_id: number;
   name: string;
   minimum_version: string;
+  description?: string;
   ui_schema?: UISchema;
   dependency_rules?: DependencyRule[];
   files?: ContainerFile[];
@@ -114,12 +113,14 @@ export interface ContainerConfiguration {
 export interface CreateContainerConfigurationRequest {
   name: string;
   minimum_version: string;
+  description?: string;
   ui_schema?: UISchema;
   dependency_rules?: DependencyRule[];
 }
 
 export interface UpdateContainerConfigurationRequest {
   minimum_version?: string;
+  description?: string;
   ui_schema?: UISchema;
   dependency_rules?: DependencyRule[];
 }
@@ -130,10 +131,7 @@ export interface UpdateContainerConfigurationRequest {
 export const listContainerConfigurations = async (
   containerId: string
 ): Promise<ContainerConfiguration[]> => {
-  const response = await api.get<ContainerConfiguration[]>(
-    `/containers/${containerId}/configurations`
-  );
-  return response.data;
+  return await api.get<ContainerConfiguration[]>(`/containers/${containerId}/configurations`);
 };
 
 /**
@@ -143,11 +141,7 @@ export const createContainerConfiguration = async (
   containerId: string,
   data: CreateContainerConfigurationRequest
 ): Promise<ContainerConfiguration> => {
-  const response = await api.post<ContainerConfiguration>(
-    `/containers/${containerId}/configurations`,
-    data
-  );
-  return response.data;
+  return await api.post<ContainerConfiguration>(`/containers/${containerId}/configurations`, data);
 };
 
 /**
@@ -157,10 +151,7 @@ export const getContainerConfiguration = async (
   containerId: string,
   name: string
 ): Promise<ContainerConfiguration> => {
-  const response = await api.get<ContainerConfiguration>(
-    `/containers/${containerId}/configurations/${name}`
-  );
-  return response.data;
+  return await api.get<ContainerConfiguration>(`/containers/${containerId}/configurations/${name}`);
 };
 
 /**
@@ -171,11 +162,10 @@ export const updateContainerConfiguration = async (
   name: string,
   data: UpdateContainerConfigurationRequest
 ): Promise<ContainerConfiguration> => {
-  const response = await api.put<ContainerConfiguration>(
+  return await api.put<ContainerConfiguration>(
     `/containers/${containerId}/configurations/${name}`,
     data
   );
-  return response.data;
 };
 
 /**
@@ -185,8 +175,5 @@ export const deleteContainerConfiguration = async (
   containerId: string,
   name: string
 ): Promise<{ message: string }> => {
-  const response = await api.delete<{ message: string }>(
-    `/containers/${containerId}/configurations/${name}`
-  );
-  return response.data;
+  return await api.delete<{ message: string }>(`/containers/${containerId}/configurations/${name}`);
 };

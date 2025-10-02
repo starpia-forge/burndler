@@ -45,10 +45,10 @@ export function ConfigurationCard({
         isDragging
           ? 'opacity-50 border-dashed border-blue-400'
           : isSelected
-          ? 'border-blue-500 bg-blue-50 shadow-md'
-          : inUse
-          ? 'border-blue-200 bg-white hover:border-blue-300 hover:shadow'
-          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow'
+            ? 'border-blue-500 bg-blue-50 shadow-md'
+            : inUse
+              ? 'border-blue-200 bg-white hover:border-blue-300 hover:shadow'
+              : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow'
       }`}
       role="button"
       tabIndex={0}
@@ -69,12 +69,7 @@ export function ConfigurationCard({
           <div className="mt-2 flex items-center gap-2 flex-wrap">
             {/* Minimum Version Badge */}
             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-              <svg
-                className="mr-1 h-3 w-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -88,11 +83,7 @@ export function ConfigurationCard({
             {/* Usage Count Badge */}
             {inUse && (
               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                <svg
-                  className="mr-1 h-3 w-3"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
@@ -184,7 +175,9 @@ export function ConfigurationCard({
               ? 'text-gray-400 cursor-not-allowed bg-gray-50'
               : 'text-red-600 hover:text-red-700 hover:bg-red-50'
           }`}
-          title={inUse ? 'Cannot delete: configuration is in use by versions' : 'Delete configuration'}
+          title={
+            inUse ? 'Cannot delete: configuration is in use by versions' : 'Delete configuration'
+          }
         >
           <span className="flex items-center justify-center gap-1">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

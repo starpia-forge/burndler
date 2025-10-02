@@ -361,94 +361,96 @@ const ContainerDetailPage: React.FC = () => {
               </div>
             </div>
 
-          <div className="p-6">
-            {versionsLoading ? (
-              <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <div
-                    key={index}
-                    className="animate-pulse border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-                  >
-                    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-1/4 mb-2"></div>
-                    <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
-                  </div>
-                ))}
-              </div>
-            ) : versions.length > 0 ? (
-              <div className="space-y-4">
-                {versions.map((version) => (
-                  <div
-                    key={version.id}
-                    className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3">
-                          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                            {version.version}
-                          </h3>
-                          <StatusBadge status={getContainerVersionStatus(version)} size="sm" />
+            <div className="p-6">
+              {versionsLoading ? (
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="animate-pulse border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                    >
+                      <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-1/4 mb-2"></div>
+                      <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : versions.length > 0 ? (
+                <div className="space-y-4">
+                  {versions.map((version) => (
+                    <div
+                      key={version.id}
+                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3">
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                              {version.version}
+                            </h3>
+                            <StatusBadge status={getContainerVersionStatus(version)} size="sm" />
+                          </div>
+                          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                            {t('containers:created')} {formatDate(version.created_at)}
+                            {version.published_at && (
+                              <span>
+                                {' '}
+                                • {t('containers:published')} {formatDate(version.published_at)}
+                              </span>
+                            )}
+                          </p>
                         </div>
-                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                          {t('containers:created')} {formatDate(version.created_at)}
-                          {version.published_at && (
-                            <span>
-                              {' '}
-                              • {t('containers:published')} {formatDate(version.published_at)}
-                            </span>
-                          )}
-                        </p>
-                      </div>
 
-                      <div className="flex items-center space-x-2">
-                        <Link
-                          to={`/containers/${containerId}/versions/${version.version}`}
-                          className="inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
-                        >
-                          <EyeIcon className="h-3 w-3 mr-1" />
-                          {t('containers:view')}
-                        </Link>
-
-                        {isDeveloper && !version.published && (
-                          <button
-                            onClick={() => handlePublishVersion(version)}
-                            className="inline-flex items-center px-3 py-1 border border-transparent rounded-md text-xs font-medium text-white bg-blue-600 hover:bg-blue-700"
+                        <div className="flex items-center space-x-2">
+                          <Link
+                            to={`/containers/${containerId}/versions/${version.version}`}
+                            className="inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
                           >
-                            {t('containers:publish')}
-                          </button>
-                        )}
+                            <EyeIcon className="h-3 w-3 mr-1" />
+                            {t('containers:view')}
+                          </Link>
+
+                          {isDeveloper && !version.published && (
+                            <button
+                              onClick={() => handlePublishVersion(version)}
+                              className="inline-flex items-center px-3 py-1 border border-transparent rounded-md text-xs font-medium text-white bg-blue-600 hover:bg-blue-700"
+                            >
+                              {t('containers:publish')}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500 dark:text-gray-400">{t('containers:noVersionsYet')}</p>
-                {isDeveloper && status !== 'deleted' && (
-                  <button
-                    onClick={handleCreateVersion}
-                    className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-                  >
-                    <PlusIcon className="h-4 w-4 mr-2" />
-                    {t('containers:createFirstVersion')}
-                  </button>
-                )}
-              </div>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 dark:text-gray-400">
+                    {t('containers:noVersionsYet')}
+                  </p>
+                  {isDeveloper && status !== 'deleted' && (
+                    <button
+                      onClick={handleCreateVersion}
+                      className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                    >
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      {t('containers:createFirstVersion')}
+                    </button>
+                  )}
+                </div>
+              )}
 
-            {versionsError && (
-              <div className="text-center py-4">
-                <p className="text-red-600 dark:text-red-400">{versionsError}</p>
-                <button
-                  onClick={refetchVersions}
-                  className="mt-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                >
-                  {t('containers:tryAgain')}
-                </button>
-              </div>
-            )}
-          </div>
+              {versionsError && (
+                <div className="text-center py-4">
+                  <p className="text-red-600 dark:text-red-400">{versionsError}</p>
+                  <button
+                    onClick={refetchVersions}
+                    className="mt-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                  >
+                    {t('containers:tryAgain')}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

@@ -57,6 +57,7 @@ export interface UpdateVersionRequest {
   variables?: Record<string, any>;
   resource_paths?: string[];
   dependencies?: Record<string, string>;
+  configuration_id?: number | null;
 }
 
 // API Response Types

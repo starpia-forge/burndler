@@ -10,7 +10,7 @@ interface ConfigurationListPanelProps {
   onCreateConfig: () => void;
   onEditConfig: (config: ContainerConfiguration) => void;
   onDeleteConfig: (config: ContainerConfiguration) => void;
-  getVersionsUsingConfig: (configId: number) => ContainerVersion[];
+  getVersionsUsingConfig: (configId: number, versions: ContainerVersion[]) => ContainerVersion[];
 }
 
 export function ConfigurationListPanel({
@@ -57,7 +57,8 @@ export function ConfigurationListPanel({
           </svg>
           <h3 className="mt-4 text-base font-medium text-gray-900">No configurations</h3>
           <p className="mt-2 text-sm text-gray-500 max-w-sm mx-auto">
-            Create your first configuration template to define reusable settings for container versions.
+            Create your first configuration template to define reusable settings for container
+            versions.
           </p>
           <button
             onClick={onCreateConfig}
@@ -78,7 +79,7 @@ export function ConfigurationListPanel({
         <div className="space-y-3">
           {/* Configuration Cards */}
           {configurations.map((config) => {
-            const versionsUsing = getVersionsUsingConfig(config.id);
+            const versionsUsing = getVersionsUsingConfig(config.id, versions);
 
             return (
               <ConfigurationCard
@@ -121,7 +122,10 @@ export function ConfigurationListPanel({
             </div>
             <div className="p-3 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-900">
-                {configurations.filter((c) => getVersionsUsingConfig(c.id).length > 0).length}
+                {
+                  configurations.filter((c) => getVersionsUsingConfig(c.id, versions).length > 0)
+                    .length
+                }
               </div>
               <div className="text-xs text-blue-600 mt-1">In Use</div>
             </div>
@@ -147,7 +151,8 @@ export function ConfigurationListPanel({
             <div>
               <p className="text-sm font-medium text-blue-900">Quick Tip</p>
               <p className="text-xs text-blue-700 mt-1">
-                Select a configuration to see compatible versions, or drag it to a version to assign.
+                Select a configuration to see compatible versions, or drag it to a version to
+                assign.
               </p>
             </div>
           </div>

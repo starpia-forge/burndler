@@ -59,10 +59,7 @@ export function compareVersions(v1: SemanticVersion, v2: SemanticVersion): numbe
  * @param minimumVersionStr - The minimum required version (e.g., "v1.0.0")
  * @returns true if version >= minimumVersion
  */
-export function isVersionCompatible(
-  versionStr: string,
-  minimumVersionStr: string
-): boolean {
+export function isVersionCompatible(versionStr: string, minimumVersionStr: string): boolean {
   const version = parseSemanticVersion(versionStr);
   const minVersion = parseSemanticVersion(minimumVersionStr);
 

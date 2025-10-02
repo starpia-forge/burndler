@@ -50,7 +50,8 @@ export function useContainerConfigurations({
       const data = await listContainerConfigurations(containerId);
       setConfigurations(data);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || err.message || 'Failed to load configurations';
+      const errorMessage =
+        err.response?.data?.error || err.message || 'Failed to load configurations';
       setError(errorMessage);
       console.error('Failed to fetch configurations:', err);
     } finally {
@@ -72,7 +73,8 @@ export function useContainerConfigurations({
         setConfigurations((prev) => [...prev, newConfig]);
         return newConfig;
       } catch (err: any) {
-        const errorMessage = err.response?.data?.error || err.message || 'Failed to create configuration';
+        const errorMessage =
+          err.response?.data?.error || err.message || 'Failed to create configuration';
         setError(errorMessage);
         throw err;
       }
@@ -91,7 +93,8 @@ export function useContainerConfigurations({
         setConfigurations((prev) => prev.map((c) => (c.name === name ? updatedConfig : c)));
         return updatedConfig;
       } catch (err: any) {
-        const errorMessage = err.response?.data?.error || err.message || 'Failed to update configuration';
+        const errorMessage =
+          err.response?.data?.error || err.message || 'Failed to update configuration';
         setError(errorMessage);
         throw err;
       }
@@ -106,7 +109,8 @@ export function useContainerConfigurations({
         await deleteContainerConfiguration(containerId, name);
         setConfigurations((prev) => prev.filter((c) => c.name !== name));
       } catch (err: any) {
-        const errorMessage = err.response?.data?.error || err.message || 'Failed to delete configuration';
+        const errorMessage =
+          err.response?.data?.error || err.message || 'Failed to delete configuration';
         setError(errorMessage);
         throw err;
       }
@@ -131,12 +135,9 @@ export function useContainerConfigurations({
     [configurations]
   );
 
-  const isConfigInUse = useCallback(
-    (configId: number, versions: ContainerVersion[]): boolean => {
-      return versions.some((v) => v.configuration_id === configId);
-    },
-    []
-  );
+  const isConfigInUse = useCallback((configId: number, versions: ContainerVersion[]): boolean => {
+    return versions.some((v) => v.configuration_id === configId);
+  }, []);
 
   const getVersionsUsingConfig = useCallback(
     (configId: number, versions: ContainerVersion[]): ContainerVersion[] => {

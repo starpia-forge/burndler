@@ -104,7 +104,12 @@ export function VersionAssignmentPanel({
       {/* Version List */}
       {versions.length === 0 ? (
         <div className="text-center py-12">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -144,7 +149,8 @@ export function VersionAssignmentPanel({
           )}
 
           {/* Compatible But Unassigned Versions */}
-          {compatibleVersions.filter((v) => v.configuration_id !== selectedConfig.id).length > 0 && (
+          {compatibleVersions.filter((v) => v.configuration_id !== selectedConfig.id).length >
+            0 && (
             <div className="mb-4">
               <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                 <svg className="h-4 w-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
@@ -154,7 +160,8 @@ export function VersionAssignmentPanel({
                     clipRule="evenodd"
                   />
                 </svg>
-                Compatible Versions ({compatibleVersions.filter((v) => v.configuration_id !== selectedConfig.id).length})
+                Compatible Versions (
+                {compatibleVersions.filter((v) => v.configuration_id !== selectedConfig.id).length})
               </h4>
               {compatibleVersions
                 .filter((v) => v.configuration_id !== selectedConfig.id)

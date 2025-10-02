@@ -52,10 +52,10 @@ export function VersionAssignmentCard({
         isDropTarget
           ? 'border-blue-500 bg-blue-50 shadow-lg scale-105'
           : isAssigned
-          ? 'border-green-500 bg-green-50'
-          : isCompatible
-          ? 'border-gray-200 bg-white hover:border-blue-300 hover:shadow'
-          : 'border-red-200 bg-red-50'
+            ? 'border-green-500 bg-green-50'
+            : isCompatible
+              ? 'border-gray-200 bg-white hover:border-blue-300 hover:shadow'
+              : 'border-red-200 bg-red-50'
       }`}
     >
       <div className="flex items-center justify-between">
@@ -142,8 +142,9 @@ export function VersionAssignmentCard({
           <p className="text-xs text-gray-600">
             {isCompatible ? (
               <>
-                <span className="font-medium">✓ Compatible:</span> Version {formatVersion(version.version)} meets
-                the minimum requirement ({formatVersion(selectedConfig.minimum_version)})
+                <span className="font-medium">✓ Compatible:</span> Version{' '}
+                {formatVersion(version.version)} meets the minimum requirement (
+                {formatVersion(selectedConfig.minimum_version)})
               </>
             ) : (
               <>
@@ -160,7 +161,12 @@ export function VersionAssignmentCard({
       {isDropTarget && (
         <div className="mt-3 pt-3 border-t border-blue-300">
           <div className="flex items-center justify-center gap-2 text-blue-600">
-            <svg className="h-5 w-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="h-5 w-5 animate-bounce"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
