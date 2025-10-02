@@ -11,6 +11,7 @@ import {
   UserIcon,
   LinkIcon,
   CubeIcon,
+  Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 import { Container, ContainerVersion } from '../types/container';
 import {
@@ -23,6 +24,9 @@ import containerService from '../services/containerService';
 import { useContainerVersions } from '../hooks/useContainerVersions';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import ConfirmationModal from '../components/common/ConfirmationModal';
+import { ConfigurationsTab } from '../components/containers/configurations/ConfigurationsTab';
+
+type TabType = 'overview' | 'versions' | 'configurations';
 
 const ContainerDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +37,7 @@ const ContainerDetailPage: React.FC = () => {
   const [container, setContainer] = useState<Container | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>('versions');
 
   const containerId = id ? parseInt(id, 10) : 0;
 
@@ -264,33 +269,97 @@ const ContainerDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Versions Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
+        {/* Tab Navigation */}
+        <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
+          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`${
+                activeTab === 'overview'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+            >
+              <CubeIcon className="h-5 w-5" />
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('versions')}
+              className={`${
+                activeTab === 'versions'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+            >
+              <ClockIcon className="h-5 w-5" />
+              Versions ({versions.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('configurations')}
+              className={`${
+                activeTab === 'configurations'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+            >
+              <Cog6ToothIcon className="h-5 w-5" />
+              Configurations
+            </button>
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Container Information
+            </h2>
+            <div className="space-y-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {t('containers:versions')}
-                </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {t('containers:totalVersions', {
-                    count: versions.length,
-                    published: publishedVersions.length,
-                  })}
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Status</h3>
+                <div className="mt-1">
+                  <StatusBadge status={status} size="md" />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Total Versions
+                </h3>
+                <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                  {versions.length} ({publishedVersions.length} published)
                 </p>
               </div>
-
-              {isDeveloper && status !== 'deleted' && (
-                <button
-                  onClick={handleCreateVersion}
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-                >
-                  <PlusIcon className="h-4 w-4 mr-2" />
-                  {t('containers:createVersion')}
-                </button>
-              )}
             </div>
           </div>
+        )}
+
+        {activeTab === 'versions' && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {t('containers:versions')}
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {t('containers:totalVersions', {
+                      count: versions.length,
+                      published: publishedVersions.length,
+                    })}
+                  </p>
+                </div>
+
+                {isDeveloper && status !== 'deleted' && (
+                  <button
+                    onClick={handleCreateVersion}
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    {t('containers:createVersion')}
+                  </button>
+                )}
+              </div>
+            </div>
 
           <div className="p-6">
             {versionsLoading ? (
@@ -380,7 +449,16 @@ const ContainerDetailPage: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
+          </div>
+        )}
+
+        {activeTab === 'configurations' && containerId && (
+          <ConfigurationsTab
+            containerId={id || ''}
+            versions={versions}
+            onVersionUpdate={refetchVersions}
+          />
+        )}
       </div>
 
       {/* Confirmation Modal */}

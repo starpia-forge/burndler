@@ -23,6 +23,7 @@ export interface ContainerVersion {
   dependencies: Record<string, string>;
   published: boolean;
   published_at?: string;
+  configuration_id?: number | null; // Reference to ContainerConfiguration (Phase 6)
   created_at: string;
   updated_at: string;
   container?: Container;
