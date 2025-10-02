@@ -147,14 +147,26 @@ func (bs *BuildService) resolveConfiguration(ctx context.Context, buildCtx *Buil
 			continue
 		}
 
-		// Load container configuration
+		// Load container version to get configuration ID (Phase 3 - Container-level configuration)
+		var version models.ContainerVersion
+		if err := bs.db.First(&version, sc.ContainerVersionID).Error; err != nil {
+			return fmt.Errorf("failed to load container version %d: %w", sc.ContainerVersionID, err)
+		}
+
+		// Check if version has a configuration
+		if version.ConfigurationID == nil {
+			// No configuration defined, skip
+			continue
+		}
+
+		// Load container configuration via ConfigurationID
 		var config models.ContainerConfiguration
-		if err := bs.db.Where("container_version_id = ?", sc.ContainerVersionID).
+		if err := bs.db.Where("id = ?", *version.ConfigurationID).
 			Preload("Files").
 			Preload("Assets").
 			First(&config).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {
-				// No configuration defined, skip
+				// Configuration referenced but not found, skip
 				continue
 			}
 			return fmt.Errorf("failed to load configuration for container %d: %w", sc.ContainerID, err)
