@@ -139,11 +139,18 @@ func (s *Server) setupRouter() {
 	containers.PUT("/:id/versions/:version", middleware.RequireRole("Developer"), containerHandler.UpdateVersion)
 	containers.POST("/:id/versions/:version/publish", middleware.RequireRole("Developer"), containerHandler.PublishVersion)
 
-	// Container configuration management
+	// Container configuration management (DEPRECATED - version-level)
 	containers.POST("/:id/versions/:version/configuration", middleware.RequireRole("Developer"), configHandler.CreateConfiguration)
 	containers.GET("/:id/versions/:version/configuration", configHandler.GetConfiguration)
 	containers.PUT("/:id/versions/:version/configuration", middleware.RequireRole("Developer"), configHandler.UpdateConfiguration)
 	containers.DELETE("/:id/versions/:version/configuration", middleware.RequireRole("Developer"), configHandler.DeleteConfiguration)
+
+	// Container-level configuration management (Phase 3 - New Structure)
+	containers.GET("/:id/configurations", configHandler.ListContainerConfigurations)
+	containers.POST("/:id/configurations", middleware.RequireRole("Developer"), configHandler.CreateContainerConfiguration)
+	containers.GET("/:id/configurations/:name", configHandler.GetContainerConfiguration)
+	containers.PUT("/:id/configurations/:name", middleware.RequireRole("Developer"), configHandler.UpdateContainerConfiguration)
+	containers.DELETE("/:id/configurations/:name", middleware.RequireRole("Developer"), configHandler.DeleteContainerConfiguration)
 
 	// Service management
 	serviceRoutes := protected.Group("/services")

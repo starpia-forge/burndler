@@ -626,3 +626,252 @@ func (h *ContainerConfigurationHandler) ImportServiceConfiguration(c *gin.Contex
 
 	c.JSON(http.StatusOK, response)
 }
+
+// =============================================================================
+// Container-Level Configuration API Handlers (Phase 3 - New Structure)
+// =============================================================================
+
+// ListContainerConfigurations lists all configurations for a container
+func (h *ContainerConfigurationHandler) ListContainerConfigurations(c *gin.Context) {
+	containerID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+
+	// Verify container exists
+	var container models.Container
+	if err := h.db.First(&container, containerID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			NotFound(c, "Container")
+			return
+		}
+		InternalError(c, "Failed to retrieve container")
+		return
+	}
+
+	// Get all configurations for this container
+	var configs []models.ContainerConfiguration
+	if err := h.db.Where("container_id = ?", containerID).
+		Order("name ASC").
+		Find(&configs).Error; err != nil {
+		InternalError(c, "Failed to retrieve configurations")
+		return
+	}
+
+	c.JSON(http.StatusOK, configs)
+}
+
+// CreateContainerConfiguration creates a new configuration for a container
+func (h *ContainerConfigurationHandler) CreateContainerConfiguration(c *gin.Context) {
+	containerID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+
+	var req struct {
+		Name            string          `json:"name" binding:"required"`
+		Description     string          `json:"description"`
+		MinimumVersion  string          `json:"minimum_version" binding:"required"`
+		UISchema        json.RawMessage `json:"ui_schema"`
+		DependencyRules json.RawMessage `json:"dependency_rules"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		BadRequest(c, err.Error())
+		return
+	}
+
+	// Verify container exists
+	var container models.Container
+	if err := h.db.First(&container, containerID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			NotFound(c, "Container")
+			return
+		}
+		InternalError(c, "Failed to retrieve container")
+		return
+	}
+
+	// Check if configuration with this name already exists
+	var existingConfig models.ContainerConfiguration
+	err := h.db.Where("container_id = ? AND name = ?", containerID, req.Name).
+		First(&existingConfig).Error
+	if err == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "Configuration with this name already exists"})
+		return
+	} else if err != gorm.ErrRecordNotFound {
+		InternalError(c, "Failed to check for existing configuration")
+		return
+	}
+
+	// Create new configuration
+	config := &models.ContainerConfiguration{
+		ContainerID:     uint(containerID),
+		Name:            req.Name,
+		Description:     req.Description,
+		MinimumVersion:  req.MinimumVersion,
+		UISchema:        datatypes.JSON(req.UISchema),
+		DependencyRules: datatypes.JSON(req.DependencyRules),
+	}
+
+	if err := h.db.Create(config).Error; err != nil {
+		InternalError(c, "Failed to create configuration")
+		return
+	}
+
+	c.JSON(http.StatusCreated, config)
+}
+
+// GetContainerConfiguration retrieves a specific configuration by name
+func (h *ContainerConfigurationHandler) GetContainerConfiguration(c *gin.Context) {
+	containerID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	configName := c.Param("name")
+
+	// Verify container exists
+	var container models.Container
+	if err := h.db.First(&container, containerID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			NotFound(c, "Container")
+			return
+		}
+		InternalError(c, "Failed to retrieve container")
+		return
+	}
+
+	// Get configuration by container ID and name
+	var config models.ContainerConfiguration
+	if err := h.db.Where("container_id = ? AND name = ?", containerID, configName).
+		Preload("Files").
+		Preload("Assets").
+		First(&config).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			NotFound(c, "Configuration")
+			return
+		}
+		InternalError(c, "Failed to retrieve configuration")
+		return
+	}
+
+	c.JSON(http.StatusOK, config)
+}
+
+// UpdateContainerConfiguration updates a configuration
+func (h *ContainerConfigurationHandler) UpdateContainerConfiguration(c *gin.Context) {
+	containerID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	configName := c.Param("name")
+
+	var req struct {
+		Description     string          `json:"description"`
+		MinimumVersion  string          `json:"minimum_version"`
+		UISchema        json.RawMessage `json:"ui_schema"`
+		DependencyRules json.RawMessage `json:"dependency_rules"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		BadRequest(c, err.Error())
+		return
+	}
+
+	// Verify container exists
+	var container models.Container
+	if err := h.db.First(&container, containerID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			NotFound(c, "Container")
+			return
+		}
+		InternalError(c, "Failed to retrieve container")
+		return
+	}
+
+	// Get existing configuration
+	var config models.ContainerConfiguration
+	if err := h.db.Where("container_id = ? AND name = ?", containerID, configName).
+		First(&config).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			NotFound(c, "Configuration")
+			return
+		}
+		InternalError(c, "Failed to retrieve configuration")
+		return
+	}
+
+	// Update fields (Name is immutable - comes from URL param)
+	if req.Description != "" {
+		config.Description = req.Description
+	}
+	if req.MinimumVersion != "" {
+		config.MinimumVersion = req.MinimumVersion
+	}
+	if len(req.UISchema) > 0 {
+		config.UISchema = datatypes.JSON(req.UISchema)
+	}
+	if len(req.DependencyRules) > 0 {
+		config.DependencyRules = datatypes.JSON(req.DependencyRules)
+	}
+
+	if err := h.db.Save(&config).Error; err != nil {
+		InternalError(c, "Failed to update configuration")
+		return
+	}
+
+	c.JSON(http.StatusOK, config)
+}
+
+// DeleteContainerConfiguration deletes a configuration
+func (h *ContainerConfigurationHandler) DeleteContainerConfiguration(c *gin.Context) {
+	containerID, _ := strconv.ParseUint(c.Param("id"), 10, 64)
+	configName := c.Param("name")
+
+	// Verify container exists
+	var container models.Container
+	if err := h.db.First(&container, containerID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			NotFound(c, "Container")
+			return
+		}
+		InternalError(c, "Failed to retrieve container")
+		return
+	}
+
+	// Get configuration
+	var config models.ContainerConfiguration
+	if err := h.db.Where("container_id = ? AND name = ?", containerID, configName).
+		First(&config).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// Return OK even if configuration doesn't exist (idempotent)
+			c.JSON(http.StatusOK, gin.H{"message": "Configuration deleted successfully"})
+			return
+		}
+		InternalError(c, "Failed to retrieve configuration")
+		return
+	}
+
+	// Check if any versions reference this configuration
+	var versionCount int64
+	h.db.Model(&models.ContainerVersion{}).
+		Where("configuration_id = ?", config.ID).
+		Count(&versionCount)
+
+	if versionCount > 0 {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": "Cannot delete configuration: it is referenced by one or more container versions",
+		})
+		return
+	}
+
+	// Delete associated files first
+	if err := h.db.Where("container_configuration_id = ?", config.ID).
+		Delete(&models.ContainerFile{}).Error; err != nil {
+		InternalError(c, "Failed to delete configuration files")
+		return
+	}
+
+	// Delete associated assets
+	if err := h.db.Where("container_configuration_id = ?", config.ID).
+		Delete(&models.ContainerAsset{}).Error; err != nil {
+		InternalError(c, "Failed to delete configuration assets")
+		return
+	}
+
+	// Delete configuration
+	if err := h.db.Delete(&config).Error; err != nil {
+		InternalError(c, "Failed to delete configuration")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Configuration deleted successfully"})
+}
