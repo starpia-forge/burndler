@@ -103,4 +103,5 @@ go.work
 /var/
 
 # Project artifacts
+backend/api
 .initialized
