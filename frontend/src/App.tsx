@@ -9,6 +9,7 @@ import ContainerDetailPage from './pages/ContainerDetailPage';
 import CreateContainerPage from './pages/CreateContainerPage';
 import EditContainerPage from './pages/EditContainerPage';
 import CreateContainerVersionPage from './pages/CreateContainerVersionPage';
+import EditContainerVersionPage from './pages/EditContainerVersionPage';
 import ContainerVersionDetailPage from './pages/ContainerVersionDetailPage';
 import ServicesPage from './pages/ServicesPage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
@@ -135,6 +136,18 @@ function App() {
                       <ProtectedRoute>
                         <DashboardLayout>
                           <CreateContainerVersionPage />
+                        </DashboardLayout>
+                      </ProtectedRoute>
+                    </SetupGuard>
+                  }
+                />
+                <Route
+                  path="/containers/:id/versions/:version/edit"
+                  element={
+                    <SetupGuard>
+                      <ProtectedRoute>
+                        <DashboardLayout>
+                          <EditContainerVersionPage />
                         </DashboardLayout>
                       </ProtectedRoute>
                     </SetupGuard>

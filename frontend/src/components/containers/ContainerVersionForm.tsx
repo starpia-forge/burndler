@@ -1,15 +1,33 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CreateVersionRequest } from '../../types/container';
+import {
+  CreateVersionRequest,
+  UpdateVersionRequest,
+  ContainerVersion,
+} from '../../types/container';
+import { ConfigurationSelector } from './ConfigurationSelector';
 
 interface ContainerVersionFormProps {
-  onSubmit: (data: CreateVersionRequest) => void;
+  mode?: 'create' | 'edit';
+  initialData?: ContainerVersion;
+  onSubmit: (data: CreateVersionRequest | UpdateVersionRequest) => void;
   onCancel: () => void;
   loading?: boolean;
   error?: string | null;
 }
 
+interface FormState {
+  version: string;
+  compose: string;
+  variables?: Record<string, any>;
+  resource_paths?: string[];
+  dependencies?: Record<string, string>;
+  configuration_id?: number | null;
+}
+
 const ContainerVersionForm: React.FC<ContainerVersionFormProps> = ({
+  mode = 'create',
+  initialData,
   onSubmit,
   onCancel,
   loading = false,
@@ -17,9 +35,11 @@ const ContainerVersionForm: React.FC<ContainerVersionFormProps> = ({
 }) => {
   const { t } = useTranslation(['containers', 'common']);
 
-  const [formData, setFormData] = useState<CreateVersionRequest>({
-    version: '',
-    compose: `version: '3.8'
+  const [formData, setFormData] = useState<FormState>({
+    version: initialData?.version || '',
+    compose:
+      initialData?.compose_content ||
+      `version: '3.8'
 
 services:
   # Add your services here
@@ -28,9 +48,10 @@ services:
     ports:
       - "80:80"
 `,
-    variables: {},
-    resource_paths: [],
-    dependencies: {},
+    variables: initialData?.variables || {},
+    resource_paths: initialData?.resource_paths || [],
+    dependencies: initialData?.dependencies || {},
+    ...(mode === 'edit' && { configuration_id: initialData?.configuration_id || null }),
   });
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -38,17 +59,19 @@ services:
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
-    // Version validation
-    if (!formData.version.trim()) {
-      errors.version = t('containers:versionRequired');
-    } else if (formData.version.length > 50) {
-      errors.version = t('containers:versionMaxLength');
-    } else if (!/^[a-zA-Z0-9._-]+$/.test(formData.version)) {
-      errors.version = t('containers:versionInvalidFormat');
+    // Version validation (only for create mode)
+    if (mode === 'create') {
+      if (!formData.version?.trim()) {
+        errors.version = t('containers:versionRequired');
+      } else if (formData.version.length > 50) {
+        errors.version = t('containers:versionMaxLength');
+      } else if (!/^[a-zA-Z0-9._-]+$/.test(formData.version)) {
+        errors.version = t('containers:versionInvalidFormat');
+      }
     }
 
     // Compose validation
-    if (!formData.compose.trim()) {
+    if (!formData.compose?.trim()) {
       errors.compose = t('containers:composeRequired');
     } else if (formData.compose.length > 50000) {
       errors.compose = t('containers:composeMaxLength');
@@ -62,13 +85,25 @@ services:
     e.preventDefault();
 
     if (validateForm()) {
-      const submitData: CreateVersionRequest = {
-        ...formData,
-        version: formData.version.trim(),
-        compose: formData.compose.trim(),
-      };
-
-      onSubmit(submitData);
+      if (mode === 'create') {
+        const submitData: CreateVersionRequest = {
+          version: formData.version.trim(),
+          compose: formData.compose.trim(),
+          variables: formData.variables,
+          resource_paths: formData.resource_paths,
+          dependencies: formData.dependencies,
+        };
+        onSubmit(submitData);
+      } else {
+        const submitData: UpdateVersionRequest = {
+          compose: formData.compose.trim(),
+          variables: formData.variables,
+          resource_paths: formData.resource_paths,
+          dependencies: formData.dependencies,
+          configuration_id: formData.configuration_id,
+        };
+        onSubmit(submitData);
+      }
     }
   };
 
@@ -117,25 +152,44 @@ services:
             onChange={handleVersionChange}
             placeholder={t('containers:enterVersionNumber')}
             className={`block w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 ${
-              validationErrors.version
-                ? 'border-red-300 dark:border-red-600'
-                : 'border-gray-300 dark:border-gray-600'
+              mode === 'edit'
+                ? 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed'
+                : validationErrors.version
+                  ? 'border-red-300 dark:border-red-600'
+                  : 'border-gray-300 dark:border-gray-600'
             }`}
-            disabled={loading}
+            disabled={loading || mode === 'edit'}
           />
+          {mode === 'edit' && (
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Version number cannot be changed after creation
+            </p>
+          )}
           {validationErrors.version && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">
               {validationErrors.version}
             </p>
           )}
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            {t('containers:versionCharacterCount', {
-              count: formData.version.length,
-              max: 50,
-            })}
-          </p>
+          {mode === 'create' && (
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {t('containers:versionCharacterCount', {
+                count: formData.version?.length || 0,
+                max: 50,
+              })}
+            </p>
+          )}
         </div>
       </div>
+
+      {/* Configuration (only in edit mode or when specified) */}
+      {initialData && (
+        <ConfigurationSelector
+          containerId={initialData.container_id.toString()}
+          value={formData.configuration_id || null}
+          onChange={(configId) => setFormData((prev) => ({ ...prev, configuration_id: configId }))}
+          disabled={loading}
+        />
+      )}
 
       {/* Docker Compose YAML */}
       <div>
@@ -188,7 +242,13 @@ services:
           disabled={loading}
           className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
         >
-          {loading ? t('containers:creating') : t('containers:createVersion')}
+          {loading
+            ? mode === 'edit'
+              ? t('containers:updating')
+              : t('containers:creating')
+            : mode === 'edit'
+              ? t('containers:updateVersion')
+              : t('containers:createVersion')}
         </button>
       </div>
     </form>
