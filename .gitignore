@@ -24,11 +24,12 @@ coverage/
 # IDE
 .idea/
 .vscode/
-.claude/
 *.swp
 *.swo
 *~
 .DS_Store
+.claude/local
+.claude/settings.local.json
 
 # Environment
 .env
