@@ -5,7 +5,7 @@ import { ArrowLeftIcon, CubeIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../hooks/useAuth';
 import { Container } from '../types/container';
 import { useCreateContainerVersion } from '../hooks/useCreateContainerVersion';
-import { CreateVersionRequest } from '../types/container';
+import { CreateVersionRequest, UpdateVersionRequest } from '../types/container';
 import ContainerVersionForm from '../components/containers/ContainerVersionForm';
 import containerService from '../services/containerService';
 
@@ -42,8 +42,8 @@ const CreateContainerVersionPage: React.FC = () => {
     fetchContainer();
   }, [containerId, t]);
 
-  const handleSubmit = async (data: CreateVersionRequest) => {
-    const version = await createVersion(containerId, data);
+  const handleSubmit = async (data: CreateVersionRequest | UpdateVersionRequest) => {
+    const version = await createVersion(containerId, data as CreateVersionRequest);
     if (version) {
       navigate(`/containers/${containerId}`);
     }
@@ -156,6 +156,7 @@ const CreateContainerVersionPage: React.FC = () => {
         {/* Form */}
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <ContainerVersionForm
+            containerId={containerId.toString()}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             loading={loading}

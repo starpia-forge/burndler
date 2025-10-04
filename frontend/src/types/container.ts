@@ -50,6 +50,7 @@ export interface CreateVersionRequest {
   variables?: Record<string, any>;
   resource_paths?: string[];
   dependencies?: Record<string, string>;
+  configuration_id?: number | null;
 }
 
 export interface UpdateVersionRequest {

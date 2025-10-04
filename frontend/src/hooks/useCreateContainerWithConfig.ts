@@ -41,7 +41,7 @@ export const useCreateContainerWithConfig = () => {
       setProgress('첫 번째 버전 생성 중...');
       const version = await containerService.createVersion(container.id, {
         version: 'v0.1.0',
-        changelog: 'Initial version',
+        compose: `version: '3.8'\nservices:\n  # Add your services here`,
       });
 
       // Step 3: Create Configuration (if provided)

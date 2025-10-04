@@ -10,6 +10,7 @@ import { ConfigurationSelector } from './ConfigurationSelector';
 interface ContainerVersionFormProps {
   mode?: 'create' | 'edit';
   initialData?: ContainerVersion;
+  containerId?: string;
   onSubmit: (data: CreateVersionRequest | UpdateVersionRequest) => void;
   onCancel: () => void;
   loading?: boolean;
@@ -28,6 +29,7 @@ interface FormState {
 const ContainerVersionForm: React.FC<ContainerVersionFormProps> = ({
   mode = 'create',
   initialData,
+  containerId,
   onSubmit,
   onCancel,
   loading = false,
@@ -51,7 +53,7 @@ services:
     variables: initialData?.variables || {},
     resource_paths: initialData?.resource_paths || [],
     dependencies: initialData?.dependencies || {},
-    ...(mode === 'edit' && { configuration_id: initialData?.configuration_id || null }),
+    configuration_id: initialData?.configuration_id || null,
   });
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -92,6 +94,7 @@ services:
           variables: formData.variables,
           resource_paths: formData.resource_paths,
           dependencies: formData.dependencies,
+          configuration_id: formData.configuration_id,
         };
         onSubmit(submitData);
       } else {
@@ -181,15 +184,17 @@ services:
         </div>
       </div>
 
-      {/* Configuration (only in edit mode or when specified) */}
-      {initialData && (
+      {/* Configuration */}
+      {(mode === 'edit' && initialData) || (mode === 'create' && containerId) ? (
         <ConfigurationSelector
-          containerId={initialData.container_id.toString()}
+          containerId={
+            mode === 'edit' && initialData ? initialData.container_id.toString() : containerId || ''
+          }
           value={formData.configuration_id || null}
           onChange={(configId) => setFormData((prev) => ({ ...prev, configuration_id: configId }))}
           disabled={loading}
         />
-      )}
+      ) : null}
 
       {/* Docker Compose YAML */}
       <div>

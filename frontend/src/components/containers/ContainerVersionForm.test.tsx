@@ -75,10 +75,18 @@ describe('ContainerVersionForm', () => {
       expect(versionInput).not.toBeDisabled();
     });
 
-    it('should not show configuration selector in create mode without initialData', () => {
+    it('should not show configuration selector in create mode without containerId', () => {
       render(<ContainerVersionForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
       expect(screen.queryByTestId('configuration-selector')).not.toBeInTheDocument();
+    });
+
+    it('should show configuration selector in create mode when containerId is provided', () => {
+      render(
+        <ContainerVersionForm containerId="1" onSubmit={mockOnSubmit} onCancel={mockOnCancel} />
+      );
+
+      expect(screen.getByTestId('configuration-selector')).toBeInTheDocument();
     });
 
     it('should validate version field is required', async () => {
@@ -148,6 +156,35 @@ describe('ContainerVersionForm', () => {
         variables: {},
         resource_paths: [],
         dependencies: {},
+        configuration_id: null,
+      });
+    });
+
+    it('should include selected configuration in create data', async () => {
+      const user = userEvent.setup();
+      render(
+        <ContainerVersionForm containerId="1" onSubmit={mockOnSubmit} onCancel={mockOnCancel} />
+      );
+
+      const versionInput = screen.getByLabelText(/containers:versionNumber/i);
+      const composeInput = screen.getByLabelText(/containers:dockerComposeYaml/i);
+      const configSelect = screen.getByLabelText('configuration');
+
+      await user.type(versionInput, 'v1.0.0');
+      await user.clear(composeInput);
+      await user.type(composeInput, 'version: "3.8"');
+      await user.selectOptions(configSelect, '1');
+
+      const submitButton = screen.getByRole('button', { name: /containers:createVersion/i });
+      await user.click(submitButton);
+
+      expect(mockOnSubmit).toHaveBeenCalledWith({
+        version: 'v1.0.0',
+        compose: 'version: "3.8"',
+        variables: {},
+        resource_paths: [],
+        dependencies: {},
+        configuration_id: 1,
       });
     });
   });
