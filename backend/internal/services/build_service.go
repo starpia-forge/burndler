@@ -41,14 +41,15 @@ func NewBuildService(
 
 // BuildContext maintains state across build stages
 type BuildContext struct {
-	Build             *models.Build
-	Service           *models.Service
-	Configurations    map[uint]*models.ContainerConfiguration
-	ResolvedVariables map[uint]map[string]interface{}
-	RenderedFiles     map[string]string
-	RenderedAssets    map[string][]byte
-	DownloadAssets    []DownloadAssetInfo
-	TempDirectory     string
+	Build              *models.Build
+	Service            *models.Service
+	Configurations     map[uint]*models.ContainerConfiguration
+	ResolvedVariables  map[uint]map[string]interface{}
+	RenderedFiles      map[string]string
+	RenderedAssets     map[string][]byte
+	DownloadAssets     []DownloadAssetInfo
+	ContainerResources map[uint][]models.ContainerResource // containerID -> resources
+	TempDirectory      string
 }
 
 // DownloadAssetInfo represents an asset that should be downloaded during installation
@@ -77,13 +78,14 @@ func (bs *BuildService) ExecuteBuild(ctx context.Context, buildID string) error 
 
 	// Initialize build context
 	buildCtx := &BuildContext{
-		Build:             &build,
-		Service:           build.Service,
-		Configurations:    make(map[uint]*models.ContainerConfiguration),
-		ResolvedVariables: make(map[uint]map[string]interface{}),
-		RenderedFiles:     make(map[string]string),
-		RenderedAssets:    make(map[string][]byte),
-		DownloadAssets:    make([]DownloadAssetInfo, 0),
+		Build:              &build,
+		Service:            build.Service,
+		Configurations:     make(map[uint]*models.ContainerConfiguration),
+		ResolvedVariables:  make(map[uint]map[string]interface{}),
+		RenderedFiles:      make(map[string]string),
+		RenderedAssets:     make(map[string][]byte),
+		DownloadAssets:     make([]DownloadAssetInfo, 0),
+		ContainerResources: make(map[uint][]models.ContainerResource),
 	}
 
 	// Execute build stages
@@ -93,6 +95,7 @@ func (bs *BuildService) ExecuteBuild(ctx context.Context, buildID string) error 
 	}{
 		{"validation", bs.validateConfiguration},
 		{"configuration", bs.resolveConfiguration},
+		{"resource_collection", bs.collectContainerResources},
 		{"template_render", bs.renderTemplates},
 		{"asset_resolution", bs.resolveAssets},
 		{"compose_merge", bs.mergeCompose},
@@ -521,4 +524,29 @@ func (bs *BuildService) EvaluateCondition(condition string, variables map[string
 
 	// For more complex expressions, use dependency checker
 	return bs.dependencyChecker.EvaluateCondition(condition, variables)
+}
+
+// collectContainerResources loads resources for all container versions in the service
+func (bs *BuildService) collectContainerResources(ctx context.Context, buildCtx *BuildContext) error {
+	for _, sc := range buildCtx.Service.ServiceContainers {
+		if !sc.Enabled {
+			continue
+		}
+
+		// Load resources for this container version
+		var resources []models.ContainerResource
+		if err := bs.db.Where("container_version_id = ?", sc.ContainerVersionID).
+			Order("path ASC").
+			Find(&resources).Error; err != nil {
+			return fmt.Errorf("failed to load resources for container %d version %d: %w",
+				sc.ContainerID, sc.ContainerVersionID, err)
+		}
+
+		// Store resources by container ID
+		if len(resources) > 0 {
+			buildCtx.ContainerResources[sc.ContainerID] = resources
+		}
+	}
+
+	return nil
 }
