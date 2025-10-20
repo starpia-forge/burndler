@@ -15,14 +15,14 @@ import (
 // ContainerHandler handles container-related HTTP endpoints
 type ContainerHandler struct {
 	containerService *services.ContainerService
-	db            *gorm.DB
+	db               *gorm.DB
 }
 
 // NewContainerHandler creates a new container handler
 func NewContainerHandler(containerService *services.ContainerService, db *gorm.DB) *ContainerHandler {
 	return &ContainerHandler{
 		containerService: containerService,
-		db:            db,
+		db:               db,
 	}
 }
 
@@ -102,10 +102,10 @@ func (h *ContainerHandler) ListContainers(c *gin.Context) {
 
 	// Convert to service filters
 	filters := services.ContainerFilters{
-		Page:         query.Page,
-		PageSize:     query.PageSize,
-		Active:       query.Active,
-		Author:       query.Author,
+		Page:          query.Page,
+		PageSize:      query.PageSize,
+		Active:        query.Active,
+		Author:        query.Author,
 		PublishedOnly: query.Published,
 	}
 
@@ -543,4 +543,149 @@ func (h *ContainerHandler) PublishVersion(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, version)
+}
+
+// UploadResource handles POST /api/v1/containers/:id/versions/:version/resources
+func (h *ContainerHandler) UploadResource(c *gin.Context) {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   "INVALID_ID",
+			Message: "Invalid container ID",
+		})
+		return
+	}
+
+	versionParam := c.Param("version")
+
+	// Get file from multipart form
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   "FILE_REQUIRED",
+			Message: "File is required",
+		})
+		return
+	}
+
+	// Get path from form (optional, defaults to filename)
+	path := c.PostForm("path")
+	if path == "" {
+		path = file.Filename
+	}
+
+	// Upload resource
+	resource, err := h.containerService.UploadResource(c.Request.Context(), uint(id), versionParam, path, file)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			c.JSON(http.StatusNotFound, ErrorResponse{
+				Error:   "VERSION_NOT_FOUND",
+				Message: err.Error(),
+			})
+			return
+		}
+		if strings.Contains(err.Error(), "cannot upload resources to published version") {
+			c.JSON(http.StatusForbidden, ErrorResponse{
+				Error:   "VERSION_PUBLISHED",
+				Message: "Cannot upload resources to published version",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "UPLOAD_FAILED",
+			Message: "Failed to upload resource",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, resource)
+}
+
+// ListResources handles GET /api/v1/containers/:id/versions/:version/resources
+func (h *ContainerHandler) ListResources(c *gin.Context) {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   "INVALID_ID",
+			Message: "Invalid container ID",
+		})
+		return
+	}
+
+	versionParam := c.Param("version")
+
+	resources, err := h.containerService.ListResources(uint(id), versionParam)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			c.JSON(http.StatusNotFound, ErrorResponse{
+				Error:   "VERSION_NOT_FOUND",
+				Message: err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "INTERNAL_ERROR",
+			Message: "Failed to list resources",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"resources": resources,
+		"count":     len(resources),
+	})
+}
+
+// DeleteResource handles DELETE /api/v1/containers/:id/versions/:version/resources/:resource_id
+func (h *ContainerHandler) DeleteResource(c *gin.Context) {
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   "INVALID_ID",
+			Message: "Invalid container ID",
+		})
+		return
+	}
+
+	versionParam := c.Param("version")
+
+	resourceIDParam := c.Param("resource_id")
+	resourceID, err := strconv.ParseUint(resourceIDParam, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Error:   "INVALID_RESOURCE_ID",
+			Message: "Invalid resource ID",
+		})
+		return
+	}
+
+	err = h.containerService.DeleteResource(c.Request.Context(), uint(id), versionParam, uint(resourceID))
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			c.JSON(http.StatusNotFound, ErrorResponse{
+				Error:   "RESOURCE_NOT_FOUND",
+				Message: err.Error(),
+			})
+			return
+		}
+		if strings.Contains(err.Error(), "cannot delete resources from published version") {
+			c.JSON(http.StatusForbidden, ErrorResponse{
+				Error:   "VERSION_PUBLISHED",
+				Message: "Cannot delete resources from published version",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Error:   "DELETE_FAILED",
+			Message: "Failed to delete resource",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Resource deleted successfully",
+	})
 }

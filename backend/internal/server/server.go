@@ -139,6 +139,11 @@ func (s *Server) setupRouter() {
 	containers.PUT("/:id/versions/:version", middleware.RequireRole("Developer"), containerHandler.UpdateVersion)
 	containers.POST("/:id/versions/:version/publish", middleware.RequireRole("Developer"), containerHandler.PublishVersion)
 
+	// Container version resource management
+	containers.POST("/:id/versions/:version/resources", middleware.RequireRole("Developer"), containerHandler.UploadResource)
+	containers.GET("/:id/versions/:version/resources", containerHandler.ListResources)
+	containers.DELETE("/:id/versions/:version/resources/:resource_id", middleware.RequireRole("Developer"), containerHandler.DeleteResource)
+
 	// Container configuration management (DEPRECATED - version-level)
 	containers.POST("/:id/versions/:version/configuration", middleware.RequireRole("Developer"), configHandler.CreateConfiguration)
 	containers.GET("/:id/versions/:version/configuration", configHandler.GetConfiguration)
