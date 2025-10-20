@@ -4,34 +4,21 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
 // Test BeforeCreate hook generates UUID
 func TestBuild_BeforeCreate(t *testing.T) {
-	// Setup test database
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("Failed to setup test database: %v", err)
-	}
-
-	// Migrate the schema
-	err = db.AutoMigrate(&Build{})
-	if err != nil {
-		t.Fatalf("Failed to migrate: %v", err)
-	}
-
-	// Test case 1: Build without ID should get UUID
+	// Test case 1: Build without ID should get UUID after BeforeCreate
 	build := &Build{
 		Name:   "test-build",
 		Status: "queued",
 		UserID: 1,
 	}
 
-	err = db.Create(build).Error
+	// Call BeforeCreate hook directly
+	err := build.BeforeCreate(nil)
 	if err != nil {
-		t.Fatalf("Failed to create build: %v", err)
+		t.Fatalf("BeforeCreate failed: %v", err)
 	}
 
 	if build.ID == uuid.Nil {
@@ -47,9 +34,9 @@ func TestBuild_BeforeCreate(t *testing.T) {
 		UserID: 1,
 	}
 
-	err = db.Create(build2).Error
+	err = build2.BeforeCreate(nil)
 	if err != nil {
-		t.Fatalf("Failed to create build with existing ID: %v", err)
+		t.Fatalf("BeforeCreate failed: %v", err)
 	}
 
 	if build2.ID != existingID {
@@ -134,7 +121,6 @@ func TestBuild_TableName(t *testing.T) {
 		t.Errorf("TableName() = %v, want %v", got, expected)
 	}
 }
-
 
 // Test IsDirectBuild method
 func TestBuild_IsDirectBuild(t *testing.T) {

@@ -185,7 +185,7 @@ test-unit: test-unit-backend test-unit-frontend ## Run unit tests
 
 test-unit-backend:
 	@echo "Running backend unit tests..."
-	cd backend && go test -v -short ./...
+	cd backend && CGO_ENABLED=1 go test -v -short ./...
 
 test-unit-frontend:
 	@echo "Running frontend unit tests..."

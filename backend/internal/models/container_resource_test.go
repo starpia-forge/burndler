@@ -28,6 +28,65 @@ func TestContainerResource_TableName(t *testing.T) {
 	assert.Equal(t, "container_resources", resource.TableName())
 }
 
+func TestContainerResource_BeforeCreate_Validation(t *testing.T) {
+	tests := []struct {
+		name        string
+		resource    ContainerResource
+		expectError bool
+		errorMsg    string
+	}{
+		{
+			name: "valid resource",
+			resource: ContainerResource{
+				ContainerVersionID: 1,
+				Path:               "config/app.yaml",
+				StorageKey:         "storage/key",
+			},
+			expectError: false,
+		},
+		{
+			name: "missing container_version_id",
+			resource: ContainerResource{
+				Path:       "config/app.yaml",
+				StorageKey: "storage/key",
+			},
+			expectError: true,
+			errorMsg:    "container_version_id is required",
+		},
+		{
+			name: "missing path",
+			resource: ContainerResource{
+				ContainerVersionID: 1,
+				StorageKey:         "storage/key",
+			},
+			expectError: true,
+			errorMsg:    "path is required",
+		},
+		{
+			name: "missing storage_key",
+			resource: ContainerResource{
+				ContainerVersionID: 1,
+				Path:               "config/app.yaml",
+			},
+			expectError: true,
+			errorMsg:    "storage_key is required",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.resource.BeforeCreate(nil)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errorMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestContainerResource_Create(t *testing.T) {
 	db := setupResourceTestDB(t)
 
