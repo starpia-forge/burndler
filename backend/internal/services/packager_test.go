@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/burndler/burndler/internal/models"
 	"github.com/burndler/burndler/internal/storage"
 )
 
@@ -108,8 +109,9 @@ func TestPackager_CreatePackage(t *testing.T) {
 services:
   web:
     image: nginx:latest`,
-		Resources:      []ResourceFile{},
-		DownloadAssets: []DownloadAssetInfo{},
+		Resources:          []ResourceFile{},
+		ContainerResources: []ContainerResourceGroup{},
+		DownloadAssets:     []DownloadAssetInfo{},
 	}
 
 	packagePath, err := packager.CreatePackage(ctx, req)
@@ -140,8 +142,9 @@ func TestPackager_CreatePackage_StorageError(t *testing.T) {
 services:
   web:
     image: nginx:latest`,
-		Resources:      []ResourceFile{},
-		DownloadAssets: []DownloadAssetInfo{},
+		Resources:          []ResourceFile{},
+		ContainerResources: []ContainerResourceGroup{},
+		DownloadAssets:     []DownloadAssetInfo{},
 	}
 
 	packagePath, err := packager.CreatePackage(ctx, req)
@@ -183,6 +186,7 @@ services:
 				FileSize:    1024000,
 			},
 		},
+		ContainerResources: []ContainerResourceGroup{},
 	}
 
 	packagePath, err := packager.CreatePackage(ctx, req)
@@ -192,6 +196,76 @@ services:
 
 	if packagePath == "" {
 		t.Error("Expected non-empty package path")
+	}
+
+	if !mockStorage.UploadCalled {
+		t.Error("Expected storage Upload to be called")
+	}
+}
+
+// Test CreatePackage with ContainerResources
+func TestPackager_CreatePackage_WithContainerResources(t *testing.T) {
+	mockStorage := &MockStorage{}
+	packager := NewPackager(mockStorage)
+
+	ctx := context.Background()
+
+	// Mock ContainerResources with two containers
+	containerResources := []ContainerResourceGroup{
+		{
+			ContainerID:   1,
+			ContainerName: "nginx-proxy",
+			Resources: []models.ContainerResource{
+				{
+					ID:                 1,
+					ContainerVersionID: 1,
+					Path:               "config/app.yaml",
+					StorageKey:         "containers/1/versions/1/resources/config/app.yaml",
+				},
+				{
+					ID:                 2,
+					ContainerVersionID: 1,
+					Path:               "scripts/init.sh",
+					StorageKey:         "containers/1/versions/1/resources/scripts/init.sh",
+				},
+			},
+		},
+		{
+			ContainerID:   2,
+			ContainerName: "postgres-db",
+			Resources: []models.ContainerResource{
+				{
+					ID:                 3,
+					ContainerVersionID: 2,
+					Path:               "data/config.json",
+					StorageKey:         "containers/2/versions/1/resources/data/config.json",
+				},
+			},
+		},
+	}
+
+	req := &PackageRequest{
+		Name: "test-package",
+		Compose: `version: '3'
+services:
+  web:
+    image: nginx:latest`,
+		Resources:          []ResourceFile{},
+		ContainerResources: containerResources,
+		DownloadAssets:     []DownloadAssetInfo{},
+	}
+
+	packagePath, err := packager.CreatePackage(ctx, req)
+	if err != nil {
+		t.Fatalf("CreatePackage failed: %v", err)
+	}
+
+	if packagePath == "" {
+		t.Error("Expected non-empty package path")
+	}
+
+	if !mockStorage.DownloadCalled {
+		t.Error("Expected storage Download to be called for container resources")
 	}
 
 	if !mockStorage.UploadCalled {

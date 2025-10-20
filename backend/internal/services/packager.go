@@ -9,8 +9,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
+	"path/filepath"
 	"time"
 
+	"github.com/burndler/burndler/internal/models"
 	"github.com/burndler/burndler/internal/storage"
 	"github.com/google/uuid"
 )
@@ -27,12 +30,20 @@ func NewPackager(storage storage.Storage) *Packager {
 	}
 }
 
+// ContainerResourceGroup groups resources with container metadata
+type ContainerResourceGroup struct {
+	ContainerID   uint                       `json:"container_id"`
+	ContainerName string                     `json:"container_name"`
+	Resources     []models.ContainerResource `json:"resources"`
+}
+
 // PackageRequest represents a package creation request
 type PackageRequest struct {
-	Name           string              `json:"name"`
-	Compose        string              `json:"compose"`
-	Resources      []ResourceFile      `json:"resources"`
-	DownloadAssets []DownloadAssetInfo `json:"download_assets"`
+	Name               string                   `json:"name"`
+	Compose            string                   `json:"compose"`
+	Resources          []ResourceFile           `json:"resources"`
+	ContainerResources []ContainerResourceGroup `json:"container_resources"`
+	DownloadAssets     []DownloadAssetInfo      `json:"download_assets"`
 }
 
 // ResourceFile represents a file resource to include in the package
@@ -104,7 +115,7 @@ func (p *Packager) CreatePackage(ctx context.Context, req *PackageRequest) (stri
 		return "", fmt.Errorf("failed to add verify.sh: %w", err)
 	}
 
-	// Add resource files
+	// Add resource files (template/configuration files)
 	for _, resource := range req.Resources {
 		// Add file to tar
 		if err := p.addFileToTar(tarWriter, resource.Path, resource.Content); err != nil {
@@ -117,6 +128,32 @@ func (p *Packager) CreatePackage(ctx context.Context, req *PackageRequest) (stri
 
 		// Track in manifest
 		manifest.Resources = append(manifest.Resources, resource.Path)
+	}
+
+	// Add container resources (from ContainerVersion resources)
+	for _, group := range req.ContainerResources {
+		for _, resource := range group.Resources {
+			// Download resource from storage
+			content, err := p.downloadResource(ctx, resource.StorageKey)
+			if err != nil {
+				return "", fmt.Errorf("failed to download resource %s for container %s: %w", resource.Path, group.ContainerName, err)
+			}
+
+			// Build target path: {container_name}/{original_path}
+			targetPath := filepath.Join(group.ContainerName, resource.Path)
+
+			// Add file to tar
+			if err := p.addFileToTar(tarWriter, targetPath, content); err != nil {
+				return "", fmt.Errorf("failed to add container resource %s: %w", targetPath, err)
+			}
+
+			// Calculate checksum
+			checksum := p.calculateChecksum(content)
+			manifest.Checksums[targetPath] = checksum
+
+			// Track in manifest
+			manifest.Resources = append(manifest.Resources, targetPath)
+		}
 	}
 
 	// Add manifest.json
@@ -175,6 +212,24 @@ func (p *Packager) addFileToTar(tw *tar.Writer, name string, content []byte) err
 func (p *Packager) calculateChecksum(content []byte) string {
 	hash := sha256.Sum256(content)
 	return hex.EncodeToString(hash[:])
+}
+
+// downloadResource downloads a resource from storage by key
+func (p *Packager) downloadResource(ctx context.Context, storageKey string) ([]byte, error) {
+	reader, err := p.storage.Download(ctx, storageKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to download from storage: %w", err)
+	}
+	defer func() {
+		_ = reader.Close()
+	}()
+
+	content, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read resource content: %w", err)
+	}
+
+	return content, nil
 }
 
 // generateEnvExample creates a template .env file

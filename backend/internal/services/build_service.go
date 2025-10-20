@@ -49,6 +49,7 @@ type BuildContext struct {
 	RenderedAssets     map[string][]byte
 	DownloadAssets     []DownloadAssetInfo
 	ContainerResources map[uint][]models.ContainerResource // containerID -> resources
+	ContainerNames     map[uint]string                     // containerID -> container name
 	TempDirectory      string
 }
 
@@ -86,6 +87,7 @@ func (bs *BuildService) ExecuteBuild(ctx context.Context, buildID string) error 
 		RenderedAssets:     make(map[string][]byte),
 		DownloadAssets:     make([]DownloadAssetInfo, 0),
 		ContainerResources: make(map[uint][]models.ContainerResource),
+		ContainerNames:     make(map[uint]string),
 	}
 
 	// Execute build stages
@@ -407,11 +409,23 @@ func (bs *BuildService) packageInstaller(ctx context.Context, buildCtx *BuildCon
 		})
 	}
 
+	// Prepare container resource groups
+	containerResourceGroups := make([]ContainerResourceGroup, 0)
+	for containerID, resources := range buildCtx.ContainerResources {
+		containerName := buildCtx.ContainerNames[containerID]
+		containerResourceGroups = append(containerResourceGroups, ContainerResourceGroup{
+			ContainerID:   containerID,
+			ContainerName: containerName,
+			Resources:     resources,
+		})
+	}
+
 	packageReq := &PackageRequest{
-		Name:           fmt.Sprintf("%s-%s", buildCtx.Service.Name, buildCtx.Build.ID.String()),
-		Compose:        buildCtx.Build.ComposeYAML,
-		Resources:      resourceFiles,
-		DownloadAssets: buildCtx.DownloadAssets,
+		Name:               fmt.Sprintf("%s-%s", buildCtx.Service.Name, buildCtx.Build.ID.String()),
+		Compose:            buildCtx.Build.ComposeYAML,
+		Resources:          resourceFiles,
+		ContainerResources: containerResourceGroups,
+		DownloadAssets:     buildCtx.DownloadAssets,
 	}
 
 	url, err := bs.packager.CreatePackage(ctx, packageReq)
@@ -532,6 +546,15 @@ func (bs *BuildService) collectContainerResources(ctx context.Context, buildCtx 
 		if !sc.Enabled {
 			continue
 		}
+
+		// Load Container to get the name
+		var container models.Container
+		if err := bs.db.First(&container, sc.ContainerID).Error; err != nil {
+			return fmt.Errorf("failed to load container %d: %w", sc.ContainerID, err)
+		}
+
+		// Store container name
+		buildCtx.ContainerNames[sc.ContainerID] = container.Name
 
 		// Load resources for this container version
 		var resources []models.ContainerResource
