@@ -1,8 +1,11 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
+	"path/filepath"
 
 	"github.com/burndler/burndler/internal/models"
 	"github.com/burndler/burndler/internal/storage"
@@ -297,6 +300,11 @@ func (s *ContainerService) CreateVersion(containerID uint, req CreateVersionRequ
 
 // GetVersion retrieves a specific version of a container
 func (s *ContainerService) GetVersion(containerID uint, version string) (*models.ContainerVersion, error) {
+	// Verify container exists first
+	if _, err := s.GetContainer(containerID, false); err != nil {
+		return nil, err
+	}
+
 	var containerVersion models.ContainerVersion
 
 	if err := s.db.Preload("Container").Where("container_id = ? AND version = ?", containerID, version).First(&containerVersion).Error; err != nil {
@@ -395,4 +403,96 @@ func (s *ContainerService) ListVersions(containerID uint, publishedOnly bool) ([
 	}
 
 	return versions, nil
+}
+
+// UploadResource uploads a resource file for a container version
+func (s *ContainerService) UploadResource(ctx context.Context, containerID uint, version string, path string, file *multipart.FileHeader) (*models.ContainerResource, error) {
+	// Verify version exists
+	containerVersion, err := s.GetVersion(containerID, version)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if version can be modified
+	if !containerVersion.CanModify() {
+		return nil, fmt.Errorf("cannot upload resources to published version")
+	}
+
+	// Generate storage key: resources/containers/{containerID}/versions/{versionID}/{path}
+	storageKey := filepath.Join("resources", "containers", fmt.Sprintf("%d", containerID), "versions", fmt.Sprintf("%d", containerVersion.ID), path)
+
+	// Upload file to storage
+	result, err := s.storage.UploadMultipart(ctx, storageKey, file)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload resource: %w", err)
+	}
+
+	// Create resource record
+	resource := &models.ContainerResource{
+		ContainerVersionID: containerVersion.ID,
+		Path:               path,
+		StorageKey:         result.Key,
+		FileSize:           result.Size,
+		Checksum:           result.Checksum,
+		IsDirectory:        false,
+		ContentType:        result.ContentType,
+	}
+
+	if err := s.db.Create(resource).Error; err != nil {
+		// Attempt to delete uploaded file on database error
+		_ = s.storage.Delete(ctx, result.Key)
+		return nil, fmt.Errorf("failed to create resource record: %w", err)
+	}
+
+	return resource, nil
+}
+
+// ListResources returns all resources for a container version
+func (s *ContainerService) ListResources(containerID uint, version string) ([]models.ContainerResource, error) {
+	// Verify version exists
+	containerVersion, err := s.GetVersion(containerID, version)
+	if err != nil {
+		return nil, err
+	}
+
+	var resources []models.ContainerResource
+	if err := s.db.Where("container_version_id = ?", containerVersion.ID).Order("path ASC").Find(&resources).Error; err != nil {
+		return nil, fmt.Errorf("failed to list resources: %w", err)
+	}
+
+	return resources, nil
+}
+
+// DeleteResource deletes a resource from a container version
+func (s *ContainerService) DeleteResource(ctx context.Context, containerID uint, version string, resourceID uint) error {
+	// Verify version exists and can be modified
+	containerVersion, err := s.GetVersion(containerID, version)
+	if err != nil {
+		return err
+	}
+
+	if !containerVersion.CanModify() {
+		return fmt.Errorf("cannot delete resources from published version")
+	}
+
+	// Get resource
+	var resource models.ContainerResource
+	if err := s.db.Where("id = ? AND container_version_id = ?", resourceID, containerVersion.ID).First(&resource).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return fmt.Errorf("resource not found")
+		}
+		return fmt.Errorf("failed to get resource: %w", err)
+	}
+
+	// Delete from storage
+	if err := s.storage.Delete(ctx, resource.StorageKey); err != nil {
+		return fmt.Errorf("failed to delete resource from storage: %w", err)
+	}
+
+	// Delete database record
+	if err := s.db.Delete(&resource).Error; err != nil {
+		return fmt.Errorf("failed to delete resource record: %w", err)
+	}
+
+	return nil
 }
