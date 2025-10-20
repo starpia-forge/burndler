@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"io"
+	"mime/multipart"
 	"time"
 )
 
@@ -11,6 +12,12 @@ import (
 type Storage interface {
 	// Upload stores a file and returns its URL/path
 	Upload(ctx context.Context, key string, reader io.Reader, size int64) (string, error)
+
+	// UploadMultipart handles multipart file upload with automatic content type detection
+	UploadMultipart(ctx context.Context, key string, file *multipart.FileHeader) (UploadResult, error)
+
+	// DownloadBatch retrieves multiple files efficiently
+	DownloadBatch(ctx context.Context, keys []string) (map[string][]byte, error)
 
 	// Download retrieves a file
 	Download(ctx context.Context, key string) (io.ReadCloser, error)
@@ -34,4 +41,13 @@ type FileInfo struct {
 	Size         int64
 	LastModified time.Time
 	ContentType  string
+}
+
+// UploadResult contains the result of an upload operation
+type UploadResult struct {
+	Key         string // Storage key
+	URL         string // Accessible URL
+	Size        int64  // File size in bytes
+	ContentType string // MIME type
+	Checksum    string // SHA256 checksum
 }

@@ -2,15 +2,18 @@ package storage
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"                  //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
-	"github.com/aws/aws-sdk-go/aws/awserr"          //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
-	"github.com/aws/aws-sdk-go/aws/credentials"     //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
-	"github.com/aws/aws-sdk-go/aws/session"         //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
-	"github.com/aws/aws-sdk-go/service/s3"          //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
+	"github.com/aws/aws-sdk-go/aws/awserr"           //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
+	"github.com/aws/aws-sdk-go/aws/credentials"      //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
+	"github.com/aws/aws-sdk-go/aws/session"          //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
+	"github.com/aws/aws-sdk-go/service/s3"           //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
 	"github.com/aws/aws-sdk-go/service/s3/s3manager" //nolint:staticcheck // AWS SDK v1 still in use, v2 migration planned
 	"github.com/burndler/burndler/internal/config"
 )
@@ -183,4 +186,88 @@ func (s *S3Storage) GetURL(ctx context.Context, key string, expiry time.Duration
 	}
 
 	return url, nil
+}
+
+// UploadMultipart handles multipart file upload with automatic content type detection and checksum
+func (s *S3Storage) UploadMultipart(ctx context.Context, key string, file *multipart.FileHeader) (UploadResult, error) {
+	// Open multipart file
+	src, err := file.Open()
+	if err != nil {
+		return UploadResult{}, fmt.Errorf("failed to open multipart file: %w", err)
+	}
+	defer func() {
+		_ = src.Close()
+	}()
+
+	fullKey := s.getFullKey(key)
+
+	// Calculate checksum while uploading
+	hash := sha256.New()
+	reader := io.TeeReader(src, hash)
+
+	// Get content type from file header
+	contentType := file.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+
+	// Upload to S3
+	uploadInput := &s3manager.UploadInput{
+		Bucket:      aws.String(s.bucket),
+		Key:         aws.String(fullKey),
+		Body:        reader,
+		ContentType: aws.String(contentType),
+	}
+
+	result, err := s.uploader.UploadWithContext(ctx, uploadInput)
+	if err != nil {
+		return UploadResult{}, fmt.Errorf("failed to upload to S3: %w", err)
+	}
+
+	checksum := hex.EncodeToString(hash.Sum(nil))
+
+	return UploadResult{
+		Key:         key,
+		URL:         result.Location,
+		Size:        file.Size,
+		ContentType: contentType,
+		Checksum:    checksum,
+	}, nil
+}
+
+// DownloadBatch retrieves multiple files efficiently from S3
+func (s *S3Storage) DownloadBatch(ctx context.Context, keys []string) (map[string][]byte, error) {
+	results := make(map[string][]byte, len(keys))
+
+	for _, key := range keys {
+		fullKey := s.getFullKey(key)
+
+		input := &s3.GetObjectInput{
+			Bucket: aws.String(s.bucket),
+			Key:    aws.String(fullKey),
+		}
+
+		result, err := s.client.GetObjectWithContext(ctx, input)
+		if err != nil {
+			if aerr, ok := err.(awserr.Error); ok {
+				if aerr.Code() == s3.ErrCodeNoSuchKey {
+					// Skip missing files
+					continue
+				}
+			}
+			return nil, fmt.Errorf("failed to download file %s: %w", key, err)
+		}
+		defer func() {
+			_ = result.Body.Close()
+		}()
+
+		data, err := io.ReadAll(result.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read file %s: %w", key, err)
+		}
+
+		results[key] = data
+	}
+
+	return results, nil
 }

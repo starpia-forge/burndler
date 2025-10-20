@@ -2,8 +2,11 @@ package storage
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -284,4 +287,85 @@ func parseSizeString(sizeStr string) (int64, error) {
 	}
 
 	return int64(number * float64(multiplier)), nil
+}
+
+// UploadMultipart handles multipart file upload with automatic content type detection and checksum
+func (l *LocalFSStorage) UploadMultipart(ctx context.Context, key string, file *multipart.FileHeader) (UploadResult, error) {
+	// Open multipart file
+	src, err := file.Open()
+	if err != nil {
+		return UploadResult{}, fmt.Errorf("failed to open multipart file: %w", err)
+	}
+	defer func() {
+		_ = src.Close()
+	}()
+
+	// Check size limit
+	if file.Size > l.maxSizeBytes {
+		return UploadResult{}, fmt.Errorf("file size %d exceeds maximum allowed size %d", file.Size, l.maxSizeBytes)
+	}
+
+	fullPath := l.getFullPath(key)
+
+	// Create directory if it doesn't exist
+	dir := filepath.Dir(fullPath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return UploadResult{}, fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	// Create destination file
+	dst, err := os.Create(fullPath)
+	if err != nil {
+		return UploadResult{}, fmt.Errorf("failed to create file: %w", err)
+	}
+	defer func() {
+		_ = dst.Close()
+	}()
+
+	// Calculate checksum while copying
+	hash := sha256.New()
+	writer := io.MultiWriter(dst, hash)
+
+	written, err := io.Copy(writer, src)
+	if err != nil {
+		return UploadResult{}, fmt.Errorf("failed to write file: %w", err)
+	}
+
+	checksum := hex.EncodeToString(hash.Sum(nil))
+
+	// Get content type from file header
+	contentType := file.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+
+	return UploadResult{
+		Key:         key,
+		URL:         fullPath,
+		Size:        written,
+		ContentType: contentType,
+		Checksum:    checksum,
+	}, nil
+}
+
+// DownloadBatch retrieves multiple files efficiently
+func (l *LocalFSStorage) DownloadBatch(ctx context.Context, keys []string) (map[string][]byte, error) {
+	results := make(map[string][]byte, len(keys))
+
+	for _, key := range keys {
+		fullPath := l.getFullPath(key)
+
+		data, err := os.ReadFile(fullPath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				// Skip missing files
+				continue
+			}
+			return nil, fmt.Errorf("failed to read file %s: %w", key, err)
+		}
+
+		results[key] = data
+	}
+
+	return results, nil
 }

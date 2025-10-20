@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -24,6 +25,24 @@ type mockStorage struct{}
 
 func (m *mockStorage) Upload(ctx context.Context, key string, reader io.Reader, size int64) (string, error) {
 	return "https://example.com/" + key, nil
+}
+
+func (m *mockStorage) UploadMultipart(ctx context.Context, key string, file *multipart.FileHeader) (storage.UploadResult, error) {
+	return storage.UploadResult{
+		Key:         key,
+		URL:         "https://example.com/" + key,
+		Size:        file.Size,
+		ContentType: "application/octet-stream",
+		Checksum:    "mock-checksum",
+	}, nil
+}
+
+func (m *mockStorage) DownloadBatch(ctx context.Context, keys []string) (map[string][]byte, error) {
+	results := make(map[string][]byte)
+	for _, key := range keys {
+		results[key] = []byte("test content")
+	}
+	return results, nil
 }
 
 func (m *mockStorage) Download(ctx context.Context, key string) (io.ReadCloser, error) {

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"mime/multipart"
 	"testing"
 	"time"
 
@@ -27,6 +28,32 @@ func (m *MockStorage) Upload(ctx context.Context, key string, reader io.Reader, 
 		return "", m.UploadError
 	}
 	return "http://mock-storage/" + key, nil
+}
+
+func (m *MockStorage) UploadMultipart(ctx context.Context, key string, file *multipart.FileHeader) (storage.UploadResult, error) {
+	m.UploadCalled = true
+	if m.UploadError != nil {
+		return storage.UploadResult{}, m.UploadError
+	}
+	return storage.UploadResult{
+		Key:         key,
+		URL:         "http://mock-storage/" + key,
+		Size:        file.Size,
+		ContentType: "application/octet-stream",
+		Checksum:    "mock-checksum",
+	}, nil
+}
+
+func (m *MockStorage) DownloadBatch(ctx context.Context, keys []string) (map[string][]byte, error) {
+	m.DownloadCalled = true
+	if m.DownloadError != nil {
+		return nil, m.DownloadError
+	}
+	results := make(map[string][]byte)
+	for _, key := range keys {
+		results[key] = []byte("mock content")
+	}
+	return results, nil
 }
 
 func (m *MockStorage) Download(ctx context.Context, key string) (io.ReadCloser, error) {
