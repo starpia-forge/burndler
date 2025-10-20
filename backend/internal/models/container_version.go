@@ -24,8 +24,9 @@ type ContainerVersion struct {
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relationships
-	Container     Container                `gorm:"foreignKey:ContainerID" json:"container,omitempty"`
+	Container     Container               `gorm:"foreignKey:ContainerID" json:"container,omitempty"`
 	Configuration *ContainerConfiguration `gorm:"foreignKey:ConfigurationID" json:"configuration,omitempty"`
+	Resources     []ContainerResource     `gorm:"foreignKey:ContainerVersionID" json:"resources,omitempty"`
 }
 
 // TableName specifies the table name for ContainerVersion model

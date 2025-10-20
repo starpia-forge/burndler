@@ -24,6 +24,7 @@ func setupBuildServiceTest(t *testing.T) (*gorm.DB, *BuildService) {
 		&models.ServiceContainer{},
 		&models.Container{},
 		&models.ContainerVersion{},
+		&models.ContainerResource{},
 		&models.ContainerConfiguration{},
 		&models.ContainerFile{},
 		&models.ContainerAsset{},
